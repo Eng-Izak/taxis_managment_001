@@ -41,6 +41,7 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
         ),
         centerTitle: false,
         actions: [
+          const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
               Navigator.of(context).push(
@@ -48,6 +49,7 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
               );
             },
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: BlocBuilder<HomeCubit, HomeState>(

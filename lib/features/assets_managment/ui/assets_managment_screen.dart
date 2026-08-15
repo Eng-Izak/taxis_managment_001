@@ -68,6 +68,7 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
         ),
         centerTitle: false,
         actions: [
+          const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
               Navigator.of(context).push(
@@ -75,6 +76,7 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
               );
             },
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: BlocBuilder<HomeCubit, HomeState>(

@@ -45,6 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         centerTitle: false,
         actions: [
+          const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
               Navigator.of(context).push(
@@ -52,6 +53,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
             },
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: SingleChildScrollView(

@@ -35,6 +35,7 @@ class ShareholdersScreen extends StatelessWidget {
         ),
         centerTitle: false,
         actions: [
+          const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
               Navigator.of(context).push(
@@ -42,6 +43,7 @@ class ShareholdersScreen extends StatelessWidget {
               );
             },
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: BlocBuilder<ShareholdersCubit, ShareholdersState>(

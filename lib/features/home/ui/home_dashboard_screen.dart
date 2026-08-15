@@ -39,6 +39,7 @@ class HomeDashboardScreen extends StatelessWidget {
         ),
         centerTitle: false,
         actions: [
+          const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
               Navigator.of(context).push(
@@ -46,6 +47,7 @@ class HomeDashboardScreen extends StatelessWidget {
               );
             },
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: BlocBuilder<HomeCubit, HomeState>(
