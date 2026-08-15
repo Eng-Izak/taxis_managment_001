@@ -67,23 +67,54 @@ class AssetCard extends StatelessWidget {
               );
             },
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Right Vertical Colored Stripe
+            // Right Edge Colored Stripe (Start in RTL)
             Container(
               width: 5,
-              height: 140,
+              height: 120,
               color: stripeColor,
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(14.0),
+                padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Top Row: Plate & Car Model on Right, Status Badge on Left
+                    // Top Row: Plate & Car Model on Right (Expanded to prevent overflow), Status Badge on Left
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        // Right: Plate Number & Car Model
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Text(
+                                asset.plateNumber,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F56B3),
+                                ),
+                              ),
+                              if (asset.carModelYear.isNotEmpty) ...[
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    asset.carModelYear,
+                                    style: const TextStyle(
+                                      fontSize: 11.5,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
                         // Left: Status Badge
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -100,61 +131,18 @@ class AssetCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        // Right: Plate Number & Car Model
-                        Row(
-                          children: [
-                            Text(
-                              asset.carModelYear,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF64748B),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              asset.plateNumber,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF0F56B3),
-                              ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
 
                     const SizedBox(height: 12),
 
-                    // Metrics Row: Return Rate (Left) & Monthly Income (Right)
+                    // Metrics Row: Monthly Income on Right, Return Rate on Left
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Return Rate (Left)
+                        // Right: Monthly Gross Income (الدخل الشهري)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'العائد الشهري',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF64748B),
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${((asset.netMonthlyProfit / (asset.assetValuation > 0 ? asset.assetValuation : 500000)) * 100 * 12).toStringAsFixed(1)}%',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF137333),
-                              ),
-                            ),
-                          ],
-                        ),
-                        // Monthly Income (Right)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             const Text(
                               'الدخل الشهري',
@@ -167,9 +155,32 @@ class AssetCard extends StatelessWidget {
                             Text(
                               AppFormatters.formatCurrency(asset.monthlyRent),
                               style: const TextStyle(
-                                fontSize: 13,
+                                fontSize: 13.5,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF1F2937),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // Left: Monthly Return Yield (العائد الشهري)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const Text(
+                              'العائد الشهري',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${((asset.netMonthlyProfit / (asset.assetValuation > 0 ? asset.assetValuation : 500000)) * 100 * 12).toStringAsFixed(1)}%',
+                              style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF137333),
                               ),
                             ),
                           ],
@@ -187,7 +198,7 @@ class AssetCard extends StatelessWidget {
                           Expanded(
                             flex: 60,
                             child: Container(
-                              height: 6,
+                              height: 5,
                               color: const Color(0xFF0F56B3), // 60% Blue
                             ),
                           ),
@@ -195,7 +206,7 @@ class AssetCard extends StatelessWidget {
                           Expanded(
                             flex: 40,
                             child: Container(
-                              height: 6,
+                              height: 5,
                               color: const Color(0xFF94A3B8), // 40% Grey
                             ),
                           ),
