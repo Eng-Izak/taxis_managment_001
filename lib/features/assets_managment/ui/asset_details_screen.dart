@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/shared/models/asset_model.dart';
 import '../../../../core/utils/formatters.dart';
+import 'add_asset_screen.dart';
 
 class AssetDetailsScreen extends StatelessWidget {
   final AssetModel asset;
@@ -23,8 +24,15 @@ class AssetDetailsScreen extends StatelessWidget {
         centerTitle: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF1F2937)),
-            onPressed: () {},
+            icon: const Icon(Icons.edit_rounded, color: Color(0xFF0F56B3)),
+            tooltip: 'تعديل بيانات الأصل',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => AddAssetScreen(assetToEdit: asset),
+                ),
+              );
+            },
           ),
         ],
       ),

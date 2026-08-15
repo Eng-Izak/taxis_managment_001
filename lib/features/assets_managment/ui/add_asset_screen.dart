@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/shared/widgets/app_button.dart';
 import '../../../../core/shared/widgets/app_text_field.dart';
 import '../../../../core/shared/widgets/app_card.dart';
+import '../../../../core/shared/widgets/app_toast.dart';
 import '../../../../core/shared/models/asset_model.dart';
 import '../../../../core/shared/models/partner_share_model.dart';
 import '../../../../core/shared/models/shareholder_model.dart';
@@ -210,11 +211,10 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
 
     context.read<HomeCubit>().addOrUpdateAsset(asset);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(isEdit ? 'تم تحديث بيانات الأصل بنجاح' : 'تمت إضافة الأصل الجديد للمحفظة بنجاح'),
-        backgroundColor: const Color(0xFF137333),
-      ),
+    AppToast.show(
+      context,
+      message: isEdit ? 'تم تحديث بيانات الأصل بنجاح' : 'تمت إضافة الأصل الجديد للمحفظة بنجاح',
+      duration: const Duration(seconds: 5),
     );
 
     Navigator.of(context).pop();

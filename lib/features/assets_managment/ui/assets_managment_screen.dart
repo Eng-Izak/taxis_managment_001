@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/shared/models/asset_model.dart';
 import '../../../../core/shared/enums/app_enums.dart';
 import '../../../../core/shared/widgets/app_header_widgets.dart';
+import '../../../../core/shared/widgets/app_toast.dart';
 import '../../home/logic/home_cubit.dart';
 import '../../home/logic/home_state.dart';
 import '../../notifications/ui/notifications_screen.dart';
@@ -208,7 +209,120 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
                         padding: const EdgeInsets.all(16.0),
                         itemCount: filteredAssets.length,
                         itemBuilder: (context, index) {
-                          return AssetCard(asset: filteredAssets[index]);
+                          final asset = filteredAssets[index];
+                          return Dismissible(
+                            key: ValueKey('asset_dismiss_${asset.id}'),
+                            direction: DismissDirection.horizontal,
+                            background: Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0F56B3),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              alignment: Alignment.centerRight,
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.edit_rounded, color: Colors.white, size: 24),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'تعديل بيانات الأصل',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            secondaryBackground: Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFC5221F),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              alignment: Alignment.centerLeft,
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    'نقل إلى الأرشيف',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Icon(Icons.archive_rounded, color: Colors.white, size: 24),
+                                ],
+                              ),
+                            ),
+                            confirmDismiss: (direction) async {
+                              if (direction == DismissDirection.startToEnd) {
+                                // Navigate to edit asset screen without removing item from list
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => AddAssetScreen(assetToEdit: asset),
+                                  ),
+                                );
+                                return false;
+                              }
+
+                              return await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: const Row(
+                                    children: [
+                                      Icon(Icons.inventory_2_rounded, color: Color(0xFF0F56B3)),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'نقل إلى الأرشيف',
+                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                  content: Text(
+                                    'هل أنت متأكد من نقل الأصل "${asset.plateNumber} (${asset.carModelYear})" إلى الأرشيف؟',
+                                    style: const TextStyle(fontSize: 13.5, height: 1.4),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(ctx).pop(false),
+                                      child: const Text('إلغاء'),
+                                    ),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF0F56B3),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                      onPressed: () => Navigator.of(ctx).pop(true),
+                                      child: const Text('تأكيد النقل', style: TextStyle(color: Colors.white)),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                            onDismissed: (direction) {
+                              if (direction == DismissDirection.endToStart) {
+                                context.read<HomeCubit>().deleteAsset(asset.id);
+                                AppToast.show(
+                                  context,
+                                  message: 'تم نقل الأصل "${asset.plateNumber}" إلى الأرشيف بنجاح',
+                                  actionLabel: 'تراجع',
+                                  duration: const Duration(seconds: 5),
+                                  onAction: () {
+                                    context.read<HomeCubit>().addOrUpdateAsset(asset);
+                                  },
+                                );
+                              }
+                            },
+                            child: AssetCard(asset: asset),
+                          );
                         },
                       ),
               ),

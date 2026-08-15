@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/shared/widgets/app_card.dart';
+import '../../../../core/shared/widgets/app_toast.dart';
 
 class ArchiveScreen extends StatefulWidget {
   const ArchiveScreen({super.key});
@@ -101,11 +102,10 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
     setState(() {
       _items.removeWhere((i) => i.id == item.id);
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('تمت استعادة "${item.title}" من الأرشيف بنجاح'),
-        backgroundColor: const Color(0xFF137333),
-      ),
+    AppToast.show(
+      context,
+      message: 'تمت استعادة "${item.title}" من الأرشيف بنجاح',
+      duration: const Duration(seconds: 5),
     );
   }
 
@@ -127,8 +127,12 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
               setState(() {
                 _items.removeWhere((i) => i.id == item.id);
               });
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('تم حذف السجل من الأرشيف نهائياً')),
+              AppToast.show(
+                context,
+                message: 'تم حذف السجل من الأرشيف نهائياً',
+                backgroundColor: const Color(0xFFC5221F),
+                icon: Icons.delete_outline_rounded,
+                duration: const Duration(seconds: 5),
               );
             },
             child: const Text('حذف نهائي', style: TextStyle(color: Colors.white)),
