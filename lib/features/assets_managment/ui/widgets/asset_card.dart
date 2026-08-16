@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/models/asset_model.dart';
 import '../../../../core/shared/enums/app_enums.dart';
 import '../../../../core/utils/formatters.dart';
@@ -16,6 +17,7 @@ class AssetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     Color stripeColor;
     String statusText;
     Color statusBgColor;
@@ -23,38 +25,43 @@ class AssetCard extends StatelessWidget {
 
     switch (asset.status) {
       case AssetStatus.active:
-        stripeColor = const Color(0xFF137333); // Green
+        stripeColor = isDark ? const Color(0xFF22C55E) : const Color(0xFF137333); // Green
         statusText = 'نشط';
-        statusBgColor = const Color(0xFFE6F4EA);
-        statusTextColor = const Color(0xFF137333);
+        statusBgColor = isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFE6F4EA);
+        statusTextColor = isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333);
         break;
       case AssetStatus.maintenance:
-        stripeColor = const Color(0xFFE37400); // Orange
+        stripeColor = isDark ? const Color(0xFFF59E0B) : const Color(0xFFE37400); // Orange
         statusText = 'صيانة';
-        statusBgColor = const Color(0xFFFEF7E0);
-        statusTextColor = const Color(0xFFB06000);
+        statusBgColor = isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0);
+        statusTextColor = isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000);
         break;
       case AssetStatus.inactive:
-        stripeColor = const Color(0xFF0F56B3); // Blue
+        stripeColor = isDark ? const Color(0xFF3B82F6) : const Color(0xFF0F56B3); // Blue
         statusText = asset.modelType == AssetType.plateOnly ? 'لوحة مؤجرة' : 'غير نشط';
-        statusBgColor = const Color(0xFFE8F0FE);
-        statusTextColor = const Color(0xFF0F56B3);
+        statusBgColor = isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFE8F0FE);
+        statusTextColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3);
         break;
     }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.darkCard : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x08000000),
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
-        ],
+        border: Border.all(
+          color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0),
+          width: 1,
+        ),
+        boxShadow: isDark
+            ? null
+            : const [
+                BoxShadow(
+                  color: Color(0x08000000),
+                  blurRadius: 6,
+                  offset: Offset(0, 2),
+                ),
+              ],
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -90,10 +97,10 @@ class AssetCard extends StatelessWidget {
                             children: [
                               Text(
                                 asset.plateNumber,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F56B3),
+                                  color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3),
                                 ),
                               ),
                               if (asset.carModelYear.isNotEmpty) ...[
@@ -101,9 +108,9 @@ class AssetCard extends StatelessWidget {
                                 Flexible(
                                   child: Text(
                                     asset.carModelYear,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 11.5,
-                                      color: Color(0xFF64748B),
+                                      color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -121,6 +128,7 @@ class AssetCard extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: statusBgColor,
                             borderRadius: BorderRadius.circular(12),
+                            border: isDark ? Border.all(color: statusTextColor.withValues(alpha: 0.3), width: 0.8) : null,
                           ),
                           child: Text(
                             statusText,
@@ -144,20 +152,20 @@ class AssetCard extends StatelessWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'الدخل الشهري',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: Color(0xFF64748B),
+                                color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               AppFormatters.formatCurrency(asset.monthlyRent),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1F2937),
+                                color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
                               ),
                             ),
                           ],
@@ -167,20 +175,20 @@ class AssetCard extends StatelessWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            const Text(
+                            Text(
                               'العائد الشهري',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: Color(0xFF64748B),
+                                color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               '${((asset.netMonthlyProfit / (asset.assetValuation > 0 ? asset.assetValuation : 500000)) * 100 * 12).toStringAsFixed(1)}%',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF137333),
+                                color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
                               ),
                             ),
                           ],

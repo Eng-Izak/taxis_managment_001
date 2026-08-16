@@ -1,8 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taxis_managment_001/core/shared/models/asset_model.dart';
 import 'package:taxis_managment_001/core/shared/models/partner_share_model.dart';
 import 'package:taxis_managment_001/core/shared/enums/app_enums.dart';
 import 'package:taxis_managment_001/core/utils/financial_calculator.dart';
+import 'package:taxis_managment_001/core/services/local_storage_service.dart';
+import 'package:taxis_managment_001/core/theming/theme_cubit.dart';
 
 void main() {
   group('Taxi Asset Management Financial Engine Tests', () {
@@ -114,4 +117,34 @@ void main() {
       expect(summary.vehicleOnlyCount, 1);
     });
   });
+
+  group('ThemeCubit Tests', () {
+    test('Initializes with default theme mode and toggles seamlessly', () {
+      final storage = LocalStorageService();
+      final cubit = ThemeCubit(storage);
+
+      expect(cubit.state, ThemeMode.light);
+      expect(cubit.isDarkMode, isFalse);
+
+      cubit.toggleTheme();
+      expect(cubit.state, ThemeMode.dark);
+      expect(cubit.isDarkMode, isTrue);
+      expect(storage.getThemeMode(), ThemeMode.dark);
+
+      cubit.toggleTheme();
+      expect(cubit.state, ThemeMode.light);
+      expect(cubit.isDarkMode, isFalse);
+      expect(storage.getThemeMode(), ThemeMode.light);
+    });
+
+    test('Sets theme mode explicitly', () {
+      final storage = LocalStorageService();
+      final cubit = ThemeCubit(storage);
+
+      cubit.setThemeMode(ThemeMode.system);
+      expect(cubit.state, ThemeMode.system);
+      expect(storage.getThemeMode(), ThemeMode.system);
+    });
+  });
 }
+

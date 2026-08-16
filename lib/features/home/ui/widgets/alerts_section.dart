@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/shared/models/alert_item_model.dart';
+import '../../../../core/theming/app_colors.dart';
 
 class AlertsSection extends StatelessWidget {
   final List<AlertItem> alerts;
@@ -9,50 +10,52 @@ class AlertsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
       children: [
         // Card 1: Rent Due (Red Theme)
         _AlertMockCard(
           title: 'إيجار مستحق',
           subtitle: 'لوحة رقم: 1234',
           badgeText: 'متأخر',
-          badgeBgColor: Color(0xFFFCE8E6),
-          badgeTextColor: Color(0xFFC5221F),
-          cardBgColor: Color(0xFFFDF7F7),
-          borderColor: Color(0xFFFCDAD7),
+          badgeBgColor: isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.4) : const Color(0xFFFCE8E6),
+          badgeTextColor: isDark ? const Color(0xFFF87171) : const Color(0xFFC5221F),
+          cardBgColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFFDF7F7),
+          borderColor: isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.5) : const Color(0xFFFCDAD7),
           icon: Icons.warning_rounded,
-          iconBgColor: Color(0xFFFCE8E6),
-          iconColor: Color(0xFFC5221F),
+          iconBgColor: isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.4) : const Color(0xFFFCE8E6),
+          iconColor: isDark ? const Color(0xFFF87171) : const Color(0xFFC5221F),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
 
-        // Card 2: Periodic Maintenance (Grey Theme)
+        // Card 2: Periodic Maintenance (Amber / Neutral Theme)
         _AlertMockCard(
           title: 'صيانة دورية',
           subtitle: 'سيارة رقم: 5678',
           badgeText: 'قادم',
-          badgeBgColor: Color(0xFFE8EAED),
-          badgeTextColor: Color(0xFF5F6368),
-          cardBgColor: Color(0xFFF8F9FA),
-          borderColor: Color(0xFFE8EAED),
+          badgeBgColor: isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0),
+          badgeTextColor: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000),
+          cardBgColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8F9FA),
+          borderColor: isDark ? const Color(0xFF334155) : const Color(0xFFE8EAED),
           icon: Icons.build_rounded,
-          iconBgColor: Color(0xFFE8EAED),
-          iconColor: Color(0xFF5F6368),
+          iconBgColor: isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0),
+          iconColor: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
 
         // Card 3: License Renewal (Blue Theme)
         _AlertMockCard(
           title: 'تجديد رخصة',
           subtitle: 'ينتهي الترخيص خلال 30 يوم',
           badgeText: 'معلومة',
-          badgeBgColor: Color(0xFFD2E3FC),
-          badgeTextColor: Color(0xFF1A73E8),
-          cardBgColor: Color(0xFFEEF4FE),
-          borderColor: Color(0xFFD2E3FC),
+          badgeBgColor: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFD2E3FC),
+          badgeTextColor: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1A73E8),
+          cardBgColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFEEF4FE),
+          borderColor: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.5) : const Color(0xFFD2E3FC),
           icon: Icons.info_rounded,
-          iconBgColor: Color(0xFFD2E3FC),
-          iconColor: Color(0xFF1A73E8),
+          iconBgColor: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFD2E3FC),
+          iconColor: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1A73E8),
         ),
       ],
     );
@@ -86,6 +89,8 @@ class _AlertMockCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
@@ -113,16 +118,19 @@ class _AlertMockCard extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13.5,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F2937),
+                  color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
+                ),
               ),
             ],
           ),

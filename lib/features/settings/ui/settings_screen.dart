@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theming/app_colors.dart';
+import '../../../../core/theming/theme_cubit.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/widgets/app_header_widgets.dart';
 import '../../../../core/shared/widgets/section_header.dart';
@@ -14,7 +16,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _isDarkMode = false;
   String _selectedLanguage = 'العربية (Arabic)';
   bool _rentDueAlerts = true;
   bool _maintenanceAlerts = true;
@@ -25,6 +26,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final currentThemeMode = context.watch<ThemeCubit>().state;
 
     return Scaffold(
       appBar: AppBar(
@@ -45,6 +47,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         centerTitle: false,
         actions: [
+          const ThemeToggleIconButton(),
           const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
@@ -67,30 +70,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leadingIcon: Icons.palette_outlined,
             ),
             AppCard(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: SwitchListTile.adaptive(
-                value: _isDarkMode,
-                onChanged: (val) => setState(() => _isDarkMode = val),
-                activeThumbColor: AppColors.primary,
-                title: const Text(
-                  'الوضع الداكن (Dark Theme)',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                ),
-                subtitle: Text(
-                  'تفعيل المظهر الداكن لتقليل إجهاد العين وتوفير الطاقة',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                children: [
+                  _ThemeSelectionTile(
+                    label: 'الوضع الفاتح (Light Mode)',
+                    subtitle: 'واجهة نهارية مشرقة وعالية التباين',
+                    icon: Icons.light_mode_rounded,
+                    isSelected: currentThemeMode == ThemeMode.light,
+                    iconColor: const Color(0xFFD97706),
+                    onTap: () => context.read<ThemeCubit>().setThemeMode(ThemeMode.light),
                   ),
-                ),
-                secondary: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                  const SizedBox(height: 8),
+                  _ThemeSelectionTile(
+                    label: 'الوضع الداكن (Dark Mode)',
+                    subtitle: 'مظهر مسائي مريح للعين وموفر للطاقة',
+                    icon: Icons.dark_mode_rounded,
+                    isSelected: currentThemeMode == ThemeMode.dark,
+                    iconColor: const Color(0xFF3B82F6),
+                    onTap: () => context.read<ThemeCubit>().setThemeMode(ThemeMode.dark),
                   ),
-                  child: const Icon(Icons.dark_mode_outlined, color: AppColors.primary, size: 20),
-                ),
+                  const SizedBox(height: 8),
+                  _ThemeSelectionTile(
+                    label: 'تلقائي حسب النظام (System Default)',
+                    subtitle: 'مزامنة السمة تلقائياً مع إعدادات جهازك',
+                    icon: Icons.brightness_auto_rounded,
+                    isSelected: currentThemeMode == ThemeMode.system,
+                    iconColor: const Color(0xFF10B981),
+                    onTap: () => context.read<ThemeCubit>().setThemeMode(ThemeMode.system),
+                  ),
+                ],
               ),
             ),
 
@@ -102,7 +111,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leadingIcon: Icons.language_rounded,
             ),
             AppCard(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(14),
               child: Column(
                 children: [
                   _LanguageSelectionTile(
@@ -134,66 +143,87 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SwitchListTile.adaptive(
                     value: _rentDueAlerts,
                     onChanged: (val) => setState(() => _rentDueAlerts = val),
-                    activeThumbColor: AppColors.primary,
+                    activeThumbColor: isDark ? AppColors.primaryLight : AppColors.primary,
                     title: const Text(
                       'تنبيهات استحقاق الإيجارات',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: Text(
                       'إشعارات فورية عند استحقاق أو تأخر إيجار السائقين',
-                      style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                      ),
                     ),
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFEF7E0),
+                        color: isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.monetization_on_outlined, color: Color(0xFFB06000), size: 20),
+                      child: Icon(
+                        Icons.monetization_on_outlined,
+                        color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000),
+                        size: 20,
+                      ),
                     ),
                   ),
                   const Divider(height: 1),
                   SwitchListTile.adaptive(
                     value: _maintenanceAlerts,
                     onChanged: (val) => setState(() => _maintenanceAlerts = val),
-                    activeThumbColor: AppColors.primary,
+                    activeThumbColor: isDark ? AppColors.primaryLight : AppColors.primary,
                     title: const Text(
                       'مواعيد الصيانة الدورية',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: Text(
                       'تذكير بمواعيد تغيير الزيت والفحص الدوري للسيارات',
-                      style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                      ),
                     ),
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE8F0FE),
+                        color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFE8F0FE),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.build_outlined, color: Color(0xFF0F56B3), size: 20),
+                      child: Icon(
+                        Icons.build_outlined,
+                        color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3),
+                        size: 20,
+                      ),
                     ),
                   ),
                   const Divider(height: 1),
                   SwitchListTile.adaptive(
                     value: _licenseRenewalAlerts,
                     onChanged: (val) => setState(() => _licenseRenewalAlerts = val),
-                    activeThumbColor: AppColors.primary,
+                    activeThumbColor: isDark ? AppColors.primaryLight : AppColors.primary,
                     title: const Text(
                       'تجديد رخص التسيير والتأمين',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: Text(
                       'إشعار مسبق قبل انتهاء التراخيص بـ 30 يوماً',
-                      style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                      ),
                     ),
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE6F4EA),
+                        color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFE6F4EA),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.description_outlined, color: Color(0xFF137333), size: 20),
+                      child: Icon(
+                        Icons.description_outlined,
+                        color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
+                        size: 20,
+                      ),
                     ),
                   ),
                 ],
@@ -214,44 +244,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SwitchListTile.adaptive(
                     value: _biometricEnabled,
                     onChanged: (val) => setState(() => _biometricEnabled = val),
-                    activeThumbColor: AppColors.primary,
+                    activeThumbColor: isDark ? AppColors.primaryLight : AppColors.primary,
                     title: const Text(
                       'التحقق ببصمة الإصبع / الوجه',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: Text(
                       'طلب المصادقة البيومترية عند فتح التطبيق',
-                      style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                      ),
                     ),
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
+                        color: (isDark ? AppColors.primaryLight : AppColors.primary).withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.fingerprint_rounded, color: AppColors.primary, size: 20),
+                      child: Icon(
+                        Icons.fingerprint_rounded,
+                        color: isDark ? AppColors.primaryLight : AppColors.primary,
+                        size: 20,
+                      ),
                     ),
                   ),
                   const Divider(height: 1),
                   SwitchListTile.adaptive(
                     value: _autoLockEnabled,
                     onChanged: (val) => setState(() => _autoLockEnabled = val),
-                    activeThumbColor: AppColors.primary,
+                    activeThumbColor: isDark ? AppColors.primaryLight : AppColors.primary,
                     title: const Text(
                       'القفل التلقائي للجلسة',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: Text(
                       'قفل الشاشة عند الخروج من التطبيق للحماية',
-                      style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                      ),
                     ),
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
+                        color: (isDark ? AppColors.primaryLight : AppColors.primary).withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.lock_clock_outlined, color: AppColors.primary, size: 20),
+                      child: Icon(
+                        Icons.lock_clock_outlined,
+                        color: isDark ? AppColors.primaryLight : AppColors.primary,
+                        size: 20,
+                      ),
                     ),
                   ),
                   const Divider(height: 1),
@@ -259,13 +303,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
+                        color: (isDark ? AppColors.primaryLight : AppColors.primary).withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.pin_outlined, color: AppColors.primary, size: 20),
+                      child: Icon(
+                        Icons.pin_outlined,
+                        color: isDark ? AppColors.primaryLight : AppColors.primary,
+                        size: 20,
+                      ),
                     ),
                     title: const Text('إعدادات رمز المرور المتقدمة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    subtitle: const Text('تغيير كود PIN السري للمحفظة', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                    subtitle: Text(
+                      'تغيير كود PIN السري للمحفظة',
+                      style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
+                    ),
                     trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
                     onTap: () {
                       Navigator.of(context).push(
@@ -292,13 +343,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE8F0FE),
+                        color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFE8F0FE),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.file_download_outlined, color: Color(0xFF0F56B3), size: 20),
+                      child: Icon(
+                        Icons.file_download_outlined,
+                        color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3),
+                        size: 20,
+                      ),
                     ),
                     title: const Text('تصدير تقرير المحفظة والأرباح (Excel/PDF)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    subtitle: const Text('تنزيل كشف حساب شامل وتوزيعات الشركاء', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                    subtitle: Text(
+                      'تنزيل كشف حساب شامل وتوزيعات الشركاء',
+                      style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
+                    ),
                     trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -311,14 +369,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE6F4EA),
+                        color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFE6F4EA),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.sync_rounded, color: Color(0xFF137333), size: 20),
+                      child: Icon(
+                        Icons.sync_rounded,
+                        color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
+                        size: 20,
+                      ),
                     ),
                     title: const Text('المزامنة السحابية الفورية', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    subtitle: const Text('آخر مزامنة ناجحة: اليوم 09:30 ص', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-                    trailing: const Text('متصل', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF137333))),
+                    subtitle: Text(
+                      'آخر مزامنة ناجحة: اليوم 09:30 ص',
+                      style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
+                    ),
+                    trailing: Text(
+                      'متصل',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
+                      ),
+                    ),
                     onTap: () {},
                   ),
                 ],
@@ -372,6 +444,97 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 }
 
+class _ThemeSelectionTile extends StatelessWidget {
+  final String label;
+  final String subtitle;
+  final IconData icon;
+  final bool isSelected;
+  final Color iconColor;
+  final VoidCallback onTap;
+
+  const _ThemeSelectionTile({
+    required this.label,
+    required this.subtitle,
+    required this.icon,
+    required this.isSelected,
+    required this.iconColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : AppColors.primary;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.35) : const Color(0xFFE8F0FE))
+              : (isDark ? const Color(0xFF162032) : const Color(0xFFF8F9FA)),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? primaryColor
+                : (isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: isDark ? 0.2 : 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      color: isSelected
+                          ? primaryColor
+                          : (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(Icons.check_circle_rounded, color: primaryColor, size: 20)
+            else
+              Icon(
+                Icons.circle_outlined,
+                color: isDark ? AppColors.darkCardBorder : const Color(0xFF94A3B8),
+                size: 20,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _LanguageSelectionTile extends StatelessWidget {
   final String label;
   final bool isSelected;
@@ -385,16 +548,22 @@ class _LanguageSelectionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : AppColors.primary;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFE8F0FE) : Colors.transparent,
+          color: isSelected
+              ? (isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.35) : const Color(0xFFE8F0FE))
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
+            color: isSelected ? primaryColor : (isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
+            width: isSelected ? 1.5 : 1.0,
           ),
         ),
         child: Row(
@@ -405,13 +574,13 @@ class _LanguageSelectionTile extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? AppColors.primary : const Color(0xFF1F2937),
+                color: isSelected ? primaryColor : (isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937)),
               ),
             ),
             if (isSelected)
-              const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 18)
+              Icon(Icons.check_circle_rounded, color: primaryColor, size: 18)
             else
-              const Icon(Icons.circle_outlined, color: Color(0xFF94A3B8), size: 18),
+              Icon(Icons.circle_outlined, color: isDark ? AppColors.darkCardBorder : const Color(0xFF94A3B8), size: 18),
           ],
         ),
       ),

@@ -10,6 +10,8 @@ class AppCard extends StatelessWidget {
   final Color? borderColor;
   final double borderRadius;
   final Gradient? gradient;
+  final double? width;
+  final double? height;
 
   const AppCard({
     super.key,
@@ -21,6 +23,8 @@ class AppCard extends StatelessWidget {
     this.borderColor,
     this.borderRadius = 16.0,
     this.gradient,
+    this.width,
+    this.height,
   });
 
   @override
@@ -30,6 +34,8 @@ class AppCard extends StatelessWidget {
     final defaultBorder = isDark ? AppColors.darkCardBorder : AppColors.lightCardBorder;
 
     Widget content = Container(
+      width: width,
+      height: height,
       margin: margin,
       decoration: BoxDecoration(
         color: gradient == null ? (backgroundColor ?? defaultBg) : null,

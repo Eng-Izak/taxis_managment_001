@@ -41,6 +41,7 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
         ),
         centerTitle: false,
         actions: [
+          const ThemeToggleIconButton(),
           const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
@@ -441,21 +442,31 @@ class _PeriodFilterPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3);
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0F56B3) : const Color(0xFFF1F5F9),
+          color: isSelected
+              ? primaryColor
+              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
           borderRadius: BorderRadius.circular(20),
+          border: isDark && !isSelected
+              ? Border.all(color: const Color(0xFF334155), width: 1)
+              : null,
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? Colors.white : const Color(0xFF64748B),
+            color: isSelected
+                ? Colors.white
+                : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B)),
           ),
         ),
       ),
@@ -490,6 +501,9 @@ class _CollectionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Row(
@@ -503,22 +517,23 @@ class _CollectionItem extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: amountColor,
+                  color: isDark && amountColor == const Color(0xFF137333) ? const Color(0xFF4ADE80) : amountColor,
                 ),
               ),
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: statusBgColor,
+                  color: isDark ? statusBgColor.withValues(alpha: 0.35) : statusBgColor,
                   borderRadius: BorderRadius.circular(10),
+                  border: isDark ? Border.all(color: statusTextColor.withValues(alpha: 0.3), width: 0.8) : null,
                 ),
                 child: Text(
                   statusText,
                   style: TextStyle(
                     fontSize: 9.5,
                     fontWeight: FontWeight.bold,
-                    color: statusTextColor,
+                    color: isDark && statusTextColor == const Color(0xFF137333) ? const Color(0xFF4ADE80) : statusTextColor,
                   ),
                 ),
               ),
@@ -531,18 +546,18 @@ class _CollectionItem extends StatelessWidget {
             children: [
               Text(
                 plateNumber,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF0F56B3),
+                  color: primaryColor,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                 ),
               ),
             ],
@@ -553,11 +568,12 @@ class _CollectionItem extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: iconBgColor,
+              color: isDark ? const Color(0xFF1E293B) : iconBgColor,
               borderRadius: BorderRadius.circular(10),
+              border: isDark ? Border.all(color: const Color(0xFF334155), width: 1) : null,
             ),
             child: Center(
-              child: Icon(icon, color: iconColor, size: 20),
+              child: Icon(icon, color: isDark ? primaryColor : iconColor, size: 20),
             ),
           ),
         ],
@@ -565,3 +581,4 @@ class _CollectionItem extends StatelessWidget {
     );
   }
 }
+

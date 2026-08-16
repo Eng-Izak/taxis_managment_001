@@ -88,6 +88,8 @@ class _CenterHomeNavBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -96,18 +98,25 @@ class _CenterHomeNavBarItem extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
               gradient: isSelected
-                  ? const LinearGradient(
-                      colors: [Color(0xFF0F56B3), Color(0xFF1E3A8A)],
+                  ? LinearGradient(
+                      colors: isDark
+                          ? [const Color(0xFF2563EB), const Color(0xFF1D4ED8)]
+                          : [const Color(0xFF0F56B3), const Color(0xFF1E3A8A)],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                     )
                   : null,
-              color: isSelected ? null : const Color(0xFFE8F0FE),
+              color: isSelected
+                  ? null
+                  : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F0FE)),
               borderRadius: BorderRadius.circular(16),
+              border: isDark && !isSelected
+                  ? Border.all(color: AppColors.darkCardBorder, width: 1)
+                  : null,
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: const Color(0xFF0F56B3).withValues(alpha: 0.35),
+                        color: (isDark ? const Color(0xFF3B82F6) : const Color(0xFF0F56B3)).withValues(alpha: 0.35),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -121,7 +130,9 @@ class _CenterHomeNavBarItem extends StatelessWidget {
                 Icon(
                   Icons.home_rounded,
                   size: 22,
-                  color: isSelected ? Colors.white : const Color(0xFF0F56B3),
+                  color: isSelected
+                      ? Colors.white
+                      : (isDark ? AppColors.primaryLight : const Color(0xFF0F56B3)),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -129,7 +140,9 @@ class _CenterHomeNavBarItem extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10.5,
                     fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : const Color(0xFF0F56B3),
+                    color: isSelected
+                        ? Colors.white
+                        : (isDark ? AppColors.primaryLight : const Color(0xFF0F56B3)),
                   ),
                 ),
               ],
@@ -157,6 +170,7 @@ class _NavBarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final selectedColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
 
     return Expanded(
       child: InkWell(
@@ -178,7 +192,7 @@ class _NavBarItem extends StatelessWidget {
                   icon,
                   size: 21,
                   color: isSelected
-                      ? const Color(0xFF0F56B3)
+                      ? selectedColor
                       : (isDark ? AppColors.darkTextTertiary : const Color(0xFF5F6368)),
                 ),
                 const SizedBox(height: 3),
@@ -188,7 +202,7 @@ class _NavBarItem extends StatelessWidget {
                     fontSize: 10.5,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                     color: isSelected
-                        ? const Color(0xFF0F56B3)
+                        ? selectedColor
                         : (isDark ? AppColors.darkTextTertiary : const Color(0xFF5F6368)),
                   ),
                 ),

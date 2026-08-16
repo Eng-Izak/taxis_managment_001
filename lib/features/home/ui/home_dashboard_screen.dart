@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_header_widgets.dart';
 import '../logic/home_cubit.dart';
 import '../logic/home_state.dart';
@@ -20,6 +21,10 @@ class HomeDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryTextColor = isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937);
+    final secondaryTextColor = isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B);
+
     return Scaffold(
       appBar: AppBar(
         title: const Row(
@@ -39,6 +44,7 @@ class HomeDashboardScreen extends StatelessWidget {
         ),
         centerTitle: false,
         actions: [
+          const ThemeToggleIconButton(),
           const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
@@ -62,20 +68,20 @@ class HomeDashboardScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Greeting (starts on right in RTL)
-                  const Text(
+                  Text(
                     'مرحباً بعودتك، مدير الأسطول',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1F2937),
+                      color: primaryTextColor,
                     ),
                   ),
                   const SizedBox(height: 2),
-                  const Text(
+                  Text(
                     'نظرة عامة على أداء محفظتك اليوم',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF64748B),
+                      color: secondaryTextColor,
                     ),
                   ),
 
@@ -88,12 +94,12 @@ class HomeDashboardScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Section Title: توزيع الأصول
-                  const Text(
+                  Text(
                     'توزيع الأصول',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1F2937),
+                      color: primaryTextColor,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -117,12 +123,12 @@ class HomeDashboardScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'التنبيهات والمواعيد',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F2937),
+                          color: primaryTextColor,
                         ),
                       ),
                       GestureDetector(
@@ -134,7 +140,7 @@ class HomeDashboardScreen extends StatelessWidget {
                         child: const Text(
                           'عرض الكل',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF0F56B3),
                           ),

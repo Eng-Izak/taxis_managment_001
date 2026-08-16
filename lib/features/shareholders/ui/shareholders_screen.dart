@@ -15,6 +15,8 @@ class ShareholdersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final allAssets = context.watch<HomeCubit>().state.assets;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3);
 
     return Scaffold(
       appBar: AppBar(
@@ -35,6 +37,7 @@ class ShareholdersScreen extends StatelessWidget {
         ),
         centerTitle: false,
         actions: [
+          const ThemeToggleIconButton(),
           const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
@@ -67,7 +70,7 @@ class ShareholdersScreen extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0F56B3),
+                          color: primaryColor,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Row(
@@ -88,12 +91,12 @@ class ShareholdersScreen extends StatelessWidget {
                     ),
 
                     // Title on Right
-                    const Text(
+                    Text(
                       'قائمة المساهمين والشركاء',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F56B3),
+                        color: primaryColor,
                       ),
                     ),
                   ],

@@ -3,6 +3,7 @@ import '../services/local_storage_service.dart';
 import '../shared/repos/asset_repository.dart';
 import '../shared/repos/partner_repository.dart';
 import '../shared/repos/finance_repository.dart';
+import '../theming/theme_cubit.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -10,6 +11,11 @@ Future<void> setupDependencyInjection() async {
   // Services
   final storageService = LocalStorageService();
   getIt.registerSingleton<LocalStorageService>(storageService);
+
+  // Theme Cubit
+  getIt.registerLazySingleton<ThemeCubit>(
+    () => ThemeCubit(getIt<LocalStorageService>()),
+  );
 
   // Repositories
   getIt.registerLazySingleton<AssetRepository>(
@@ -24,3 +30,4 @@ Future<void> setupDependencyInjection() async {
     () => FinanceRepository(getIt<LocalStorageService>()),
   );
 }
+

@@ -18,10 +18,18 @@ class _SecurityScreenState extends State<SecurityScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : AppColors.primary;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الأمان والتحقق البيومتري'),
+        title: Text(
+          'الأمان والتحقق البيومتري',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+            color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -34,7 +42,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                   SwitchListTile.adaptive(
                     value: _biometricsEnabled,
                     onChanged: (val) => setState(() => _biometricsEnabled = val),
-                    activeThumbColor: AppColors.primary,
+                    activeThumbColor: primaryColor,
                     title: const Text(
                       'تفعيل بصمة الإصبع / Face ID',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
@@ -43,13 +51,13 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       'تسجيل الدخول السريع عبر المصادقة البيومترية',
                       style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
                     ),
-                    secondary: const Icon(Icons.fingerprint_rounded, color: AppColors.primary),
+                    secondary: Icon(Icons.fingerprint_rounded, color: primaryColor),
                   ),
                   const Divider(height: 1),
                   SwitchListTile.adaptive(
                     value: _requirePinForTransactions,
                     onChanged: (val) => setState(() => _requirePinForTransactions = val),
-                    activeThumbColor: AppColors.primary,
+                    activeThumbColor: primaryColor,
                     title: const Text(
                       'طلب رمز PIN عند تسجيل المعاملات',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
@@ -58,13 +66,13 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       'تأكيد إضافي قبل صرف الأرباح أو إضافة المصروفات',
                       style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
                     ),
-                    secondary: const Icon(Icons.lock_outline_rounded, color: AppColors.primary),
+                    secondary: Icon(Icons.lock_outline_rounded, color: primaryColor),
                   ),
                   const Divider(height: 1),
                   SwitchListTile.adaptive(
                     value: _autoLockEnabled,
                     onChanged: (val) => setState(() => _autoLockEnabled = val),
-                    activeThumbColor: AppColors.primary,
+                    activeThumbColor: primaryColor,
                     title: const Text(
                       'القفل التلقائي للتطبيق',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
@@ -73,7 +81,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       'قفل الشاشة عند مغادرة التطبيق لمدة 3 دقائق',
                       style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
                     ),
-                    secondary: const Icon(Icons.timer_outlined, color: AppColors.primary),
+                    secondary: Icon(Icons.timer_outlined, color: primaryColor),
                   ),
                 ],
               ),

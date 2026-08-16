@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
+import '../../../../core/shared/widgets/app_header_widgets.dart';
 
 enum NotificationFilter { all, financial, maintenance, documents }
 
@@ -16,10 +17,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+    final textHeaderColor = isDark ? AppColors.darkTextPrimary : const Color(0xFF374151);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الإشعارات'),
-        centerTitle: true,
+        title: Text(
+          'الإشعارات',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+            color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
+          ),
+        ),
+        centerTitle: false,
+        actions: const [
+          ThemeToggleIconButton(),
+          SizedBox(width: 8),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -65,68 +81,91 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             const SizedBox(height: 24),
 
             // Section: اليوم (Today)
-            const Text(
+            Text(
               'اليوم',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF374151),
+                color: textHeaderColor,
               ),
             ),
             const SizedBox(height: 12),
 
             // Item 1: Payment Received
-            const _NotificationItemCard(
+            _NotificationItemCard(
               title: 'تم استلام مبلغ 1,500 ج.م من لوحة 1234',
               timeText: 'منذ 10 دقائق',
               icon: Icons.account_balance_wallet_rounded,
-              iconColor: Color(0xFF137333),
-              iconBgColor: Color(0xFFE6F4EA),
+              iconColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
+              iconBgColor: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFE6F4EA),
               hasUnreadDot: true,
             ),
             const SizedBox(height: 10),
 
             // Item 2: Overdue Rent
-            const _NotificationItemCard(
+            _NotificationItemCard(
               title: 'تأخير في سداد إيجار لوحة 5678 -\nمحمود خالد',
               timeText: 'منذ 2 ساعة',
               icon: Icons.warning_rounded,
-              iconColor: Color(0xFFC5221F),
-              iconBgColor: Color(0xFFFCE8E6),
+              iconColor: isDark ? const Color(0xFFF87171) : const Color(0xFFC5221F),
+              iconBgColor: isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.4) : const Color(0xFFFCE8E6),
               hasUnreadDot: true,
             ),
             const SizedBox(height: 10),
 
             // Item 3: Maintenance Notice
-            const _NotificationItemCard(
-              title: 'موعد صيانة دورية لسيارة 1234 غداً',
-              timeText: '09:30 صباحاً',
+            _NotificationItemCard(
+              title: 'موعد تغيير الزيت القادم لسيارة\nتويوتا كورولا (أ ب ج 1234)',
+              timeText: 'منذ 5 ساعات',
               icon: Icons.build_rounded,
-              iconColor: Color(0xFF5F6368),
-              iconBgColor: Color(0xFFF1F3F4),
+              iconColor: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000),
+              iconBgColor: isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0),
               hasUnreadDot: false,
             ),
 
             const SizedBox(height: 24),
 
             // Section: أمس (Yesterday)
-            const Text(
+            Text(
               'أمس',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF374151),
+                color: textHeaderColor,
               ),
             ),
             const SizedBox(height: 12),
 
-            // Item 4: License Expiring
-            const _NotificationItemCard(
-              title: 'رخصة السيارة 9012 تنتهي خلال 30 يوم',
-              timeText: 'أمس، 14:15',
+            // Item 4: License Renewal Alert
+            _NotificationItemCard(
+              title: 'تنبيه: اقتراب انتهاء رخصة تسيير\nلوحة 9012 (متبقي 30 يوماً)',
+              timeText: 'أمس 04:30 م',
               icon: Icons.description_rounded,
-              iconColor: Color(0xFF1A73E8),
-              iconBgColor: Color(0xFFE8F0FE),
+              iconColor: primaryColor,
+              iconBgColor: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFE8F0FE),
+              hasUnreadDot: false,
+            ),
+
+            const SizedBox(height: 24),
+
+            // Section: هذا الأسبوع (This Week)
+            Text(
+              'هذا الأسبوع',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: textHeaderColor,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Item 5: Monthly Report Exported
+            _NotificationItemCard(
+              title: 'تم تصدير تقرير توزيعات الأرباح\nلشهر سبتمبر بنجاح',
+              timeText: 'الأحد 09:00 ص',
+              icon: Icons.file_download_done_rounded,
+              iconColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
+              iconBgColor: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFE6F4EA),
               hasUnreadDot: false,
             ),
 
@@ -153,14 +192,23 @@ class _NotificationFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0F56B3) : const Color(0xFFF1F3F4),
+          color: isSelected
+              ? primaryColor
+              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
           borderRadius: BorderRadius.circular(20),
+          border: isDark && !isSelected
+              ? Border.all(color: AppColors.darkCardBorder, width: 1)
+              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -168,9 +216,11 @@ class _NotificationFilterChip extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : const Color(0xFF3C4043),
+                fontSize: 12.5,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B)),
               ),
             ),
             if (count != null) ...[
@@ -179,7 +229,7 @@ class _NotificationFilterChip extends StatelessWidget {
                 width: 18,
                 height: 18,
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.white : const Color(0xFF0F56B3),
+                  color: isSelected ? Colors.white : primaryColor,
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -188,7 +238,7 @@ class _NotificationFilterChip extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: isSelected ? const Color(0xFF0F56B3) : Colors.white,
+                      color: isSelected ? primaryColor : Colors.white,
                     ),
                   ),
                 ),
@@ -221,20 +271,21 @@ class _NotificationItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
 
     return AppCard(
       padding: const EdgeInsets.all(16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Unread Blue Dot
+          // Unread Dot
           if (hasUnreadDot)
             Container(
               width: 8,
               height: 8,
               margin: const EdgeInsets.only(top: 14, left: 8),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F56B3),
+              decoration: BoxDecoration(
+                color: primaryColor,
                 shape: BoxShape.circle,
               ),
             )
@@ -258,9 +309,9 @@ class _NotificationItemCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   timeText,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: Color(0xFF94A3B8),
+                    color: isDark ? AppColors.darkTextTertiary : const Color(0xFF94A3B8),
                   ),
                 ),
               ],
@@ -276,6 +327,7 @@ class _NotificationItemCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: iconBgColor,
               borderRadius: BorderRadius.circular(12),
+              border: isDark ? Border.all(color: iconColor.withValues(alpha: 0.3), width: 0.8) : null,
             ),
             child: Center(
               child: Icon(icon, color: iconColor, size: 22),

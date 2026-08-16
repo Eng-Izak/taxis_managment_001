@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import '../shared/models/asset_model.dart';
 import '../shared/models/partner_share_model.dart';
 import '../shared/models/shareholder_model.dart';
@@ -366,4 +367,14 @@ class LocalStorageService {
   void dismissAlert(String alertId) {
     _alerts.removeWhere((a) => a.id == alertId);
   }
+
+  // Theme Mode Operations
+  ThemeMode _themeMode = ThemeMode.light;
+
+  ThemeMode getThemeMode() => _themeMode;
+
+  void setThemeMode(ThemeMode mode) {
+    _themeMode = mode;
+  }
 }
+

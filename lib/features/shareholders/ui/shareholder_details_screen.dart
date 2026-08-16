@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/models/shareholder_model.dart';
 
@@ -9,8 +10,24 @@ class ShareholderDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+    final textPrimary = isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937);
+    final textSecondary = isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B);
+    final textTertiary = isDark ? AppColors.darkTextTertiary : const Color(0xFF94A3B8);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('تفاصيل المساهم'), centerTitle: false),
+      appBar: AppBar(
+        title: Text(
+          'تفاصيل المساهم',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+            color: textPrimary,
+          ),
+        ),
+        centerTitle: false,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Column(
@@ -21,7 +38,7 @@ class ShareholderDetailsScreen extends StatelessWidget {
               child: Row(
                 children: [
                   // Left Side: Total Investment, Email, Phone
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -29,37 +46,37 @@ class ShareholderDetailsScreen extends StatelessWidget {
                           'إجمالي الاستثمار',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Color(0xFF64748B),
+                            color: textSecondary,
                           ),
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
                           '1,250,000 ج.م',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w900,
-                            color: Color(0xFF0F56B3),
+                            color: primaryColor,
                           ),
                         ),
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
                         Row(
                           children: [
-                            Icon(Icons.email_outlined, size: 14, color: Color(0xFF64748B)),
-                            SizedBox(width: 4),
+                            Icon(Icons.email_outlined, size: 14, color: textTertiary),
+                            const SizedBox(width: 4),
                             Text(
                               'ahmed@example.com',
-                              style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                              style: TextStyle(fontSize: 11, color: textTertiary),
                             ),
                           ],
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Row(
                           children: [
-                            Icon(Icons.phone_outlined, size: 14, color: Color(0xFF64748B)),
-                            SizedBox(width: 4),
+                            Icon(Icons.phone_outlined, size: 14, color: textTertiary),
+                            const SizedBox(width: 4),
                             Text(
                               '+20 100 123 4567',
-                              style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                              style: TextStyle(fontSize: 11, color: textTertiary),
                             ),
                           ],
                         ),
@@ -76,32 +93,33 @@ class ShareholderDetailsScreen extends StatelessWidget {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE2E8F0),
+                          color: isDark ? const Color(0xFF131D31) : const Color(0xFFE2E8F0),
                           borderRadius: BorderRadius.circular(14),
+                          border: isDark ? Border.all(color: AppColors.darkCardBorder, width: 1) : null,
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Icon(
                             Icons.person_rounded,
                             size: 32,
-                            color: Color(0xFF5F6368),
+                            color: isDark ? textSecondary : const Color(0xFF5F6368),
                           ),
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         shareholder.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F56B3),
+                          color: primaryColor,
                         ),
                       ),
                       const SizedBox(height: 2),
-                      const Text(
+                      Text(
                         'مستثمر رئيسي',
                         style: TextStyle(
                           fontSize: 11,
-                          color: Color(0xFF64748B),
+                          color: textSecondary,
                         ),
                       ),
                     ],
@@ -117,8 +135,22 @@ class ShareholderDetailsScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: const Color(0xFF0F56B3),
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [const Color(0xFF1E3A8A), const Color(0xFF1E293B)]
+                      : [const Color(0xFF0F56B3), const Color(0xFF1E3A8A)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.circular(16),
+                border: isDark ? Border.all(color: AppColors.darkCardBorder, width: 1) : null,
+                boxShadow: [
+                  BoxShadow(
+                    color: (isDark ? const Color(0xFF1E3A8A) : const Color(0xFF0F56B3)).withValues(alpha: 0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -127,7 +159,7 @@ class ShareholderDetailsScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Row(
@@ -175,7 +207,7 @@ class ShareholderDetailsScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Section Header: الأصول المستثمر بها (4)
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
@@ -183,7 +215,7 @@ class ShareholderDetailsScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F56B3),
+                    color: primaryColor,
                   ),
                 ),
               ],
@@ -251,14 +283,12 @@ class _InvestedAssetMockCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+
+    return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
       child: Column(
         children: [
           Row(
@@ -267,20 +297,20 @@ class _InvestedAssetMockCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'العائد الشهري',
                     style: TextStyle(
                       fontSize: 11,
-                      color: Color(0xFF64748B),
+                      color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     monthlyReturn,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF137333),
+                      color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
                     ),
                   ),
                 ],
@@ -292,18 +322,18 @@ class _InvestedAssetMockCard extends StatelessWidget {
                 children: [
                   Text(
                     plateNumber,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F56B3),
+                      color: primaryColor,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     carName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: Color(0xFF64748B),
+                      color: isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B),
                     ),
                   ),
                 ],
@@ -313,10 +343,11 @@ class _InvestedAssetMockCard extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F0FE),
+                  color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFE8F0FE),
                   borderRadius: BorderRadius.circular(8),
+                  border: isDark ? Border.all(color: primaryColor.withValues(alpha: 0.3), width: 0.8) : null,
                 ),
-                child: Icon(icon, color: const Color(0xFF0F56B3), size: 18),
+                child: Icon(icon, color: primaryColor, size: 18),
               ),
             ],
           ),
@@ -326,10 +357,10 @@ class _InvestedAssetMockCard extends StatelessWidget {
             children: [
               Text(
                 'نسبة الملكية: $equityPercent',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0F56B3),
+                  color: primaryColor,
                 ),
               ),
               const SizedBox(width: 8),
@@ -338,12 +369,12 @@ class _InvestedAssetMockCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                   child: Container(
                     height: 6,
-                    color: const Color(0xFFE2E8F0),
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                     child: Row(
                       children: [
                         Expanded(
                           flex: equityFlex,
-                          child: Container(color: const Color(0xFF0F56B3)),
+                          child: Container(color: primaryColor),
                         ),
                         Expanded(
                           flex: (100 - equityFlex).clamp(0, 100),

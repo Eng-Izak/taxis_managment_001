@@ -40,20 +40,20 @@ class PortfolioKpiCard extends StatelessWidget {
                 children: [
                   Text(
                     AppFormatters.formatNumber(summary.totalPortfolioValue > 0 ? summary.totalPortfolioValue : 500000),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF0F56B3),
+                      color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3),
                       letterSpacing: -0.5,
                     ),
                   ),
                   const SizedBox(width: 6),
-                  const Text(
+                  Text(
                     'ج.م',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F56B3),
+                      color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3),
                     ),
                   ),
                 ],
@@ -66,18 +66,18 @@ class PortfolioKpiCard extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF111827) : const Color(0xFFF1F3F4),
+                  color: isDark ? const Color(0xFF131D31) : const Color(0xFFF1F3F4),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'صافي الإيرادات الشهري',
                       style: TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF64748B),
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -91,19 +91,19 @@ class PortfolioKpiCard extends StatelessWidget {
                           children: [
                             Text(
                               AppFormatters.formatNumber(summary.netMonthlyRevenue > 0 ? summary.netMonthlyRevenue : 15000),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1F2937),
+                                color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF1F2937),
                               ),
                             ),
                             const SizedBox(width: 4),
-                            const Text(
+                            Text(
                               'ج.م',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1F2937),
+                                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF1F2937),
                               ),
                             ),
                           ],
@@ -113,10 +113,10 @@ class PortfolioKpiCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFEF7E0),
+                            color: isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
@@ -124,14 +124,14 @@ class PortfolioKpiCard extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFFB06000),
+                                  color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000),
                                 ),
                               ),
-                              SizedBox(width: 3),
+                              const SizedBox(width: 3),
                               Icon(
                                 Icons.trending_up_rounded,
                                 size: 14,
-                                color: Color(0xFFB06000),
+                                color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000),
                               ),
                             ],
                           ),

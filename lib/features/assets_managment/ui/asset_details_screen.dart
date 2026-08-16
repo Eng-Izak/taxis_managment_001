@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theming/app_colors.dart';
+import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/models/asset_model.dart';
 import '../../../../core/utils/formatters.dart';
 import 'add_asset_screen.dart';
@@ -10,21 +12,28 @@ class AssetDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+    final textPrimary = isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937);
+    final textSecondary = isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B);
+    final textTertiary = isDark ? AppColors.darkTextTertiary : const Color(0xFF94A3B8);
+    final innerBoxBg = isDark ? const Color(0xFF131D31) : const Color(0xFFF8F9FA);
+    final innerBoxBorder = isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'تفاصيل الأصل',
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1F2937),
+            color: textPrimary,
           ),
         ),
         centerTitle: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit_rounded, color: Color(0xFF0F56B3)),
+            icon: Icon(Icons.edit_rounded, color: primaryColor),
             tooltip: 'تعديل بيانات الأصل',
             onPressed: () {
               Navigator.of(context).push(
@@ -41,14 +50,9 @@ class AssetDetailsScreen extends StatelessWidget {
         child: Column(
           children: [
             // 1. Vehicle Main Details Card
-            Container(
+            AppCard(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -62,24 +66,25 @@ class AssetDetailsScreen extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFEF7E0),
+                          color: isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0),
                           borderRadius: BorderRadius.circular(12),
+                          border: isDark ? Border.all(color: const Color(0xFFFBBF24).withValues(alpha: 0.3), width: 0.8) : null,
                         ),
-                        child: const Text(
+                        child: Text(
                           'نشط (تحت التشغيل)',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFFB06000),
+                            color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000),
                           ),
                         ),
                       ),
                       Text(
                         asset.carModelYear,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F2937),
+                          color: textPrimary,
                         ),
                       ),
                     ],
@@ -87,7 +92,7 @@ class AssetDetailsScreen extends StatelessWidget {
 
                   const SizedBox(height: 14),
 
-                  // Grey Box: Plate Number & Model Code
+                  // Box: Plate Number & Model Code
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
@@ -95,25 +100,26 @@ class AssetDetailsScreen extends StatelessWidget {
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8F9FA),
+                      color: innerBoxBg,
                       borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: innerBoxBorder, width: 0.8),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           asset.plateNumber,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF0F56B3),
+                            color: primaryColor,
                           ),
                         ),
-                        const Text(
+                        Text(
                           'رقم اللوحة',
                           style: TextStyle(
                             fontSize: 13,
-                            color: Color(0xFF64748B),
+                            color: textSecondary,
                           ),
                         ),
                       ],
@@ -130,25 +136,26 @@ class AssetDetailsScreen extends StatelessWidget {
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8F9FA),
+                      color: innerBoxBg,
                       borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: innerBoxBorder, width: 0.8),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           asset.chassisNumber.isNotEmpty ? asset.chassisNumber : 'N/A',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF1F2937),
+                            color: textPrimary,
                           ),
                         ),
-                        const Text(
+                        Text(
                           'رقم الشاسيه',
                           style: TextStyle(
                             fontSize: 13,
-                            color: Color(0xFF64748B),
+                            color: textSecondary,
                           ),
                         ),
                       ],
@@ -165,25 +172,26 @@ class AssetDetailsScreen extends StatelessWidget {
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8F9FA),
+                      color: innerBoxBg,
                       borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: innerBoxBorder, width: 0.8),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           asset.modelType.arabicLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF1F2937),
+                            color: textPrimary,
                           ),
                         ),
-                        const Text(
+                        Text(
                           'نوع الأصل',
                           style: TextStyle(
                             fontSize: 13,
-                            color: Color(0xFF64748B),
+                            color: textSecondary,
                           ),
                         ),
                       ],
@@ -196,22 +204,17 @@ class AssetDetailsScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // 2. Current Valuation Card
-            Container(
+            AppCard(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'القيمة السوقية التقديرية',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF64748B),
+                      color: textSecondary,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -221,24 +224,25 @@ class AssetDetailsScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE6F4EA),
+                          color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFE6F4EA),
                           borderRadius: BorderRadius.circular(8),
+                          border: isDark ? Border.all(color: const Color(0xFF22C55E).withValues(alpha: 0.3), width: 0.8) : null,
                         ),
-                        child: const Text(
+                        child: Text(
                           '+12.5% منذ الشراء',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF137333),
+                            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
                           ),
                         ),
                       ),
                       Text(
                         AppFormatters.formatCurrency(asset.assetValuation > 0 ? asset.assetValuation : 450000),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F56B3),
+                          color: primaryColor,
                         ),
                       ),
                     ],
@@ -250,31 +254,26 @@ class AssetDetailsScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // 3. Partner Shares & Equity Card
-            Container(
+            AppCard(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
                       Icon(
                         Icons.pie_chart_outline_rounded,
-                        color: Color(0xFF0F56B3),
+                        color: primaryColor,
                         size: 18,
                       ),
-                      SizedBox(width: 6),
+                      const SizedBox(width: 6),
                       Text(
                         'نسب الملكية والتوزيع',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F56B3),
+                          color: primaryColor,
                         ),
                       ),
                     ],
@@ -287,11 +286,11 @@ class AssetDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 14),
 
                   if (asset.partnerShares.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Text(
                         'لا توجد حصص مساهمين مسجلة لهذا الأصل.',
-                        style: TextStyle(color: Color(0xFF64748B), fontSize: 12.5),
+                        style: TextStyle(color: textSecondary, fontSize: 12.5),
                       ),
                     )
                   else
@@ -345,10 +344,10 @@ class AssetDetailsScreen extends StatelessWidget {
                                 children: [
                                   Text(
                                     share.partnerName,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1F2937),
+                                      color: textPrimary,
                                     ),
                                   ),
                                   Text(
@@ -357,9 +356,9 @@ class AssetDetailsScreen extends StatelessWidget {
                                         : share.payoutMethod.name == 'vodafoneCash'
                                             ? 'فودافون كاش'
                                             : 'تحويل بنكي',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 11,
-                                      color: Color(0xFF64748B),
+                                      color: textSecondary,
                                     ),
                                   ),
                                 ],
@@ -379,9 +378,9 @@ class AssetDetailsScreen extends StatelessWidget {
                                   if (shareValue > 0)
                                     Text(
                                       AppFormatters.formatCurrency(shareValue),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 11,
-                                        color: Color(0xFF64748B),
+                                        color: textSecondary,
                                       ),
                                     ),
                                 ],
@@ -398,33 +397,28 @@ class AssetDetailsScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // 4. Documents Registry Card
-            Container(
+            AppCard(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
               child: Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Row(
+                      Row(
                         children: [
                           Icon(
                             Icons.folder_open_rounded,
-                            color: Color(0xFF0F56B3),
+                            color: primaryColor,
                             size: 18,
                           ),
-                          SizedBox(width: 6),
+                          const SizedBox(width: 6),
                           Text(
                             'سجل المستندات والرخص',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF0F56B3),
+                              color: primaryColor,
                             ),
                           ),
                         ],
@@ -435,19 +429,20 @@ class AssetDetailsScreen extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
+                          color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFEFF6FF),
                           borderRadius: BorderRadius.circular(6),
+                          border: isDark ? Border.all(color: primaryColor.withValues(alpha: 0.3), width: 0.8) : null,
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Icon(Icons.add, size: 14, color: Color(0xFF0F56B3)),
-                            SizedBox(width: 2),
+                            Icon(Icons.add, size: 14, color: primaryColor),
+                            const SizedBox(width: 2),
                             Text(
                               'إضافة مستند',
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF0F56B3),
+                                color: primaryColor,
                               ),
                             ),
                           ],
@@ -487,11 +482,11 @@ class AssetDetailsScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? AppColors.darkCard : Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFD1D5DB)),
+                border: Border.all(color: isDark ? AppColors.darkCardBorder : const Color(0xFFD1D5DB)),
               ),
-              child: const Column(
+              child: Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -499,25 +494,25 @@ class AssetDetailsScreen extends StatelessWidget {
                       Icon(
                         Icons.archive_outlined,
                         size: 18,
-                        color: Color(0xFF1F2937),
+                        color: textPrimary,
                       ),
-                      SizedBox(width: 6),
+                      const SizedBox(width: 6),
                       Text(
                         'أرشفة الأصل',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F2937),
+                          color: textPrimary,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     'نقل الأصل إلى السجل غير النشط',
                     style: TextStyle(
                       fontSize: 10,
-                      color: Color(0xFF94A3B8),
+                      color: textTertiary,
                     ),
                   ),
                 ],
@@ -691,16 +686,20 @@ class _DocumentRowItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+
     return Row(
       children: [
         Container(
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: const Color(0xFFEFF6FF),
+            color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFEFF6FF),
             borderRadius: BorderRadius.circular(8),
+            border: isDark ? Border.all(color: primaryColor.withValues(alpha: 0.3), width: 0.8) : null,
           ),
-          child: Icon(icon, color: const Color(0xFF0F56B3), size: 18),
+          child: Icon(icon, color: primaryColor, size: 18),
         ),
         const SizedBox(width: 10),
         Column(
@@ -708,26 +707,26 @@ class _DocumentRowItem extends StatelessWidget {
           children: [
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1F2937),
+                color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
               ),
             ),
             const SizedBox(height: 2),
             Text(
               subtitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: Color(0xFF64748B),
+                color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
               ),
             ),
           ],
         ),
         const Spacer(),
-        const Icon(
+        Icon(
           Icons.file_download_outlined,
-          color: Color(0xFF64748B),
+          color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
           size: 20,
         ),
       ],

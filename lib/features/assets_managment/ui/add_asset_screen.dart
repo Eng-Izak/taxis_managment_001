@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_button.dart';
 import '../../../../core/shared/widgets/app_text_field.dart';
 import '../../../../core/shared/widgets/app_card.dart';
@@ -243,6 +244,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
   Widget build(BuildContext context) {
     final isEdit = widget.assetToEdit != null;
     final totalShares = _totalSharesPercentage;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -370,12 +372,12 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'المساهمين في الأصل وتوزيع الحصص',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF0F56B3),
+                            color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3),
                           ),
                         ),
                         // Total equity badge
@@ -383,11 +385,21 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: totalShares == 100
-                                ? const Color(0xFFE6F4EA)
+                                ? (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFE6F4EA))
                                 : totalShares < 100
-                                    ? const Color(0xFFFEF7E0)
-                                    : const Color(0xFFFCE8E6),
+                                    ? (isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0))
+                                    : (isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.4) : const Color(0xFFFCE8E6)),
                             borderRadius: BorderRadius.circular(12),
+                            border: isDark
+                                ? Border.all(
+                                    color: totalShares == 100
+                                        ? const Color(0xFF22C55E).withValues(alpha: 0.3)
+                                        : totalShares < 100
+                                            ? const Color(0xFFFBBF24).withValues(alpha: 0.3)
+                                            : const Color(0xFFF87171).withValues(alpha: 0.3),
+                                    width: 0.8,
+                                  )
+                                : null,
                           ),
                           child: Text(
                             'الإجمالي: ${totalShares.toStringAsFixed(0)}%',
@@ -395,10 +407,10 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: totalShares == 100
-                                  ? const Color(0xFF137333)
+                                  ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333))
                                   : totalShares < 100
-                                      ? const Color(0xFFB06000)
-                                      : const Color(0xFFC5221F),
+                                      ? (isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000))
+                                      : (isDark ? const Color(0xFFF87171) : const Color(0xFFC5221F)),
                             ),
                           ),
                         ),
@@ -408,11 +420,11 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
 
                     // Partner shares list
                     if (_partnerShares.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.0),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: Text(
                           'لم يتم إضافة مساهمين بعد. اضغط على الزر أدناه لإضافة مساهم.',
-                          style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                          style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
                         ),
                       )
                     else
@@ -428,9 +440,9 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF8F9FA),
+                                    color: isDark ? const Color(0xFF131D31) : const Color(0xFFF8F9FA),
                                     borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                                    border: Border.all(color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
                                   ),
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<String>(
@@ -439,15 +451,23 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                                           : null,
                                       hint: Text(
                                         item.partnerName,
-                                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                                        style: TextStyle(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark ? AppColors.darkTextPrimary : null,
+                                        ),
                                       ),
+                                      dropdownColor: isDark ? AppColors.darkCard : Colors.white,
                                       isExpanded: true,
                                       items: _registeredShareholders.map((s) {
                                         return DropdownMenuItem<String>(
                                           value: s.id,
                                           child: Text(
                                             s.name,
-                                            style: const TextStyle(fontSize: 12.5, color: Color(0xFF0F56B3)),
+                                            style: TextStyle(
+                                              fontSize: 12.5,
+                                              color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3),
+                                            ),
                                           ),
                                         );
                                       }).toList(),
@@ -473,21 +493,31 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                                   controller: item.percentageController,
                                   keyboardType: TextInputType.number,
                                   onChanged: (_) => setState(() {}),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
+                                  ),
                                   decoration: InputDecoration(
                                     suffixText: '%',
-                                    suffixStyle: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F56B3)),
+                                    suffixStyle: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3),
+                                    ),
                                     hintText: 'النسبة',
-                                    hintStyle: const TextStyle(fontSize: 11.5),
+                                    hintStyle: TextStyle(
+                                      fontSize: 11.5,
+                                      color: isDark ? AppColors.darkTextTertiary : null,
+                                    ),
                                     contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                                     filled: true,
-                                    fillColor: const Color(0xFFF8F9FA),
+                                    fillColor: isDark ? const Color(0xFF131D31) : const Color(0xFFF8F9FA),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(10),
-                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                      borderSide: BorderSide(color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(10),
-                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                      borderSide: BorderSide(color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
                                     ),
                                   ),
                                 ),
@@ -495,7 +525,11 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
 
                               // Delete Button
                               IconButton(
-                                icon: const Icon(Icons.remove_circle_outline_rounded, color: Color(0xFFC5221F), size: 22),
+                                icon: Icon(
+                                  Icons.remove_circle_outline_rounded,
+                                  color: isDark ? const Color(0xFFF87171) : const Color(0xFFC5221F),
+                                  size: 22,
+                                ),
                                 onPressed: () => _removePartnerShare(index),
                                 tooltip: 'حذف المساهم',
                               ),
@@ -509,13 +543,21 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                     // Add Shareholder Button
                     OutlinedButton.icon(
                       onPressed: _addPartnerShare,
-                      icon: const Icon(Icons.person_add_alt_1_rounded, size: 18, color: Color(0xFF0F56B3)),
-                      label: const Text(
+                      icon: Icon(
+                        Icons.person_add_alt_1_rounded,
+                        size: 18,
+                        color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3),
+                      ),
+                      label: Text(
                         'إضافة مساهم / شريك في الأصل',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: Color(0xFF0F56B3)),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12.5,
+                          color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3),
+                        ),
                       ),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF0F56B3)),
+                        side: BorderSide(color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3)),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                       ),

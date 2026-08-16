@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/models/asset_model.dart';
 import '../../../../core/shared/enums/app_enums.dart';
 import '../../../../core/shared/widgets/app_header_widgets.dart';
@@ -50,6 +51,8 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Row(
@@ -69,6 +72,7 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
         ),
         centerTitle: false,
         actions: [
+          const ThemeToggleIconButton(),
           const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
@@ -88,7 +92,7 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
             children: [
               // Top Action Row: Search Bar & "+ إضافة أصل" Button
               Container(
-                color: Colors.white,
+                color: isDark ? AppColors.darkSurface : Colors.white,
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 child: Column(
                   children: [
@@ -102,22 +106,36 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
                             onChanged: (val) => setState(() => _searchQuery = val),
                             decoration: InputDecoration(
                               hintText: 'بحث برقم اللوحة، الموديل...',
-                              hintStyle: const TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
-                              prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF0F56B3), size: 22),
+                              hintStyle: TextStyle(
+                                fontSize: 12.5,
+                                color: isDark ? AppColors.darkTextTertiary : const Color(0xFF94A3B8),
+                              ),
+                              prefixIcon: Icon(
+                                Icons.search_rounded,
+                                color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3),
+                                size: 22,
+                              ),
                               contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                               filled: true,
-                              fillColor: const Color(0xFFF8F9FA),
+                              fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8F9FA),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                borderSide: BorderSide(
+                                  color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0),
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                borderSide: BorderSide(
+                                  color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0),
+                                ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Color(0xFF0F56B3), width: 1.5),
+                                borderSide: BorderSide(
+                                  color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3),
+                                  width: 1.5,
+                                ),
                               ),
                             ),
                           ),
@@ -135,7 +153,7 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
                             height: 48,
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0F56B3),
+                              color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Row(
@@ -194,7 +212,7 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
                 ),
               ),
 
-              const Divider(height: 1, color: Color(0xFFE2E8F0)),
+              Divider(height: 1, color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
 
               // Assets List
               Expanded(
@@ -347,24 +365,35 @@ class _FilterPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0F56B3) : const Color(0xFFF1F5F9),
+          color: isSelected
+              ? primaryColor
+              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
           borderRadius: BorderRadius.circular(20),
+          border: isDark && !isSelected
+              ? Border.all(color: AppColors.darkCardBorder, width: 1)
+              : null,
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? Colors.white : const Color(0xFF64748B),
+            color: isSelected
+                ? Colors.white
+                : (isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B)),
           ),
         ),
       ),
     );
   }
 }
+

@@ -42,6 +42,9 @@ class ShareholderCard extends StatelessWidget {
       assetsCount = '24 أصل';
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3);
+
     return AppCard(
       onTap: onTap,
       margin: const EdgeInsets.only(bottom: 14),
@@ -59,20 +62,21 @@ class ShareholderCard extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8EAED),
+                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE8EAED),
                   borderRadius: BorderRadius.circular(12),
+                  border: isDark ? Border.all(color: const Color(0xFF334155), width: 0.8) : null,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(statusIcon, size: 13, color: const Color(0xFF5F6368)),
+                    Icon(statusIcon, size: 13, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF5F6368)),
                     const SizedBox(width: 4),
                     Text(
                       statusText,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF5F6368),
+                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF5F6368),
                       ),
                     ),
                   ],
@@ -87,18 +91,18 @@ class ShareholderCard extends StatelessWidget {
                     children: [
                       Text(
                         name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F56B3),
+                          color: primaryColor,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         role,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: Color(0xFF64748B),
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                         ),
                       ),
                     ],
@@ -109,22 +113,23 @@ class ShareholderCard extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE2E8F0),
+                      color: isDark ? const Color(0xFF131D31) : const Color(0xFFE2E8F0),
                       borderRadius: BorderRadius.circular(10),
+                      border: isDark ? Border.all(color: const Color(0xFF334155), width: 1) : null,
                     ),
                     child: Center(
                       child: hasInitialsAvatar
                           ? Text(
                               initials,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF0F56B3),
+                                color: primaryColor,
                               ),
                             )
-                          : const Icon(
+                          : Icon(
                               Icons.person_rounded,
-                              color: Color(0xFF5F6368),
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF5F6368),
                               size: 26,
                             ),
                     ),
@@ -140,8 +145,9 @@ class ShareholderCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8F9FA),
+              color: isDark ? const Color(0xFF131D31) : const Color(0xFFF8F9FA),
               borderRadius: BorderRadius.circular(10),
+              border: isDark ? Border.all(color: const Color(0xFF334155), width: 0.8) : null,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -150,17 +156,20 @@ class ShareholderCard extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'إجمالي الحصص',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       totalShare,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF0F56B3),
+                        color: primaryColor,
                       ),
                     ),
                   ],
@@ -169,17 +178,20 @@ class ShareholderCard extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text(
+                    Text(
                       'عدد الأصول',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       assetsCount,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF0F56B3),
+                        color: primaryColor,
                       ),
                     ),
                   ],
@@ -200,13 +212,13 @@ class ShareholderCard extends StatelessWidget {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE8F0FE),
+                      color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFE8F0FE),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Icon(
                         Icons.directions_car_rounded,
-                        color: Color(0xFF0F56B3),
+                        color: primaryColor,
                         size: 16,
                       ),
                     ),
@@ -216,13 +228,13 @@ class ShareholderCard extends StatelessWidget {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F3F4),
+                      color: isDark ? const Color(0xFF162032) : const Color(0xFFF1F3F4),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Icon(
                         Icons.local_shipping_outlined,
-                        color: Color(0xFF5F6368),
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF5F6368),
                         size: 16,
                       ),
                     ),
@@ -231,21 +243,21 @@ class ShareholderCard extends StatelessWidget {
               ),
               const Spacer(),
               // Link
-              const Row(
+              Row(
                 children: [
                   Text(
                     'عرض التفاصيل',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F56B3),
+                      color: primaryColor,
                     ),
                   ),
-                  SizedBox(width: 4),
+                  const SizedBox(width: 4),
                   Icon(
                     Icons.arrow_back_ios_new_rounded,
                     size: 12,
-                    color: Color(0xFF0F56B3),
+                    color: primaryColor,
                   ),
                 ],
               ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/widgets/app_toast.dart';
+import '../../../../core/shared/widgets/app_header_widgets.dart';
 
 class ArchiveScreen extends StatefulWidget {
   const ArchiveScreen({super.key});
@@ -144,32 +146,38 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
     final filtered = _filteredItems;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.inventory_2_rounded, color: Color(0xFF0F56B3), size: 22),
-            SizedBox(width: 8),
+            Icon(Icons.inventory_2_rounded, color: primaryColor, size: 22),
+            const SizedBox(width: 8),
             Text(
               'أرشيف الملفات والسجلات',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF0F56B3),
+                color: primaryColor,
               ),
             ),
           ],
         ),
         centerTitle: false,
+        actions: const [
+          ThemeToggleIconButton(),
+          SizedBox(width: 8),
+        ],
       ),
       body: Column(
         children: [
           // Search Bar & Filter Tabs
           Container(
-            color: Colors.white,
+            color: isDark ? AppColors.darkSurface : Colors.white,
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: Column(
               children: [
@@ -178,23 +186,26 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                   controller: _searchController,
                   onChanged: (val) => setState(() => _searchQuery = val),
                   decoration: InputDecoration(
-                    hintText: 'بحث في الأرشيف بالعنوان، رقم اللوحة، أو السائق...',
-                    hintStyle: const TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
-                    prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF0F56B3), size: 22),
+                    hintText: 'بحث في الأرشيف (أصول، عقود، صيانة...)...',
+                    hintStyle: TextStyle(
+                      fontSize: 12.5,
+                      color: isDark ? AppColors.darkTextTertiary : const Color(0xFF94A3B8),
+                    ),
+                    prefixIcon: Icon(Icons.search_rounded, color: primaryColor, size: 22),
                     contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                     filled: true,
-                    fillColor: const Color(0xFFF8F9FA),
+                    fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8F9FA),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF0F56B3), width: 1.5),
+                      borderSide: BorderSide(color: primaryColor, width: 1.5),
                     ),
                   ),
                 ),
@@ -207,7 +218,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                   child: Row(
                     children: [
                       _ArchiveFilterPill(
-                        label: 'الكل (${_items.length})',
+                        label: 'الكل',
                         isSelected: _selectedCategory == 'الكل',
                         onTap: () => setState(() => _selectedCategory = 'الكل'),
                       ),
@@ -225,7 +236,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                       ),
                       const SizedBox(width: 8),
                       _ArchiveFilterPill(
-                        label: 'سجلات الصيانة',
+                        label: 'سجلات الصيانة المؤرشفة',
                         isSelected: _selectedCategory == 'سجلات الصيانة المؤرشفة',
                         onTap: () => setState(() => _selectedCategory = 'سجلات الصيانة المؤرشفة'),
                       ),
@@ -318,38 +329,48 @@ class _ArchivedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top Row: Tag on Left, Date on Right
+          // Top Row: Tag & Date
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
-                  color: item.tagBgColor,
+                  color: isDark ? item.tagBgColor.withValues(alpha: 0.35) : item.tagBgColor,
                   borderRadius: BorderRadius.circular(10),
+                  border: isDark ? Border.all(color: item.tagColor.withValues(alpha: 0.3), width: 0.8) : null,
                 ),
                 child: Text(
                   item.tag,
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: item.tagColor,
+                    color: isDark && item.tagColor == const Color(0xFF137333)
+                        ? const Color(0xFF4ADE80)
+                        : (isDark && item.tagColor == const Color(0xFF0F56B3)
+                            ? const Color(0xFF60A5FA)
+                            : (isDark && item.tagColor == const Color(0xFFC5221F)
+                                ? const Color(0xFFF87171)
+                                : item.tagColor)),
                   ),
                 ),
               ),
               Row(
                 children: [
-                  const Icon(Icons.archive_outlined, size: 14, color: Color(0xFF64748B)),
+                  Icon(Icons.archive_outlined, size: 14, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
                   const SizedBox(width: 4),
                   Text(
                     item.date,
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                    style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
                   ),
                 ],
               ),
@@ -366,11 +387,12 @@ class _ArchivedCard extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
+                  color: isDark ? const Color(0xFF162032) : const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(10),
+                  border: isDark ? Border.all(color: const Color(0xFF334155), width: 1) : null,
                 ),
                 child: Center(
-                  child: Icon(item.icon, color: const Color(0xFF0F56B3), size: 22),
+                  child: Icon(item.icon, color: primaryColor, size: 22),
                 ),
               ),
               const SizedBox(width: 12),
@@ -380,18 +402,18 @@ class _ArchivedCard extends StatelessWidget {
                   children: [
                     Text(
                       item.title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1F2937),
+                        color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
                       ),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       item.subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF64748B),
+                        color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
                         height: 1.3,
                       ),
                     ),
@@ -399,16 +421,16 @@ class _ArchivedCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF8F9FA),
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8F9FA),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                       ),
                       child: Text(
                         item.metaInfo,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF0F56B3),
+                          color: primaryColor,
                         ),
                       ),
                     ),
@@ -419,7 +441,7 @@ class _ArchivedCard extends StatelessWidget {
           ),
 
           const SizedBox(height: 12),
-          const Divider(height: 1),
+          Divider(height: 1, color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
           const SizedBox(height: 8),
 
           // Bottom Action Row: Restore & Delete
@@ -433,19 +455,19 @@ class _ArchivedCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8F0FE),
+                    color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFE8F0FE),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.unarchive_rounded, color: Color(0xFF0F56B3), size: 16),
-                      SizedBox(width: 4),
+                      Icon(Icons.unarchive_rounded, color: primaryColor, size: 16),
+                      const SizedBox(width: 4),
                       Text(
                         'استعادة من الأرشيف',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F56B3),
+                          color: primaryColor,
                         ),
                       ),
                     ],
@@ -455,7 +477,11 @@ class _ArchivedCard extends StatelessWidget {
 
               // Delete Button
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFC5221F), size: 20),
+                icon: Icon(
+                  Icons.delete_outline_rounded,
+                  color: isDark ? const Color(0xFFF87171) : const Color(0xFFC5221F),
+                  size: 20,
+                ),
                 onPressed: onDelete,
                 tooltip: 'حذف نهائي',
               ),
@@ -480,24 +506,35 @@ class _ArchiveFilterPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0F56B3) : const Color(0xFFF1F5F9),
+          color: isSelected
+              ? primaryColor
+              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
           borderRadius: BorderRadius.circular(20),
+          border: isDark && !isSelected
+              ? Border.all(color: AppColors.darkCardBorder, width: 1)
+              : null,
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? Colors.white : const Color(0xFF64748B),
+            color: isSelected
+                ? Colors.white
+                : (isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B)),
           ),
         ),
       ),
     );
   }
 }
+

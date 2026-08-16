@@ -94,10 +94,13 @@ class _GridItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3);
+
     return AppCard(
       onTap: onTap,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      borderColor: isSelected ? const Color(0xFF0F56B3) : null,
+      borderColor: isSelected ? primaryColor : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -109,20 +112,21 @@ class _GridItemCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: iconBgColor,
+                  color: isDark ? const Color(0xFF162032) : iconBgColor,
                   borderRadius: BorderRadius.circular(10),
+                  border: isDark ? Border.all(color: const Color(0xFF334155), width: 1) : null,
                 ),
                 child: Center(
-                  child: Icon(icon, color: iconColor, size: 20),
+                  child: Icon(icon, color: isDark ? primaryColor : iconColor, size: 20),
                 ),
               ),
               // Count on Left (in RTL)
               Text(
                 '$count',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF0F56B3),
+                  color: primaryColor,
                 ),
               ),
             ],
@@ -131,10 +135,10 @@ class _GridItemCard extends StatelessWidget {
           // Label on Bottom Right (in RTL)
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1F2937),
+              color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF1F2937),
             ),
           ),
         ],
@@ -142,3 +146,4 @@ class _GridItemCard extends StatelessWidget {
     );
   }
 }
+
