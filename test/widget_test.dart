@@ -4,8 +4,10 @@ import 'package:taxis_managment_001/core/shared/models/asset_model.dart';
 import 'package:taxis_managment_001/core/shared/models/partner_share_model.dart';
 import 'package:taxis_managment_001/core/shared/enums/app_enums.dart';
 import 'package:taxis_managment_001/core/utils/financial_calculator.dart';
+import 'package:taxis_managment_001/core/utils/formatters.dart';
 import 'package:taxis_managment_001/core/services/local_storage_service.dart';
 import 'package:taxis_managment_001/core/theming/theme_cubit.dart';
+import 'package:taxis_managment_001/core/localization/locale_cubit.dart';
 
 void main() {
   group('Taxi Asset Management Financial Engine Tests', () {
@@ -146,5 +148,55 @@ void main() {
       expect(storage.getThemeMode(), ThemeMode.system);
     });
   });
-}
 
+  group('LocaleCubit Tests', () {
+    test('Initializes with Arabic by default and toggles to English and back', () {
+      final storage = LocalStorageService();
+      final cubit = LocaleCubit(storage);
+
+      expect(cubit.state.languageCode, 'ar');
+      expect(cubit.isArabic, isTrue);
+
+      cubit.toggleLocale();
+      expect(cubit.state.languageCode, 'en');
+      expect(cubit.isArabic, isFalse);
+      expect(storage.getLocale().languageCode, 'en');
+
+      cubit.toggleLocale();
+      expect(cubit.state.languageCode, 'ar');
+      expect(cubit.isArabic, isTrue);
+      expect(storage.getLocale().languageCode, 'ar');
+    });
+
+    test('Sets locale explicitly via setArabic and setEnglish', () {
+      final storage = LocalStorageService();
+      final cubit = LocaleCubit(storage);
+
+      cubit.setEnglish();
+      expect(cubit.state.languageCode, 'en');
+      expect(cubit.isArabic, isFalse);
+
+      cubit.setArabic();
+      expect(cubit.state.languageCode, 'ar');
+      expect(cubit.isArabic, isTrue);
+    });
+  });
+
+  group('AppFormatters Dual Numerals Tests', () {
+    test('Formats numbers in Arabic Eastern numerals when isArabic is true', () {
+      expect(AppFormatters.formatNumber(1510000, isArabic: true), '١,٥١٠,٠٠٠');
+      expect(AppFormatters.formatNumber(34350, isArabic: true), '٣٤,٣٥٠');
+      expect(AppFormatters.formatCurrency(1510000, isArabic: true), '١,٥١٠,٠٠٠ ج.م');
+      expect(AppFormatters.formatPercentage(14.8, isArabic: true), '١٤.٨%');
+      expect(AppFormatters.convertDigits('1234', isArabic: true), '١٢٣٤');
+    });
+
+    test('Formats numbers in English Western numerals when isArabic is false', () {
+      expect(AppFormatters.formatNumber(1510000, isArabic: false), '1,510,000');
+      expect(AppFormatters.formatNumber(34350, isArabic: false), '34,350');
+      expect(AppFormatters.formatCurrency(1510000, isArabic: false), '1,510,000 EGP');
+      expect(AppFormatters.formatPercentage(14.8, isArabic: false), '14.8%');
+      expect(AppFormatters.convertDigits('١٢٣٤', isArabic: false), '1234');
+    });
+  });
+}

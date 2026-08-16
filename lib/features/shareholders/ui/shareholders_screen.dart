@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/shared/widgets/app_header_widgets.dart';
+import '../../../../core/localization/app_localization_extension.dart';
 import '../logic/shareholders_cubit.dart';
 import '../logic/shareholders_state.dart';
 import '../../home/logic/home_cubit.dart';
@@ -17,17 +18,18 @@ class ShareholdersScreen extends StatelessWidget {
     final allAssets = context.watch<HomeCubit>().state.assets;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3);
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SadatTaxiLogo(),
-            SizedBox(width: 8),
+            const SadatTaxiLogo(),
+            const SizedBox(width: 8),
             Text(
-              'المساهمين',
-              style: TextStyle(
+              l10n.shareholders,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF0F56B3),
@@ -37,7 +39,6 @@ class ShareholdersScreen extends StatelessWidget {
         ),
         centerTitle: false,
         actions: [
-          const ThemeToggleIconButton(),
           const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
@@ -53,13 +54,23 @@ class ShareholdersScreen extends StatelessWidget {
         builder: (context, state) {
           return Column(
             children: [
-              // Top Action Row: "+ إضافة مساهم" Button on Left & "قائمة المساهمين" Title on Right
+              // Top Action Row
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Blue "+ إضافة مساهم" Button on Left
+                    // Title
+                    Text(
+                      l10n.shareholdersList,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: primaryColor,
+                      ),
+                    ),
+
+                    // Add Shareholder Button
                     InkWell(
                       onTap: () {
                         Navigator.of(context).push(
@@ -73,13 +84,13 @@ class ShareholdersScreen extends StatelessWidget {
                           color: primaryColor,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Icon(Icons.add, color: Colors.white, size: 16),
-                            SizedBox(width: 4),
+                            const Icon(Icons.add, color: Colors.white, size: 16),
+                            const SizedBox(width: 4),
                             Text(
-                              'إضافة مساهم',
-                              style: TextStyle(
+                              l10n.addShareholder,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
@@ -87,16 +98,6 @@ class ShareholdersScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                      ),
-                    ),
-
-                    // Title on Right
-                    Text(
-                      'قائمة المساهمين والشركاء',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: primaryColor,
                       ),
                     ),
                   ],
@@ -108,10 +109,10 @@ class ShareholdersScreen extends StatelessWidget {
                 child: state.status == ShareholdersStatus.loading
                     ? const Center(child: CircularProgressIndicator())
                     : state.shareholders.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
-                              'لا يوجد مساهمين مسجلين',
-                              style: TextStyle(color: Color(0xFF64748B)),
+                              l10n.noShareholders,
+                              style: const TextStyle(color: Color(0xFF64748B)),
                             ),
                           )
                         : ListView.builder(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/models/shareholder_model.dart';
 import '../../../../core/shared/models/asset_model.dart';
+import '../../../../core/localization/app_localization_extension.dart';
 
 class ShareholderCard extends StatelessWidget {
   final ShareholderModel shareholder;
@@ -17,29 +18,30 @@ class ShareholderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     String name = shareholder.name;
-    String role = 'مستثمر رئيسي';
-    String statusText = 'نشط';
+    String role = l10n.mainInvestor;
+    String statusText = l10n.statusActive;
     IconData statusIcon = Icons.check_circle_outline_rounded;
-    String totalShare = '25%';
-    String assetsCount = '12 أصل';
+    String totalShare = context.formatPercentage(25);
+    String assetsCount = '${context.digits(12)} ${l10n.navAssets}';
     bool hasInitialsAvatar = false;
     String initials = 'م.س';
 
     if (name.contains('محمد سعيد')) {
-      role = 'مستثمر مشارك';
-      statusText = 'قيد المراجعة';
+      role = l10n.partnerInvestor;
+      statusText = l10n.underReview;
       statusIcon = Icons.pending_outlined;
-      totalShare = '15%';
-      assetsCount = '8 أصول';
+      totalShare = context.formatPercentage(15);
+      assetsCount = '${context.digits(8)} ${l10n.navAssets}';
       hasInitialsAvatar = true;
       initials = 'م.س';
     } else if (name.contains('فاطمة')) {
-      role = 'مؤسس شريك';
-      statusText = 'نشط';
+      role = l10n.founderPartner;
+      statusText = l10n.statusActive;
       statusIcon = Icons.check_circle_outline_rounded;
-      totalShare = '45%';
-      assetsCount = '24 أصل';
+      totalShare = context.formatPercentage(45);
+      assetsCount = '${context.digits(24)} ${l10n.navAssets}';
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -51,7 +53,7 @@ class ShareholderCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Top Row: Status badge (Left) & Avatar + Name (Right)
+          // Top Row: Status badge & Avatar + Name
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -141,7 +143,7 @@ class ShareholderCard extends StatelessWidget {
 
           const SizedBox(height: 14),
 
-          // Inner Grey Box: إجمالي الحصص & عدد الأصول
+          // Inner Box: إجمالي الحصص & عدد الأصول
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             decoration: BoxDecoration(
@@ -152,12 +154,12 @@ class ShareholderCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // إجمالي الحصص (Left)
+                // Total shares
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'إجمالي الحصص',
+                      l10n.totalInvestedEquity,
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -174,12 +176,12 @@ class ShareholderCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                // عدد الأصول (Right)
+                // Owned assets count
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'عدد الأصول',
+                      l10n.ownedAssetsCount,
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -202,7 +204,7 @@ class ShareholderCard extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Bottom Row: Icons on Left & "عرض التفاصيل >" on Right
+          // Bottom Row
           Row(
             children: [
               // Icons
@@ -246,7 +248,7 @@ class ShareholderCard extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    'عرض التفاصيل',
+                    l10n.viewShareholderDetails,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -255,7 +257,7 @@ class ShareholderCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Icon(
-                    Icons.arrow_back_ios_new_rounded,
+                    Icons.arrow_forward_ios_rounded,
                     size: 12,
                     color: primaryColor,
                   ),

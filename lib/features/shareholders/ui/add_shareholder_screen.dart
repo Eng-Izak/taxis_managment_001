@@ -4,6 +4,7 @@ import '../../../../core/shared/widgets/app_button.dart';
 import '../../../../core/shared/widgets/app_text_field.dart';
 import '../../../../core/shared/models/shareholder_model.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../core/localization/app_localization_extension.dart';
 import '../logic/shareholders_cubit.dart';
 
 class AddShareholderScreen extends StatefulWidget {
@@ -67,10 +68,11 @@ class _AddShareholderScreenState extends State<AddShareholderScreen> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.shareholderToEdit != null;
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEdit ? 'تعديل بيانات المساهم' : 'إضافة مساهم جديد'),
+        title: Text(isEdit ? l10n.editShareholderTitle : l10n.addShareholderTitle),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -80,14 +82,14 @@ class _AddShareholderScreenState extends State<AddShareholderScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               AppTextField(
-                label: 'اسم المساهم / الشريك',
-                hint: 'مثال: أحمد محمود إبراهيم',
+                label: l10n.shareholderName,
+                hint: 'Ahmed Mahmoud',
                 controller: _nameController,
-                validator: (val) => AppValidators.requiredField(val, message: 'اسم المساهم مطلوب'),
+                validator: (val) => AppValidators.requiredField(val, message: l10n.shareholderName),
               ),
               const SizedBox(height: 16),
               AppTextField(
-                label: 'رقم الهاتف',
+                label: l10n.phoneNumber,
                 hint: '010XXXXXXXX',
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
@@ -95,27 +97,27 @@ class _AddShareholderScreenState extends State<AddShareholderScreen> {
               ),
               const SizedBox(height: 16),
               AppTextField(
-                label: 'الرقم القومي (14 رقم)',
-                hint: 'مثال: 2980101XXXXXXX',
+                label: l10n.nationalId,
+                hint: '2980101XXXXXXX',
                 controller: _nationalIdController,
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 16),
               AppTextField(
-                label: 'بيانات الحساب البنكي / المحفظة الإلكترونية',
-                hint: 'رقم الحساب أو محفظة فودافون كاش / إنستاباي',
+                label: l10n.accountDetails,
+                hint: 'InstaPay / Vodafone Cash / Bank IBAN',
                 controller: _accountDetailsController,
               ),
               const SizedBox(height: 16),
               AppTextField(
-                label: 'ملاحظات إضافية',
-                hint: 'أي شروط أو بنود إضافية خاصة بالمساهم',
+                label: l10n.documentsAndNotes,
+                hint: l10n.notesHint,
                 controller: _notesController,
                 maxLines: 3,
               ),
               const SizedBox(height: 32),
               AppButton(
-                text: isEdit ? 'تحديث البيانات' : 'حفظ المساهم',
+                text: isEdit ? l10n.edit : l10n.save,
                 onPressed: _saveShareholder,
               ),
             ],

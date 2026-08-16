@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theming/app_colors.dart';
+import '../../../../core/localization/app_localization_extension.dart';
 import '../../../../core/shared/widgets/app_header_widgets.dart';
 import '../logic/home_cubit.dart';
 import '../logic/home_state.dart';
@@ -24,17 +25,18 @@ class HomeDashboardScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryTextColor = isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937);
     final secondaryTextColor = isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B);
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SadatTaxiLogo(),
-            SizedBox(width: 8),
+            const SadatTaxiLogo(),
+            const SizedBox(width: 8),
             Text(
-              'لوحة التحكم',
-              style: TextStyle(
+              l10n.dashboard,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF0F56B3),
@@ -44,7 +46,6 @@ class HomeDashboardScreen extends StatelessWidget {
         ),
         centerTitle: false,
         actions: [
-          const ThemeToggleIconButton(),
           const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
@@ -67,9 +68,9 @@ class HomeDashboardScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Greeting (starts on right in RTL)
+                  // Greeting
                   Text(
-                    'مرحباً بعودتك، مدير الأسطول',
+                    l10n.welcomeBack,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -78,7 +79,7 @@ class HomeDashboardScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'نظرة عامة على أداء محفظتك اليوم',
+                    l10n.portfolioOverview,
                     style: TextStyle(
                       fontSize: 12,
                       color: secondaryTextColor,
@@ -95,7 +96,7 @@ class HomeDashboardScreen extends StatelessWidget {
 
                   // Section Title: توزيع الأصول
                   Text(
-                    'توزيع الأصول',
+                    l10n.assetDistribution,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -124,7 +125,7 @@ class HomeDashboardScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'التنبيهات والمواعيد',
+                        l10n.alertsAndSchedules,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -137,9 +138,9 @@ class HomeDashboardScreen extends StatelessWidget {
                             MaterialPageRoute(builder: (_) => const NotificationsScreen()),
                           );
                         },
-                        child: const Text(
-                          'عرض الكل',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.viewAll,
+                          style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF0F56B3),

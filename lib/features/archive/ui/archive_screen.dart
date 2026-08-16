@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/widgets/app_toast.dart';
-import '../../../../core/shared/widgets/app_header_widgets.dart';
+import '../../../../core/localization/app_localization_extension.dart';
+
+enum _ArchiveCategoryEnum { all, soldAssets, pastContracts, maintenanceLogs, expiredDocs }
 
 class ArchiveScreen extends StatefulWidget {
   const ArchiveScreen({super.key});
@@ -12,70 +14,70 @@ class ArchiveScreen extends StatefulWidget {
 }
 
 class _ArchiveScreenState extends State<ArchiveScreen> {
-  String _selectedCategory = 'الكل';
+  _ArchiveCategoryEnum _selectedCategory = _ArchiveCategoryEnum.all;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
   final List<_ArchivedItemData> _items = [
     _ArchivedItemData(
       id: 'arch_001',
-      category: 'أصول مباعة ومتقاعدة',
-      title: 'تويوتا كورولا 2018 - س أ د 1122',
-      subtitle: 'تم بيع الأصل وتوزيع رأس المال على المساهمين',
-      date: '15 أغسطس 2025',
-      tag: 'تم البيع',
+      categoryType: _ArchiveCategoryEnum.soldAssets,
+      title: 'Toyota Corolla 2018 - SAD 1122',
+      subtitle: 'Asset sold & capital distributed to partners',
+      date: '15 Aug 2025',
+      tag: 'Sold',
       tagColor: const Color(0xFF137333),
       tagBgColor: const Color(0xFFE6F4EA),
       icon: Icons.directions_car_filled_rounded,
-      metaInfo: 'قيمة التخارج: 420,000 ج.م',
+      metaInfo: 'Exit Value: 420,000 EGP',
     ),
     _ArchivedItemData(
       id: 'arch_002',
-      category: 'عقود إيجار سابقة',
-      title: 'عقد إيجار السائق: محمود عادل عبد الله',
-      subtitle: 'لوحة أجرة رقم 5566 - انتهاء فترة التعاقد 24 شهراً',
-      date: '01 يوليو 2025',
-      tag: 'عقد منتهي',
+      categoryType: _ArchiveCategoryEnum.pastContracts,
+      title: 'Driver Lease Contract: Mahmoud Adel',
+      subtitle: 'Taxi Plate 5566 - 24-month contract ended',
+      date: '01 Jul 2025',
+      tag: 'Expired',
       tagColor: const Color(0xFF0F56B3),
       tagBgColor: const Color(0xFFE8F0FE),
       icon: Icons.history_edu_rounded,
-      metaInfo: 'إجمالي الإيجارات المحصلة: 144,000 ج.م',
+      metaInfo: 'Total Collected: 144,000 EGP',
     ),
     _ArchivedItemData(
       id: 'arch_003',
-      category: 'سجلات الصيانة المؤرشفة',
-      title: 'عمرة محرك كاملة - هيونداي إلنترا (س ص ع 5678)',
-      subtitle: 'تمت الصيانة في مركز خدمة السادات المعتمد',
-      date: '20 مارس 2025',
-      tag: 'صيانة مكتملة',
+      categoryType: _ArchiveCategoryEnum.maintenanceLogs,
+      title: 'Complete Engine Overhaul - Hyundai Elantra (5678)',
+      subtitle: 'Completed at authorized service center',
+      date: '20 Mar 2025',
+      tag: 'Completed',
       tagColor: const Color(0xFFB06000),
       tagBgColor: const Color(0xFFFEF7E0),
       icon: Icons.build_circle_rounded,
-      metaInfo: 'التكلفة المستقطعة: 18,500 ج.م',
+      metaInfo: 'Deducted Cost: 18,500 EGP',
     ),
     _ArchivedItemData(
       id: 'arch_004',
-      category: 'وثائق وتراخيص منتهية',
-      title: 'رخصة تسيير منتهية - لوحة أجرة رقم 9012',
-      subtitle: 'تم استخراج رخصة التسيير الجديدة لمدة 3 سنوات',
-      date: '10 يناير 2025',
-      tag: 'مستند مجدد',
+      categoryType: _ArchiveCategoryEnum.expiredDocs,
+      title: 'Expired License - Taxi Plate 9012',
+      subtitle: 'Renewed for 3 years successfully',
+      date: '10 Jan 2025',
+      tag: 'Renewed',
       tagColor: const Color(0xFF5F6368),
       tagBgColor: const Color(0xFFF1F3F4),
       icon: Icons.description_rounded,
-      metaInfo: 'مرور مدينة السادات - المنوفية',
+      metaInfo: 'El Sadat Traffic Department',
     ),
     _ArchivedItemData(
       id: 'arch_005',
-      category: 'عقود إيجار سابقة',
-      title: 'عقد تشغيل تاكسي كامل - السائق: إبراهيم خليل',
-      subtitle: 'سيارة نيسان صني 2020 (أ ب ج 1234)',
-      date: '15 ديسمبر 2024',
-      tag: 'فسخ بالتراضي',
+      categoryType: _ArchiveCategoryEnum.pastContracts,
+      title: 'Full Taxi Operating Contract - Driver: Ibrahim Khalil',
+      subtitle: 'Nissan Sunny 2020 (1234)',
+      date: '15 Dec 2024',
+      tag: 'Terminated',
       tagColor: const Color(0xFFC5221F),
       tagBgColor: const Color(0xFFFCE8E6),
       icon: Icons.assignment_turned_in_rounded,
-      metaInfo: 'تسوية المستحقات بالكامل',
+      metaInfo: 'Fully Settled',
     ),
   ];
 
@@ -87,7 +89,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
 
   List<_ArchivedItemData> get _filteredItems {
     return _items.where((item) {
-      if (_selectedCategory != 'الكل' && item.category != _selectedCategory) {
+      if (_selectedCategory != _ArchiveCategoryEnum.all && item.categoryType != _selectedCategory) {
         return false;
       }
       if (_searchQuery.isNotEmpty) {
@@ -101,26 +103,28 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
   }
 
   void _restoreItem(_ArchivedItemData item) {
+    final l10n = context.l10n;
     setState(() {
       _items.removeWhere((i) => i.id == item.id);
     });
     AppToast.show(
       context,
-      message: 'تمت استعادة "${item.title}" من الأرشيف بنجاح',
-      duration: const Duration(seconds: 5),
+      message: '${l10n.itemRestored}: "${item.title}"',
+      duration: const Duration(seconds: 4),
     );
   }
 
   void _confirmDeleteItem(_ArchivedItemData item) {
+    final l10n = context.l10n;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('تأكيد الحذف النهائي'),
-        content: Text('هل أنت متأكد من حذف "${item.title}" نهائياً من الأرشيف؟ لا يمكن التراجع عن هذا الإجراء.'),
+        title: Text(l10n.confirmPermanentDelete),
+        content: Text('${l10n.confirmPermanentDeleteMsg}\n\n"${item.title}"'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('إلغاء'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFC5221F)),
@@ -131,13 +135,13 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
               });
               AppToast.show(
                 context,
-                message: 'تم حذف السجل من الأرشيف نهائياً',
+                message: l10n.itemDeleted,
                 backgroundColor: const Color(0xFFC5221F),
                 icon: Icons.delete_outline_rounded,
-                duration: const Duration(seconds: 5),
+                duration: const Duration(seconds: 4),
               );
             },
-            child: const Text('حذف نهائي', style: TextStyle(color: Colors.white)),
+            child: Text(l10n.permanentDelete, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -149,6 +153,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
     final filtered = _filteredItems;
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
@@ -158,7 +163,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
             Icon(Icons.inventory_2_rounded, color: primaryColor, size: 22),
             const SizedBox(width: 8),
             Text(
-              'أرشيف الملفات والسجلات',
+              l10n.archiveTitle,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -167,11 +172,6 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
             ),
           ],
         ),
-        centerTitle: false,
-        actions: const [
-          ThemeToggleIconButton(),
-          SizedBox(width: 8),
-        ],
       ),
       body: Column(
         children: [
@@ -186,7 +186,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                   controller: _searchController,
                   onChanged: (val) => setState(() => _searchQuery = val),
                   decoration: InputDecoration(
-                    hintText: 'بحث في الأرشيف (أصول، عقود، صيانة...)...',
+                    hintText: l10n.searchArchiveHint,
                     hintStyle: TextStyle(
                       fontSize: 12.5,
                       color: isDark ? AppColors.darkTextTertiary : const Color(0xFF94A3B8),
@@ -218,33 +218,33 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                   child: Row(
                     children: [
                       _ArchiveFilterPill(
-                        label: 'الكل',
-                        isSelected: _selectedCategory == 'الكل',
-                        onTap: () => setState(() => _selectedCategory = 'الكل'),
+                        label: l10n.filterAll,
+                        isSelected: _selectedCategory == _ArchiveCategoryEnum.all,
+                        onTap: () => setState(() => _selectedCategory = _ArchiveCategoryEnum.all),
                       ),
                       const SizedBox(width: 8),
                       _ArchiveFilterPill(
-                        label: 'أصول مباعة ومتقاعدة',
-                        isSelected: _selectedCategory == 'أصول مباعة ومتقاعدة',
-                        onTap: () => setState(() => _selectedCategory = 'أصول مباعة ومتقاعدة'),
+                        label: l10n.catSoldAssets,
+                        isSelected: _selectedCategory == _ArchiveCategoryEnum.soldAssets,
+                        onTap: () => setState(() => _selectedCategory = _ArchiveCategoryEnum.soldAssets),
                       ),
                       const SizedBox(width: 8),
                       _ArchiveFilterPill(
-                        label: 'عقود إيجار سابقة',
-                        isSelected: _selectedCategory == 'عقود إيجار سابقة',
-                        onTap: () => setState(() => _selectedCategory = 'عقود إيجار سابقة'),
+                        label: l10n.catPastContracts,
+                        isSelected: _selectedCategory == _ArchiveCategoryEnum.pastContracts,
+                        onTap: () => setState(() => _selectedCategory = _ArchiveCategoryEnum.pastContracts),
                       ),
                       const SizedBox(width: 8),
                       _ArchiveFilterPill(
-                        label: 'سجلات الصيانة المؤرشفة',
-                        isSelected: _selectedCategory == 'سجلات الصيانة المؤرشفة',
-                        onTap: () => setState(() => _selectedCategory = 'سجلات الصيانة المؤرشفة'),
+                        label: l10n.catMaintenanceLogs,
+                        isSelected: _selectedCategory == _ArchiveCategoryEnum.maintenanceLogs,
+                        onTap: () => setState(() => _selectedCategory = _ArchiveCategoryEnum.maintenanceLogs),
                       ),
                       const SizedBox(width: 8),
                       _ArchiveFilterPill(
-                        label: 'وثائق وتراخيص',
-                        isSelected: _selectedCategory == 'وثائق وتراخيص منتهية',
-                        onTap: () => setState(() => _selectedCategory = 'وثائق وتراخيص منتهية'),
+                        label: l10n.catExpiredDocs,
+                        isSelected: _selectedCategory == _ArchiveCategoryEnum.expiredDocs,
+                        onTap: () => setState(() => _selectedCategory = _ArchiveCategoryEnum.expiredDocs),
                       ),
                     ],
                   ),
@@ -258,15 +258,15 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
           // Archive List
           Expanded(
             child: filtered.isEmpty
-                ? const Center(
+                ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.folder_open_rounded, size: 64, color: Color(0xFFCBD5E1)),
-                        SizedBox(height: 12),
+                        const Icon(Icons.folder_open_rounded, size: 64, color: Color(0xFFCBD5E1)),
+                        const SizedBox(height: 12),
                         Text(
-                          'لا توجد سجلات مؤرشفة مطابقة',
-                          style: TextStyle(fontSize: 14, color: Color(0xFF64748B), fontWeight: FontWeight.bold),
+                          l10n.noData,
+                          style: const TextStyle(fontSize: 14, color: Color(0xFF64748B), fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -292,7 +292,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
 
 class _ArchivedItemData {
   final String id;
-  final String category;
+  final _ArchiveCategoryEnum categoryType;
   final String title;
   final String subtitle;
   final String date;
@@ -304,7 +304,7 @@ class _ArchivedItemData {
 
   _ArchivedItemData({
     required this.id,
-    required this.category,
+    required this.categoryType,
     required this.title,
     required this.subtitle,
     required this.date,
@@ -331,6 +331,7 @@ class _ArchivedCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+    final l10n = context.l10n;
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -354,23 +355,20 @@ class _ArchivedCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: isDark && item.tagColor == const Color(0xFF137333)
-                        ? const Color(0xFF4ADE80)
-                        : (isDark && item.tagColor == const Color(0xFF0F56B3)
-                            ? const Color(0xFF60A5FA)
-                            : (isDark && item.tagColor == const Color(0xFFC5221F)
-                                ? const Color(0xFFF87171)
-                                : item.tagColor)),
+                    color: item.tagColor,
                   ),
                 ),
               ),
               Row(
                 children: [
-                  Icon(Icons.archive_outlined, size: 14, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
+                  Icon(Icons.calendar_today_outlined, size: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                   const SizedBox(width: 4),
                   Text(
-                    item.date,
-                    style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
+                    context.digits(item.date),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    ),
                   ),
                 ],
               ),
@@ -379,20 +377,20 @@ class _ArchivedCard extends StatelessWidget {
 
           const SizedBox(height: 10),
 
-          // Middle: Icon + Title + Subtitle
+          // Middle: Title & Subtitle with Icon
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF162032) : const Color(0xFFF1F5F9),
+                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F3F4),
                   borderRadius: BorderRadius.circular(10),
                   border: isDark ? Border.all(color: const Color(0xFF334155), width: 1) : null,
                 ),
                 child: Center(
-                  child: Icon(item.icon, color: primaryColor, size: 22),
+                  child: Icon(item.icon, color: primaryColor, size: 20),
                 ),
               ),
               const SizedBox(width: 12),
@@ -401,39 +399,32 @@ class _ArchivedCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.title,
+                      context.digits(item.title),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 13.5,
                         fontWeight: FontWeight.bold,
                         color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
                       ),
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      item.subtitle,
+                      context.digits(item.subtitle),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 11.5,
                         color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
-                        height: 1.3,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8F9FA),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                      ),
-                      child: Text(
-                        item.metaInfo,
+                    if (item.metaInfo.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        context.digits(item.metaInfo),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: primaryColor,
+                          color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
                         ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -441,13 +432,36 @@ class _ArchivedCard extends StatelessWidget {
           ),
 
           const SizedBox(height: 12),
-          Divider(height: 1, color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
+          const Divider(height: 1),
           const SizedBox(height: 8),
 
-          // Bottom Action Row: Restore & Delete
+          // Bottom Action Buttons
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              // Delete Button
+              InkWell(
+                onTap: onDelete,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.delete_outline_rounded, color: Color(0xFFC5221F), size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        l10n.permanentDelete,
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFC5221F),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
               // Restore Button
               InkWell(
                 onTap: onRestore,
@@ -455,17 +469,17 @@ class _ArchivedCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFE8F0FE),
+                    color: primaryColor.withValues(alpha: isDark ? 0.2 : 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.unarchive_rounded, color: primaryColor, size: 16),
+                      Icon(Icons.restore_rounded, color: primaryColor, size: 16),
                       const SizedBox(width: 4),
                       Text(
-                        'استعادة من الأرشيف',
+                        l10n.restoreFromArchive,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: primaryColor,
                         ),
@@ -473,17 +487,6 @@ class _ArchivedCard extends StatelessWidget {
                     ],
                   ),
                 ),
-              ),
-
-              // Delete Button
-              IconButton(
-                icon: Icon(
-                  Icons.delete_outline_rounded,
-                  color: isDark ? const Color(0xFFF87171) : const Color(0xFFC5221F),
-                  size: 20,
-                ),
-                onPressed: onDelete,
-                tooltip: 'حذف نهائي',
               ),
             ],
           ),
@@ -537,4 +540,3 @@ class _ArchiveFilterPill extends StatelessWidget {
     );
   }
 }
-

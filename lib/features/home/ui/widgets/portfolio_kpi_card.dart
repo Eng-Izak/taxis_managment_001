@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/models/dashboard_summary_model.dart';
-import '../../../../core/utils/formatters.dart';
+import '../../../../core/localization/app_localization_extension.dart';
 
 class PortfolioKpiCard extends StatelessWidget {
   final DashboardSummary summary;
@@ -14,6 +14,7 @@ class PortfolioKpiCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     return Stack(
       children: [
@@ -22,10 +23,10 @@ class PortfolioKpiCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title: إجمالي قيمة المحفظة (on right in RTL)
-              const Text(
-                'إجمالي قيمة المحفظة',
-                style: TextStyle(
+              // Title: إجمالي قيمة المحفظة
+              Text(
+                l10n.totalPortfolioValue,
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF64748B),
@@ -39,7 +40,7 @@ class PortfolioKpiCard extends StatelessWidget {
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   Text(
-                    AppFormatters.formatNumber(summary.totalPortfolioValue > 0 ? summary.totalPortfolioValue : 500000),
+                    context.formatNumber(summary.totalPortfolioValue > 0 ? summary.totalPortfolioValue : 500000),
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w900,
@@ -49,7 +50,7 @@ class PortfolioKpiCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'ج.م',
+                    l10n.egp,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -73,7 +74,7 @@ class PortfolioKpiCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'صافي الإيرادات الشهري',
+                      l10n.netMonthlyRevenue,
                       style: TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w600,
@@ -84,13 +85,13 @@ class PortfolioKpiCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Amount on Right (in RTL)
+                        // Amount
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.baseline,
                           textBaseline: TextBaseline.alphabetic,
                           children: [
                             Text(
-                              AppFormatters.formatNumber(summary.netMonthlyRevenue > 0 ? summary.netMonthlyRevenue : 15000),
+                              context.formatNumber(summary.netMonthlyRevenue > 0 ? summary.netMonthlyRevenue : 15000),
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -99,7 +100,7 @@ class PortfolioKpiCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'ج.م',
+                              l10n.egp,
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
@@ -109,7 +110,7 @@ class PortfolioKpiCard extends StatelessWidget {
                           ],
                         ),
 
-                        // Yellow/Gold Growth Badge on Left (in RTL)
+                        // Yellow/Gold Growth Badge
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
@@ -120,7 +121,7 @@ class PortfolioKpiCard extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                '+5%',
+                                context.digits('+5%'),
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
@@ -145,9 +146,9 @@ class PortfolioKpiCard extends StatelessWidget {
           ),
         ),
 
-        // Blue Vertical Indicator Bar on Right Edge (in RTL)
+        // Indicator Bar on Start Edge
         Positioned.directional(
-          textDirection: TextDirection.rtl,
+          textDirection: Directionality.of(context),
           start: 0,
           top: 14,
           bottom: 14,

@@ -5,6 +5,7 @@ import '../../../../core/shared/models/asset_model.dart';
 import '../../../../core/shared/enums/app_enums.dart';
 import '../../../../core/shared/widgets/app_header_widgets.dart';
 import '../../../../core/shared/widgets/app_toast.dart';
+import '../../../../core/localization/app_localization_extension.dart';
 import '../../home/logic/home_cubit.dart';
 import '../../home/logic/home_state.dart';
 import '../../notifications/ui/notifications_screen.dart';
@@ -19,7 +20,7 @@ class AssetsManagmentScreen extends StatefulWidget {
 }
 
 class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
-  String _selectedFilter = 'الكل';
+  AssetType? _selectedFilterType;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -40,10 +41,9 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
       }
 
       // 2. Filter Pills
-      if (_selectedFilter == 'الكل') return true;
-      if (_selectedFilter == 'تاكسي كامل') return asset.modelType == AssetType.fullTaxi;
-      if (_selectedFilter == 'لوحة فقط') return asset.modelType == AssetType.plateOnly;
-      if (_selectedFilter == 'مركبة فقط') return asset.modelType == AssetType.vehicleOnly;
+      if (_selectedFilterType != null) {
+        return asset.modelType == _selectedFilterType;
+      }
 
       return true;
     }).toList();
@@ -52,17 +52,18 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SadatTaxiLogo(),
-            SizedBox(width: 8),
+            const SadatTaxiLogo(),
+            const SizedBox(width: 8),
             Text(
-              'إدارة الأصول',
-              style: TextStyle(
+              l10n.assetsManagement,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF0F56B3),
@@ -72,7 +73,6 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
         ),
         centerTitle: false,
         actions: [
-          const ThemeToggleIconButton(),
           const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
@@ -105,7 +105,7 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
                             controller: _searchController,
                             onChanged: (val) => setState(() => _searchQuery = val),
                             decoration: InputDecoration(
-                              hintText: 'بحث برقم اللوحة، الموديل...',
+                              hintText: l10n.searchAssetsHint,
                               hintStyle: TextStyle(
                                 fontSize: 12.5,
                                 color: isDark ? AppColors.darkTextTertiary : const Color(0xFF94A3B8),
@@ -156,13 +156,13 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
                               color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Row(
+                            child: Row(
                               children: [
-                                Icon(Icons.add_rounded, color: Colors.white, size: 20),
-                                SizedBox(width: 4),
+                                const Icon(Icons.add_rounded, color: Colors.white, size: 20),
+                                const SizedBox(width: 4),
                                 Text(
-                                  'إضافة',
-                                  style: TextStyle(
+                                  l10n.addNewAsset,
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12.5,
@@ -183,27 +183,27 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
                       child: Row(
                         children: [
                           _FilterPill(
-                            label: 'الكل',
-                            isSelected: _selectedFilter == 'الكل',
-                            onTap: () => setState(() => _selectedFilter = 'الكل'),
+                            label: l10n.filterAll,
+                            isSelected: _selectedFilterType == null,
+                            onTap: () => setState(() => _selectedFilterType = null),
                           ),
                           const SizedBox(width: 8),
                           _FilterPill(
-                            label: 'تاكسي كامل',
-                            isSelected: _selectedFilter == 'تاكسي كامل',
-                            onTap: () => setState(() => _selectedFilter = 'تاكسي كامل'),
+                            label: l10n.filterFullTaxi,
+                            isSelected: _selectedFilterType == AssetType.fullTaxi,
+                            onTap: () => setState(() => _selectedFilterType = AssetType.fullTaxi),
                           ),
                           const SizedBox(width: 8),
                           _FilterPill(
-                            label: 'لوحة فقط',
-                            isSelected: _selectedFilter == 'لوحة فقط',
-                            onTap: () => setState(() => _selectedFilter = 'لوحة فقط'),
+                            label: l10n.filterPlateOnly,
+                            isSelected: _selectedFilterType == AssetType.plateOnly,
+                            onTap: () => setState(() => _selectedFilterType = AssetType.plateOnly),
                           ),
                           const SizedBox(width: 8),
                           _FilterPill(
-                            label: 'مركبة فقط',
-                            isSelected: _selectedFilter == 'مركبة فقط',
-                            onTap: () => setState(() => _selectedFilter = 'مركبة فقط'),
+                            label: l10n.filterVehicleOnly,
+                            isSelected: _selectedFilterType == AssetType.vehicleOnly,
+                            onTap: () => setState(() => _selectedFilterType = AssetType.vehicleOnly),
                           ),
                         ],
                       ),
@@ -217,10 +217,10 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
               // Assets List
               Expanded(
                 child: filteredAssets.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Text(
-                          'لا توجد أصول مطابقة للبحث',
-                          style: TextStyle(color: Color(0xFF64748B)),
+                          l10n.noData,
+                          style: const TextStyle(color: Color(0xFF64748B)),
                         ),
                       )
                     : ListView.builder(
@@ -239,13 +239,13 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
                               ),
                               padding: const EdgeInsets.symmetric(horizontal: 20),
                               alignment: Alignment.centerRight,
-                              child: const Row(
+                              child: Row(
                                 children: [
-                                  Icon(Icons.edit_rounded, color: Colors.white, size: 24),
-                                  SizedBox(width: 8),
+                                  const Icon(Icons.edit_rounded, color: Colors.white, size: 24),
+                                  const SizedBox(width: 8),
                                   Text(
-                                    'تعديل بيانات الأصل',
-                                    style: TextStyle(
+                                    l10n.swipeToEdit,
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13,
@@ -262,25 +262,24 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
                               ),
                               padding: const EdgeInsets.symmetric(horizontal: 20),
                               alignment: Alignment.centerLeft,
-                              child: const Row(
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   Text(
-                                    'نقل إلى الأرشيف',
-                                    style: TextStyle(
+                                    l10n.swipeToArchive,
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13,
                                     ),
                                   ),
-                                  SizedBox(width: 8),
-                                  Icon(Icons.archive_rounded, color: Colors.white, size: 24),
+                                  const SizedBox(width: 8),
+                                  const Icon(Icons.archive_rounded, color: Colors.white, size: 24),
                                 ],
                               ),
                             ),
                             confirmDismiss: (direction) async {
                               if (direction == DismissDirection.startToEnd) {
-                                // Navigate to edit asset screen without removing item from list
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (_) => AddAssetScreen(assetToEdit: asset),
@@ -292,24 +291,24 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
                               return await showDialog<bool>(
                                 context: context,
                                 builder: (ctx) => AlertDialog(
-                                  title: const Row(
+                                  title: Row(
                                     children: [
-                                      Icon(Icons.inventory_2_rounded, color: Color(0xFF0F56B3)),
-                                      SizedBox(width: 8),
+                                      const Icon(Icons.inventory_2_rounded, color: Color(0xFF0F56B3)),
+                                      const SizedBox(width: 8),
                                       Text(
-                                        'نقل إلى الأرشيف',
-                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                        l10n.archiveAssetConfirmTitle,
+                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                       ),
                                     ],
                                   ),
                                   content: Text(
-                                    'هل أنت متأكد من نقل الأصل "${asset.plateNumber} (${asset.carModelYear})" إلى الأرشيف؟',
+                                    '${l10n.archiveAssetConfirmMessage}\n\n"${asset.plateNumber} (${asset.carModelYear})"',
                                     style: const TextStyle(fontSize: 13.5, height: 1.4),
                                   ),
                                   actions: [
                                     TextButton(
                                       onPressed: () => Navigator.of(ctx).pop(false),
-                                      child: const Text('إلغاء'),
+                                      child: Text(l10n.cancel),
                                     ),
                                     ElevatedButton(
                                       style: ElevatedButton.styleFrom(
@@ -319,7 +318,7 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
                                         ),
                                       ),
                                       onPressed: () => Navigator.of(ctx).pop(true),
-                                      child: const Text('تأكيد النقل', style: TextStyle(color: Colors.white)),
+                                      child: Text(l10n.confirm, style: const TextStyle(color: Colors.white)),
                                     ),
                                   ],
                                 ),
@@ -330,12 +329,8 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
                                 context.read<HomeCubit>().deleteAsset(asset.id);
                                 AppToast.show(
                                   context,
-                                  message: 'تم نقل الأصل "${asset.plateNumber}" إلى الأرشيف بنجاح',
-                                  actionLabel: 'تراجع',
-                                  duration: const Duration(seconds: 5),
-                                  onAction: () {
-                                    context.read<HomeCubit>().addOrUpdateAsset(asset);
-                                  },
+                                  message: '${l10n.itemRestored} (${asset.plateNumber})',
+                                  duration: const Duration(seconds: 4),
                                 );
                               }
                             },
@@ -396,4 +391,3 @@ class _FilterPill extends StatelessWidget {
     );
   }
 }
-

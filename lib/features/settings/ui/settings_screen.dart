@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/theming/theme_cubit.dart';
+import '../../../../core/localization/locale_cubit.dart';
+import '../../../../core/localization/app_localization_extension.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/widgets/app_header_widgets.dart';
 import '../../../../core/shared/widgets/section_header.dart';
@@ -16,7 +18,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  String _selectedLanguage = 'العربية (Arabic)';
   bool _rentDueAlerts = true;
   bool _maintenanceAlerts = true;
   bool _licenseRenewalAlerts = true;
@@ -27,17 +28,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentThemeMode = context.watch<ThemeCubit>().state;
+    final currentLocale = context.watch<LocaleCubit>().state;
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SadatTaxiLogo(),
-            SizedBox(width: 8),
+            const SadatTaxiLogo(),
+            const SizedBox(width: 8),
             Text(
-              'الإعدادات',
-              style: TextStyle(
+              l10n.settings,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF0F56B3),
@@ -47,7 +50,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         centerTitle: false,
         actions: [
-          const ThemeToggleIconButton(),
           const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
@@ -65,8 +67,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Section 1: المظهر والسمة
-            const SectionHeader(
-              title: 'المظهر والسمة العامة',
+            SectionHeader(
+              title: l10n.appearanceAndTheme,
               leadingIcon: Icons.palette_outlined,
             ),
             AppCard(
@@ -74,8 +76,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 children: [
                   _ThemeSelectionTile(
-                    label: 'الوضع الفاتح (Light Mode)',
-                    subtitle: 'واجهة نهارية مشرقة وعالية التباين',
+                    label: l10n.lightMode,
+                    subtitle: l10n.lightModeDesc,
                     icon: Icons.light_mode_rounded,
                     isSelected: currentThemeMode == ThemeMode.light,
                     iconColor: const Color(0xFFD97706),
@@ -83,8 +85,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   _ThemeSelectionTile(
-                    label: 'الوضع الداكن (Dark Mode)',
-                    subtitle: 'مظهر مسائي مريح للعين وموفر للطاقة',
+                    label: l10n.darkMode,
+                    subtitle: l10n.darkModeDesc,
                     icon: Icons.dark_mode_rounded,
                     isSelected: currentThemeMode == ThemeMode.dark,
                     iconColor: const Color(0xFF3B82F6),
@@ -92,8 +94,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   _ThemeSelectionTile(
-                    label: 'تلقائي حسب النظام (System Default)',
-                    subtitle: 'مزامنة السمة تلقائياً مع إعدادات جهازك',
+                    label: l10n.systemTheme,
+                    subtitle: l10n.systemThemeDesc,
                     icon: Icons.brightness_auto_rounded,
                     isSelected: currentThemeMode == ThemeMode.system,
                     iconColor: const Color(0xFF10B981),
@@ -106,8 +108,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 20),
 
             // Section 2: لغة واجهة التطبيق
-            const SectionHeader(
-              title: 'لغة واجهة التطبيق (Language)',
+            SectionHeader(
+              title: l10n.languageSettings,
               leadingIcon: Icons.language_rounded,
             ),
             AppCard(
@@ -115,15 +117,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 children: [
                   _LanguageSelectionTile(
-                    label: 'العربية (RTL - اللغة الأساسية)',
-                    isSelected: _selectedLanguage == 'العربية (Arabic)',
-                    onTap: () => setState(() => _selectedLanguage = 'العربية (Arabic)'),
+                    label: l10n.arabicLanguage,
+                    isSelected: currentLocale.languageCode == 'ar',
+                    onTap: () => context.read<LocaleCubit>().setArabic(),
                   ),
                   const SizedBox(height: 8),
                   _LanguageSelectionTile(
-                    label: 'English (LTR)',
-                    isSelected: _selectedLanguage == 'English',
-                    onTap: () => setState(() => _selectedLanguage = 'English'),
+                    label: l10n.englishLanguage,
+                    isSelected: currentLocale.languageCode == 'en',
+                    onTap: () => context.read<LocaleCubit>().setEnglish(),
                   ),
                 ],
               ),
@@ -132,8 +134,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 20),
 
             // Section 3: إعدادات الإشعارات والتنبيهات
-            const SectionHeader(
-              title: 'إعدادات الإشعارات والتنبيهات',
+            SectionHeader(
+              title: l10n.notificationSettings,
               leadingIcon: Icons.notifications_active_outlined,
             ),
             AppCard(
@@ -144,12 +146,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     value: _rentDueAlerts,
                     onChanged: (val) => setState(() => _rentDueAlerts = val),
                     activeThumbColor: isDark ? AppColors.primaryLight : AppColors.primary,
-                    title: const Text(
-                      'تنبيهات استحقاق الإيجارات',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    title: Text(
+                      l10n.rentDueAlerts,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: Text(
-                      'إشعارات فورية عند استحقاق أو تأخر إيجار السائقين',
+                      l10n.rentDueAlertsDesc,
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -173,12 +175,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     value: _maintenanceAlerts,
                     onChanged: (val) => setState(() => _maintenanceAlerts = val),
                     activeThumbColor: isDark ? AppColors.primaryLight : AppColors.primary,
-                    title: const Text(
-                      'مواعيد الصيانة الدورية',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    title: Text(
+                      l10n.maintenanceAlerts,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: Text(
-                      'تذكير بمواعيد تغيير الزيت والفحص الدوري للسيارات',
+                      l10n.maintenanceAlertsDesc,
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -202,12 +204,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     value: _licenseRenewalAlerts,
                     onChanged: (val) => setState(() => _licenseRenewalAlerts = val),
                     activeThumbColor: isDark ? AppColors.primaryLight : AppColors.primary,
-                    title: const Text(
-                      'تجديد رخص التسيير والتأمين',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    title: Text(
+                      l10n.licenseRenewalAlerts,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: Text(
-                      'إشعار مسبق قبل انتهاء التراخيص بـ 30 يوماً',
+                      l10n.licenseRenewalAlertsDesc,
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -233,8 +235,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 20),
 
             // Section 4: الأمان والتحقق
-            const SectionHeader(
-              title: 'الأمان وحماية البيانات',
+            SectionHeader(
+              title: l10n.securityAndProtection,
               leadingIcon: Icons.security_rounded,
             ),
             AppCard(
@@ -245,12 +247,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     value: _biometricEnabled,
                     onChanged: (val) => setState(() => _biometricEnabled = val),
                     activeThumbColor: isDark ? AppColors.primaryLight : AppColors.primary,
-                    title: const Text(
-                      'التحقق ببصمة الإصبع / الوجه',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    title: Text(
+                      l10n.biometricAuth,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: Text(
-                      'طلب المصادقة البيومترية عند فتح التطبيق',
+                      l10n.biometricAuthDesc,
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -274,12 +276,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     value: _autoLockEnabled,
                     onChanged: (val) => setState(() => _autoLockEnabled = val),
                     activeThumbColor: isDark ? AppColors.primaryLight : AppColors.primary,
-                    title: const Text(
-                      'القفل التلقائي للجلسة',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    title: Text(
+                      l10n.autoSessionLock,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: Text(
-                      'قفل الشاشة عند الخروج من التطبيق للحماية',
+                      l10n.autoSessionLockDesc,
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -312,9 +314,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         size: 20,
                       ),
                     ),
-                    title: const Text('إعدادات رمز المرور المتقدمة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    title: Text(l10n.passcodeSettings, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                     subtitle: Text(
-                      'تغيير كود PIN السري للمحفظة',
+                      l10n.passcodeSettingsDesc,
                       style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
@@ -331,8 +333,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 20),
 
             // Section 5: النسخ الاحتياطي وتصدير البيانات
-            const SectionHeader(
-              title: 'النسخ الاحتياطي وتصدير التقارير',
+            SectionHeader(
+              title: l10n.backupAndReports,
               leadingIcon: Icons.cloud_sync_outlined,
             ),
             AppCard(
@@ -352,15 +354,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         size: 20,
                       ),
                     ),
-                    title: const Text('تصدير تقرير المحفظة والأرباح (Excel/PDF)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    title: Text(l10n.exportReport, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                     subtitle: Text(
-                      'تنزيل كشف حساب شامل وتوزيعات الشركاء',
+                      l10n.exportReportDesc,
                       style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('تم تصدير كشف الحساب بنجاح!')),
+                        SnackBar(content: Text(l10n.reportExportSuccess)),
                       );
                     },
                   ),
@@ -378,13 +380,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         size: 20,
                       ),
                     ),
-                    title: const Text('المزامنة السحابية الفورية', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    title: Text(l10n.cloudSync, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                     subtitle: Text(
-                      'آخر مزامنة ناجحة: اليوم 09:30 ص',
+                      l10n.cloudSyncDesc,
                       style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
                     ),
                     trailing: Text(
-                      'متصل',
+                      l10n.connected,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -405,19 +407,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      SadatTaxiLogo(size: 24),
-                      SizedBox(width: 8),
+                      const SadatTaxiLogo(size: 24),
+                      const SizedBox(width: 8),
                       Text(
-                        'نظام إدارة أصول تاكسيات مدينة السادات',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                        l10n.systemName,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'منصة استثمارية متخصصة لإدارة حصص الشركاء، عقود الإيجار، وتوزيعات الأرباح الشهرية للأسطول التجاري.',
+                    l10n.systemDescription,
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -426,7 +428,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'الإصدار 1.0.0 (Build 2026) - El Sadat City Fleet Manager',
+                    l10n.systemVersion,
                     style: TextStyle(
                       fontSize: 11,
                       color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,

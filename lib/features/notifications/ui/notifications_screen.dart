@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
-import '../../../../core/shared/widgets/app_header_widgets.dart';
+import '../../../../core/localization/app_localization_extension.dart';
 
 enum NotificationFilter { all, financial, maintenance, documents }
 
@@ -20,22 +20,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
     final textHeaderColor = isDark ? AppColors.darkTextPrimary : const Color(0xFF374151);
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'الإشعارات',
+          l10n.notifications,
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.bold,
             color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
           ),
         ),
-        centerTitle: false,
-        actions: const [
-          ThemeToggleIconButton(),
-          SizedBox(width: 8),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -48,28 +44,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: Row(
                 children: [
                   _NotificationFilterChip(
-                    label: 'الكل',
+                    label: l10n.filterAll,
                     count: 4,
                     isSelected: _selectedFilter == NotificationFilter.all,
                     onTap: () => setState(() => _selectedFilter = NotificationFilter.all),
                   ),
                   const SizedBox(width: 8),
                   _NotificationFilterChip(
-                    label: 'مالي',
+                    label: l10n.filterFinancial,
                     count: 1,
                     isSelected: _selectedFilter == NotificationFilter.financial,
                     onTap: () => setState(() => _selectedFilter = NotificationFilter.financial),
                   ),
                   const SizedBox(width: 8),
                   _NotificationFilterChip(
-                    label: 'صيانة',
+                    label: l10n.filterMaintenance,
                     count: 1,
                     isSelected: _selectedFilter == NotificationFilter.maintenance,
                     onTap: () => setState(() => _selectedFilter = NotificationFilter.maintenance),
                   ),
                   const SizedBox(width: 8),
                   _NotificationFilterChip(
-                    label: 'مستندات',
+                    label: l10n.filterDocuments,
                     count: null,
                     isSelected: _selectedFilter == NotificationFilter.documents,
                     onTap: () => setState(() => _selectedFilter = NotificationFilter.documents),
@@ -82,7 +78,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
             // Section: اليوم (Today)
             Text(
-              'اليوم',
+              l10n.today,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -93,8 +89,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
             // Item 1: Payment Received
             _NotificationItemCard(
-              title: 'تم استلام مبلغ 1,500 ج.م من لوحة 1234',
-              timeText: 'منذ 10 دقائق',
+              title: '${l10n.receivedStatus}: ${context.formatCurrency(1500)} (${l10n.rentedPlatesOnly} ${context.digits("1234")})',
+              timeText: context.digits(l10n.minutesAgo(10)),
               icon: Icons.account_balance_wallet_rounded,
               iconColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
               iconBgColor: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFE6F4EA),
@@ -104,8 +100,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
             // Item 2: Overdue Rent
             _NotificationItemCard(
-              title: 'تأخير في سداد إيجار لوحة 5678 -\nمحمود خالد',
-              timeText: 'منذ 2 ساعة',
+              title: '${l10n.overdueStatus}: ${l10n.rentDue} ${context.digits("5678")} - Mahmoud',
+              timeText: context.digits(l10n.hoursAgo(2)),
               icon: Icons.warning_rounded,
               iconColor: isDark ? const Color(0xFFF87171) : const Color(0xFFC5221F),
               iconBgColor: isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.4) : const Color(0xFFFCE8E6),
@@ -115,8 +111,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
             // Item 3: Maintenance Notice
             _NotificationItemCard(
-              title: 'موعد تغيير الزيت القادم لسيارة\nتويوتا كورولا (أ ب ج 1234)',
-              timeText: 'منذ 5 ساعات',
+              title: '${l10n.periodicMaintenance} - Toyota Corolla (${context.digits("1234")})',
+              timeText: context.digits(l10n.hoursAgo(5)),
               icon: Icons.build_rounded,
               iconColor: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000),
               iconBgColor: isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0),
@@ -127,7 +123,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
             // Section: أمس (Yesterday)
             Text(
-              'أمس',
+              l10n.yesterday,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -138,8 +134,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
             // Item 4: License Renewal Alert
             _NotificationItemCard(
-              title: 'تنبيه: اقتراب انتهاء رخصة تسيير\nلوحة 9012 (متبقي 30 يوماً)',
-              timeText: 'أمس 04:30 م',
+              title: '${l10n.licenseRenewalAlerts}: ${context.digits("9012")} (${context.digits("30 days")})',
+              timeText: context.digits('${l10n.yesterday} 04:30 PM'),
               icon: Icons.description_rounded,
               iconColor: primaryColor,
               iconBgColor: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFE8F0FE),
@@ -150,7 +146,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
             // Section: هذا الأسبوع (This Week)
             Text(
-              'هذا الأسبوع',
+              l10n.thisWeek,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -161,8 +157,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
             // Item 5: Monthly Report Exported
             _NotificationItemCard(
-              title: 'تم تصدير تقرير توزيعات الأرباح\nلشهر سبتمبر بنجاح',
-              timeText: 'الأحد 09:00 ص',
+              title: l10n.reportExportSuccess,
+              timeText: context.digits('Sunday 09:00 AM'),
               icon: Icons.file_download_done_rounded,
               iconColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
               iconBgColor: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFE6F4EA),
@@ -234,7 +230,7 @@ class _NotificationFilterChip extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    '$count',
+                    context.digits(count),
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,

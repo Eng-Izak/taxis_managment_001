@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/models/asset_model.dart';
-import '../../../../core/utils/formatters.dart';
+import '../../../../core/shared/enums/app_enums.dart';
+import '../../../../core/localization/app_localization_extension.dart';
 import 'add_asset_screen.dart';
 
 class AssetDetailsScreen extends StatelessWidget {
@@ -16,14 +17,14 @@ class AssetDetailsScreen extends StatelessWidget {
     final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
     final textPrimary = isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937);
     final textSecondary = isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B);
-    final textTertiary = isDark ? AppColors.darkTextTertiary : const Color(0xFF94A3B8);
     final innerBoxBg = isDark ? const Color(0xFF131D31) : const Color(0xFFF8F9FA);
     final innerBoxBorder = isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0);
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'تفاصيل الأصل',
+          l10n.assetDetails,
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.bold,
@@ -34,7 +35,7 @@ class AssetDetailsScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: Icon(Icons.edit_rounded, color: primaryColor),
-            tooltip: 'تعديل بيانات الأصل',
+            tooltip: l10n.edit,
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -71,7 +72,7 @@ class AssetDetailsScreen extends StatelessWidget {
                           border: isDark ? Border.all(color: const Color(0xFFFBBF24).withValues(alpha: 0.3), width: 0.8) : null,
                         ),
                         child: Text(
-                          'نشط (تحت التشغيل)',
+                          l10n.statusActive,
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
@@ -92,7 +93,7 @@ class AssetDetailsScreen extends StatelessWidget {
 
                   const SizedBox(height: 14),
 
-                  // Box: Plate Number & Model Code
+                  // Box: Plate Number
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
@@ -116,7 +117,7 @@ class AssetDetailsScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'رقم اللوحة',
+                          l10n.plateNumber,
                           style: TextStyle(
                             fontSize: 13,
                             color: textSecondary,
@@ -152,7 +153,7 @@ class AssetDetailsScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'رقم الشاسيه',
+                          l10n.chassisNumber,
                           style: TextStyle(
                             fontSize: 13,
                             color: textSecondary,
@@ -180,7 +181,11 @@ class AssetDetailsScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          asset.modelType.arabicLabel,
+                          asset.modelType == AssetType.fullTaxi
+                              ? l10n.fullTaxis
+                              : asset.modelType == AssetType.plateOnly
+                                  ? l10n.rentedPlatesOnly
+                                  : l10n.vehiclesOnly,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -188,7 +193,7 @@ class AssetDetailsScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'نوع الأصل',
+                          l10n.assetType,
                           style: TextStyle(
                             fontSize: 13,
                             color: textSecondary,
@@ -211,7 +216,7 @@ class AssetDetailsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'القيمة السوقية التقديرية',
+                    l10n.assetValuation,
                     style: TextStyle(
                       fontSize: 12,
                       color: textSecondary,
@@ -229,7 +234,7 @@ class AssetDetailsScreen extends StatelessWidget {
                           border: isDark ? Border.all(color: const Color(0xFF22C55E).withValues(alpha: 0.3), width: 0.8) : null,
                         ),
                         child: Text(
-                          '+12.5% منذ الشراء',
+                          context.digits('+12.5%'),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
@@ -238,7 +243,7 @@ class AssetDetailsScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        AppFormatters.formatCurrency(asset.assetValuation > 0 ? asset.assetValuation : 450000),
+                        context.formatCurrency(asset.assetValuation > 0 ? asset.assetValuation : 450000),
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -269,7 +274,7 @@ class AssetDetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'نسب الملكية والتوزيع',
+                        l10n.equityDistribution,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -281,7 +286,7 @@ class AssetDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 12),
 
                   // Dynamic Segmented Progress Bar with Tooltips
-                  _buildDetailsSharesBar(asset),
+                  _buildDetailsSharesBar(context, asset),
 
                   const SizedBox(height: 14),
 
@@ -289,7 +294,7 @@ class AssetDetailsScreen extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Text(
-                        'لا توجد حصص مساهمين مسجلة لهذا الأصل.',
+                        l10n.noPartnersAssigned,
                         style: TextStyle(color: textSecondary, fontSize: 12.5),
                       ),
                     )
@@ -310,7 +315,7 @@ class AssetDetailsScreen extends StatelessWidget {
                       final color = colors[i % colors.length];
                       final initial = share.partnerName.trim().isNotEmpty
                           ? share.partnerName.trim().substring(0, 1)
-                          : 'ش';
+                          : 'P';
                       final shareValue = asset.assetValuation > 0
                           ? asset.assetValuation * (share.percentage / 100.0)
                           : 0.0;
@@ -352,10 +357,10 @@ class AssetDetailsScreen extends StatelessWidget {
                                   ),
                                   Text(
                                     share.payoutMethod.name == 'instapay'
-                                        ? 'إنستاباي'
+                                        ? 'InstaPay'
                                         : share.payoutMethod.name == 'vodafoneCash'
-                                            ? 'فودافون كاش'
-                                            : 'تحويل بنكي',
+                                            ? 'Vodafone Cash'
+                                            : 'Bank Transfer',
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: textSecondary,
@@ -368,7 +373,7 @@ class AssetDetailsScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Text(
-                                    '${share.percentage % 1 == 0 ? share.percentage.toInt() : share.percentage.toStringAsFixed(1)}%',
+                                    context.formatPercentage(share.percentage),
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
@@ -377,7 +382,7 @@ class AssetDetailsScreen extends StatelessWidget {
                                   ),
                                   if (shareValue > 0)
                                     Text(
-                                      AppFormatters.formatCurrency(shareValue),
+                                      context.formatCurrency(shareValue),
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: textSecondary,
@@ -414,7 +419,7 @@ class AssetDetailsScreen extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            'سجل المستندات والرخص',
+                            l10n.catExpiredDocs,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -438,7 +443,7 @@ class AssetDetailsScreen extends StatelessWidget {
                             Icon(Icons.add, size: 14, color: primaryColor),
                             const SizedBox(width: 2),
                             Text(
-                              'إضافة مستند',
+                              l10n.save,
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
@@ -453,67 +458,23 @@ class AssetDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 14),
 
                   const _DocumentRowItem(
-                    title: 'رخصة المركبة',
-                    subtitle: 'صالحة حتى 2025/12',
+                    title: 'Vehicle License',
+                    subtitle: 'Valid until 2026/12',
                     icon: Icons.description_outlined,
                   ),
                   const Divider(height: 16),
 
                   const _DocumentRowItem(
-                    title: 'بوليصة التأمين',
-                    subtitle: 'تأمين شامل',
+                    title: 'Insurance Policy',
+                    subtitle: 'Comprehensive',
                     icon: Icons.shield_outlined,
                   ),
                   const Divider(height: 16),
 
                   const _DocumentRowItem(
-                    title: 'عقد الشراء',
-                    subtitle: 'نسخة أصلية',
+                    title: 'Purchase Agreement',
+                    subtitle: 'Original Copy',
                     icon: Icons.handshake_outlined,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // 5. Archive Asset Button
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkCard : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isDark ? AppColors.darkCardBorder : const Color(0xFFD1D5DB)),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.archive_outlined,
-                        size: 18,
-                        color: textPrimary,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'أرشفة الأصل',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'نقل الأصل إلى السجل غير النشط',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: textTertiary,
-                    ),
                   ),
                 ],
               ),
@@ -526,8 +487,9 @@ class AssetDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailsSharesBar(AssetModel asset) {
+  Widget _buildDetailsSharesBar(BuildContext context, AssetModel asset) {
     final validShares = asset.partnerShares.where((s) => s.percentage > 0).toList();
+    final l10n = context.l10n;
 
     const colors = [
       Color(0xFF0F56B3),
@@ -542,7 +504,7 @@ class AssetDetailsScreen extends StatelessWidget {
 
     if (validShares.isEmpty) {
       return Tooltip(
-        message: 'لا يوجد مساهمين محددين (100% غير مخصص)',
+        message: '${l10n.noPartnersAssigned} (${context.formatPercentage(100)} ${l10n.unassignedShare})',
         preferBelow: false,
         waitDuration: const Duration(milliseconds: 50),
         verticalOffset: 10,
@@ -574,9 +536,7 @@ class AssetDetailsScreen extends StatelessWidget {
     for (int i = 0; i < validShares.length; i++) {
       final share = validShares[i];
       final color = colors[i % colors.length];
-      final percentStr = share.percentage % 1 == 0
-          ? '${share.percentage.toInt()}%'
-          : '${share.percentage.toStringAsFixed(1)}%';
+      final percentStr = context.formatPercentage(share.percentage);
       final flex = (share.percentage * 100).round().clamp(1, 10000);
 
       if (i > 0) {
@@ -620,9 +580,7 @@ class AssetDetailsScreen extends StatelessWidget {
     }
 
     if (hasRemainder && remainder > 0.1) {
-      final percentStr = remainder % 1 == 0
-          ? '${remainder.toInt()}%'
-          : '${remainder.toStringAsFixed(1)}%';
+      final percentStr = context.formatPercentage(remainder);
       final flex = (remainder * 100).round().clamp(1, 10000);
 
       if (segments.isNotEmpty) {
@@ -633,7 +591,7 @@ class AssetDetailsScreen extends StatelessWidget {
         Expanded(
           flex: flex,
           child: Tooltip(
-            message: 'حصة غير مخصصة ($percentStr)',
+            message: '${l10n.unassignedShare} ($percentStr)',
             preferBelow: false,
             waitDuration: const Duration(milliseconds: 50),
             showDuration: const Duration(seconds: 3),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/models/shareholder_model.dart';
+import '../../../../core/localization/app_localization_extension.dart';
 
 class ShareholderDetailsScreen extends StatelessWidget {
   final ShareholderModel shareholder;
@@ -15,11 +16,12 @@ class ShareholderDetailsScreen extends StatelessWidget {
     final textPrimary = isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937);
     final textSecondary = isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B);
     final textTertiary = isDark ? AppColors.darkTextTertiary : const Color(0xFF94A3B8);
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'تفاصيل المساهم',
+          l10n.shareholderDetails,
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.bold,
@@ -43,7 +45,7 @@ class ShareholderDetailsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'إجمالي الاستثمار',
+                          l10n.totalInvestment,
                           style: TextStyle(
                             fontSize: 11,
                             color: textSecondary,
@@ -51,7 +53,7 @@ class ShareholderDetailsScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '1,250,000 ج.م',
+                          context.formatCurrency(1250000),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w900,
@@ -75,7 +77,7 @@ class ShareholderDetailsScreen extends StatelessWidget {
                             Icon(Icons.phone_outlined, size: 14, color: textTertiary),
                             const SizedBox(width: 4),
                             Text(
-                              '+20 100 123 4567',
+                              context.digits('+20 100 123 4567'),
                               style: TextStyle(fontSize: 11, color: textTertiary),
                             ),
                           ],
@@ -111,12 +113,12 @@ class ShareholderDetailsScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: primaryColor,
+                          color: textPrimary,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'مستثمر رئيسي',
+                        l10n.mainInvestor,
                         style: TextStyle(
                           fontSize: 11,
                           color: textSecondary,
@@ -155,20 +157,20 @@ class ShareholderDetailsScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Left: Trend Badge
+                  // Trend Badge
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Icons.north_east_rounded, color: Color(0xFFFDE047), size: 12),
-                        SizedBox(width: 2),
+                        const Icon(Icons.north_east_rounded, color: Color(0xFFFDE047), size: 12),
+                        const SizedBox(width: 2),
                         Text(
-                          '+3.2%',
-                          style: TextStyle(
+                          context.digits('+3.2%'),
+                          style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFFFDE047),
@@ -178,21 +180,21 @@ class ShareholderDetailsScreen extends StatelessWidget {
                     ),
                   ),
 
-                  // Right: Return Title & Amount
-                  const Column(
+                  // Return Title & Amount
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        'عائد الشهر الحالي (أكتوبر)',
-                        style: TextStyle(
+                        l10n.currentMonthReturn,
+                        style: const TextStyle(
                           fontSize: 11.5,
                           color: Color(0xFFBFDBFE),
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        '12,450 ج.م',
-                        style: TextStyle(
+                        context.formatCurrency(12450),
+                        style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFFFDE047),
@@ -206,12 +208,12 @@ class ShareholderDetailsScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // Section Header: الأصول المستثمر بها (4)
+            // Section Header: Invested Assets
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'الأصول المستثمر بها (4)',
+                  '${l10n.investedAssetsList} (${context.digits(4)})',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
@@ -223,36 +225,36 @@ class ShareholderDetailsScreen extends StatelessWidget {
             const SizedBox(height: 12),
 
             // Invested Assets Mock List
-            const _InvestedAssetMockCard(
+            _InvestedAssetMockCard(
               plateNumber: 'أ ب ج 1234',
-              carName: 'تويوتا كورولا 2022',
-              equityPercent: '60%',
+              carName: 'Toyota Corolla 2022',
+              equityPercent: context.formatPercentage(60),
               equityFlex: 60,
-              monthlyReturn: '4,500 ج.م',
+              monthlyReturn: context.formatCurrency(4500),
               icon: Icons.directions_car_rounded,
             ),
-            const _InvestedAssetMockCard(
+            _InvestedAssetMockCard(
               plateNumber: 'س ص ع 5678',
-              carName: 'هيونداي إلنترا 2021',
-              equityPercent: '40%',
+              carName: 'Hyundai Elantra 2021',
+              equityPercent: context.formatPercentage(40),
               equityFlex: 40,
-              monthlyReturn: '3,200 ج.م',
+              monthlyReturn: context.formatCurrency(3200),
               icon: Icons.directions_car_rounded,
             ),
-            const _InvestedAssetMockCard(
+            _InvestedAssetMockCard(
               plateNumber: 'لوحة 3344',
-              carName: 'تأجير لوحة فقط',
-              equityPercent: '100%',
+              carName: l10n.rentedPlatesOnly,
+              equityPercent: context.formatPercentage(100),
               equityFlex: 100,
-              monthlyReturn: '2,500 ج.م',
+              monthlyReturn: context.formatCurrency(2500),
               icon: Icons.credit_card_rounded,
             ),
-            const _InvestedAssetMockCard(
+            _InvestedAssetMockCard(
               plateNumber: 'د ر ز 7890',
-              carName: 'نيسان صني 2023',
-              equityPercent: '30%',
+              carName: 'Nissan Sunny 2023',
+              equityPercent: context.formatPercentage(30),
               equityFlex: 30,
-              monthlyReturn: '2,250 ج.م',
+              monthlyReturn: context.formatCurrency(2250),
               icon: Icons.directions_car_rounded,
             ),
 
@@ -285,6 +287,7 @@ class _InvestedAssetMockCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+    final l10n = context.l10n;
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -293,12 +296,12 @@ class _InvestedAssetMockCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              // Monthly Return on Left
+              // Monthly Return
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'العائد الشهري',
+                    l10n.monthlyReturnYield,
                     style: TextStyle(
                       fontSize: 11,
                       color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
@@ -316,7 +319,7 @@ class _InvestedAssetMockCard extends StatelessWidget {
                 ],
               ),
               const Spacer(),
-              // Plate & Car on Right
+              // Plate & Car
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -356,7 +359,7 @@ class _InvestedAssetMockCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                'نسبة الملكية: $equityPercent',
+                '${l10n.ownershipRatio}: $equityPercent',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,

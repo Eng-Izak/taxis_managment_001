@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../theming/app_colors.dart';
 import '../../theming/theme_cubit.dart';
+import '../../localization/locale_cubit.dart';
+import '../../localization/app_localization_extension.dart';
 import '../../../features/archive/ui/archive_screen.dart';
 
 class SadatTaxiLogo extends StatelessWidget {
@@ -44,9 +46,10 @@ class ThemeToggleIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     return Tooltip(
-      message: isDark ? 'التبديل إلى الوضع الفاتح' : 'التبديل إلى الوضع الداكن',
+      message: isDark ? l10n.switchThemeToLight : l10n.switchThemeToDark,
       child: InkWell(
         onTap: () {
           context.read<ThemeCubit>().toggleTheme();
@@ -56,7 +59,7 @@ class ThemeToggleIconButton extends StatelessWidget {
           duration: const Duration(milliseconds: 250),
           width: 40,
           height: 40,
-          margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+          margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkCard : const Color(0xFFF1F3F4),
             borderRadius: BorderRadius.circular(12),
@@ -86,6 +89,60 @@ class ThemeToggleIconButton extends StatelessWidget {
   }
 }
 
+class LanguageToggleIconButton extends StatelessWidget {
+  const LanguageToggleIconButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final locale = context.watch<LocaleCubit>().state;
+    final isArabic = locale.languageCode == 'ar';
+
+    return Tooltip(
+      message: isArabic ? 'Switch to English' : 'التبديل إلى العربية',
+      child: InkWell(
+        onTap: () {
+          context.read<LocaleCubit>().toggleLocale();
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkCard : const Color(0xFFF1F3F4),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.language_rounded,
+                size: 16,
+                color: isDark ? AppColors.primaryLight : AppColors.primary,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                isArabic ? 'EN' : 'عربي',
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.primaryLight : AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class NotificationBellButton extends StatelessWidget {
   final VoidCallback onTap;
   final bool hasUnread;
@@ -106,7 +163,7 @@ class NotificationBellButton extends StatelessWidget {
       child: Container(
         width: 40,
         height: 40,
-        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkCard : const Color(0xFFF1F3F4),
           borderRadius: BorderRadius.circular(12),
@@ -166,7 +223,7 @@ class ArchiveIconButton extends StatelessWidget {
       child: Container(
         width: 40,
         height: 40,
-        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkCard : const Color(0xFFF1F3F4),
           borderRadius: BorderRadius.circular(12),

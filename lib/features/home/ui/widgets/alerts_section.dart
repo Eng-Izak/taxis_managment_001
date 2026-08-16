@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/shared/models/alert_item_model.dart';
 import '../../../../core/theming/app_colors.dart';
+import '../../../../core/localization/app_localization_extension.dart';
 
 class AlertsSection extends StatelessWidget {
   final List<AlertItem> alerts;
@@ -11,14 +12,15 @@ class AlertsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     return Column(
       children: [
         // Card 1: Rent Due (Red Theme)
         _AlertMockCard(
-          title: 'إيجار مستحق',
-          subtitle: 'لوحة رقم: 1234',
-          badgeText: 'متأخر',
+          title: l10n.rentDue,
+          subtitle: '${l10n.plateNumber}: ${context.digits("1234")}',
+          badgeText: l10n.overdue,
           badgeBgColor: isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.4) : const Color(0xFFFCE8E6),
           badgeTextColor: isDark ? const Color(0xFFF87171) : const Color(0xFFC5221F),
           cardBgColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFFDF7F7),
@@ -31,9 +33,9 @@ class AlertsSection extends StatelessWidget {
 
         // Card 2: Periodic Maintenance (Amber / Neutral Theme)
         _AlertMockCard(
-          title: 'صيانة دورية',
-          subtitle: 'سيارة رقم: 5678',
-          badgeText: 'قادم',
+          title: l10n.periodicMaintenance,
+          subtitle: '${l10n.vehiclesOnly}: ${context.digits("5678")}',
+          badgeText: l10n.upcoming,
           badgeBgColor: isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0),
           badgeTextColor: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000),
           cardBgColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8F9FA),
@@ -46,9 +48,9 @@ class AlertsSection extends StatelessWidget {
 
         // Card 3: License Renewal (Blue Theme)
         _AlertMockCard(
-          title: 'تجديد رخصة',
-          subtitle: 'ينتهي الترخيص خلال 30 يوم',
-          badgeText: 'معلومة',
+          title: l10n.licenseRenewal,
+          subtitle: l10n.licenseRenewalAlertsDesc,
+          badgeText: l10n.info,
           badgeBgColor: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFD2E3FC),
           badgeTextColor: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1A73E8),
           cardBgColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFEEF4FE),
@@ -100,7 +102,7 @@ class _AlertMockCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Icon on Right (in RTL)
+          // Icon on Start Edge
           Container(
             width: 40,
             height: 40,
@@ -112,31 +114,32 @@ class _AlertMockCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
 
-          // Title & Subtitle on Right (in RTL)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
+          // Title & Subtitle
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const Spacer(),
 
-          // Badge on Left (in RTL)
+          // Badge on End Edge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(

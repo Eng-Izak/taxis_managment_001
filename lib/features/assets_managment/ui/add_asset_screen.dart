@@ -12,6 +12,7 @@ import '../../../../core/shared/enums/app_enums.dart';
 import '../../../../core/shared/repos/partner_repository.dart';
 import '../../../../core/dependency_injection/di.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../core/localization/app_localization_extension.dart';
 import '../../home/logic/home_cubit.dart';
 
 class AddAssetScreen extends StatefulWidget {
@@ -245,10 +246,11 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
     final isEdit = widget.assetToEdit != null;
     final totalShares = _totalSharesPercentage;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEdit ? 'تعديل بيانات الأصل' : 'إضافة أصل جديد للمحفظة'),
+        title: Text(isEdit ? l10n.editAsset : l10n.addNewAssetFull),
         centerTitle: false,
       ),
       body: SingleChildScrollView(
@@ -264,9 +266,9 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'نوع الأصل الاستثماري',
-                      style: TextStyle(
+                    Text(
+                      l10n.assetType,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF0F56B3),
@@ -277,7 +279,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                       children: [
                         Expanded(
                           child: _TypeSelectionCard(
-                            label: 'تاكسي كامل',
+                            label: l10n.fullTaxis,
                             icon: Icons.local_taxi_rounded,
                             isSelected: _selectedType == AssetType.fullTaxi,
                             onTap: () => setState(() => _selectedType = AssetType.fullTaxi),
@@ -286,7 +288,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: _TypeSelectionCard(
-                            label: 'لوحة فقط',
+                            label: l10n.rentedPlatesOnly,
                             icon: Icons.credit_card_rounded,
                             isSelected: _selectedType == AssetType.plateOnly,
                             onTap: () => setState(() => _selectedType = AssetType.plateOnly),
@@ -295,7 +297,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: _TypeSelectionCard(
-                            label: 'مركبة فقط',
+                            label: l10n.vehiclesOnly,
                             icon: Icons.directions_car_rounded,
                             isSelected: _selectedType == AssetType.vehicleOnly,
                             onTap: () => setState(() => _selectedType = AssetType.vehicleOnly),
@@ -315,9 +317,9 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'بيانات المركبة والترخيص',
-                      style: TextStyle(
+                    Text(
+                      l10n.vehicleAndLicenseInfo,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF0F56B3),
@@ -325,37 +327,37 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                     ),
                     const SizedBox(height: 14),
                     AppTextField(
-                      label: 'رقم اللوحة التجارية',
-                      hint: 'مثال: أ ب ج 1234 أو لوحة 5566',
+                      label: l10n.plateNumber,
+                      hint: '1234',
                       controller: _plateNumberController,
-                      validator: (val) => AppValidators.requiredField(val, message: 'رقم اللوحة مطلوب'),
+                      validator: (val) => AppValidators.requiredField(val, message: l10n.plateNumber),
                     ),
                     const SizedBox(height: 14),
                     AppTextField(
-                      label: 'الموديل وسنة الصنع',
-                      hint: 'مثال: تويوتا كورولا 2023 / هيونداي إلنترا 2022',
+                      label: l10n.carModelYear,
+                      hint: 'Toyota Corolla 2023',
                       controller: _carModelYearController,
-                      validator: (val) => AppValidators.requiredField(val, message: 'موديل وسنة الصنع مطلوب'),
+                      validator: (val) => AppValidators.requiredField(val, message: l10n.carModelYear),
                     ),
                     const SizedBox(height: 14),
                     AppTextField(
-                      label: 'رقم الماتور / المحرك',
-                      hint: 'مثال: 1NZ-FE-7894562 أو رقم المحرك المثبت بالرخصة',
+                      label: l10n.engineNumber,
+                      hint: '1NZ-FE-7894562',
                       controller: _engineNumberController,
                     ),
                     const SizedBox(height: 14),
                     AppTextField(
-                      label: 'رقم الشاسيه / الهيكل (VIN)',
-                      hint: 'رقم هيكل السيارة',
+                      label: l10n.chassisNumber,
+                      hint: 'VIN',
                       controller: _chassisNumberController,
                     ),
                     const SizedBox(height: 14),
                     AppTextField(
-                      label: 'القيمة التقديرية للأصل (ج.م)',
-                      hint: 'مثال: 550000',
+                      label: '${l10n.assetValuation} (${l10n.egp})',
+                      hint: '550000',
                       controller: _assetValuationController,
                       keyboardType: TextInputType.number,
-                      validator: (val) => AppValidators.validNumber(val, message: 'يرجى إدخال قيمة صحيحة'),
+                      validator: (val) => AppValidators.validNumber(val, message: l10n.assetValuation),
                     ),
                   ],
                 ),
@@ -373,7 +375,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'المساهمين في الأصل وتوزيع الحصص',
+                          l10n.shareholdersAndEquityAllocation,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -402,7 +404,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                                 : null,
                           ),
                           child: Text(
-                            'الإجمالي: ${totalShares.toStringAsFixed(0)}%',
+                            '${l10n.totalEquityAllocation}: ${context.formatPercentage(totalShares)}',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -423,7 +425,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: Text(
-                          'لم يتم إضافة مساهمين بعد. اضغط على الزر أدناه لإضافة مساهم.',
+                          l10n.noPartnersAssigned,
                           style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
                         ),
                       )
@@ -448,67 +450,51 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                                     child: DropdownButton<String>(
                                       value: _registeredShareholders.any((s) => s.id == item.partnerId)
                                           ? item.partnerId
-                                          : null,
-                                      hint: Text(
-                                        item.partnerName,
-                                        style: TextStyle(
-                                          fontSize: 12.5,
-                                          fontWeight: FontWeight.bold,
-                                          color: isDark ? AppColors.darkTextPrimary : null,
-                                        ),
-                                      ),
-                                      dropdownColor: isDark ? AppColors.darkCard : Colors.white,
+                                          : (_registeredShareholders.isNotEmpty ? _registeredShareholders.first.id : null),
                                       isExpanded: true,
-                                      items: _registeredShareholders.map((s) {
-                                        return DropdownMenuItem<String>(
-                                          value: s.id,
-                                          child: Text(
-                                            s.name,
-                                            style: TextStyle(
-                                              fontSize: 12.5,
-                                              color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3),
-                                            ),
-                                          ),
-                                        );
-                                      }).toList(),
-                                      onChanged: (newId) {
-                                        if (newId != null) {
-                                          final selected = _registeredShareholders.firstWhere((s) => s.id == newId);
+                                      dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
+                                      ),
+                                      onChanged: (val) {
+                                        if (val != null) {
+                                          final partner = _registeredShareholders.firstWhere((s) => s.id == val);
                                           setState(() {
-                                            item.partnerId = selected.id;
-                                            item.partnerName = selected.name;
+                                            item.partnerId = partner.id;
+                                            item.partnerName = partner.name;
                                           });
                                         }
                                       },
+                                      items: _registeredShareholders.map((partner) {
+                                        return DropdownMenuItem(
+                                          value: partner.id,
+                                          child: Text(partner.name),
+                                        );
+                                      }).toList(),
                                     ),
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 8),
 
-                              // Percentage Input
+                              // Percentage TextField
                               Expanded(
                                 flex: 2,
                                 child: TextFormField(
                                   controller: item.percentageController,
-                                  keyboardType: TextInputType.number,
-                                  onChanged: (_) => setState(() {}),
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 13,
+                                    fontWeight: FontWeight.bold,
                                     color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
                                   ),
                                   decoration: InputDecoration(
                                     suffixText: '%',
-                                    suffixStyle: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3),
-                                    ),
-                                    hintText: 'النسبة',
-                                    hintStyle: TextStyle(
-                                      fontSize: 11.5,
-                                      color: isDark ? AppColors.darkTextTertiary : null,
-                                    ),
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                                    hintText: '25',
+                                    contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                                     filled: true,
                                     fillColor: isDark ? const Color(0xFF131D31) : const Color(0xFFF8F9FA),
                                     border: OutlineInputBorder(
@@ -531,7 +517,6 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                                   size: 22,
                                 ),
                                 onPressed: () => _removePartnerShare(index),
-                                tooltip: 'حذف المساهم',
                               ),
                             ],
                           ),
@@ -549,7 +534,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                         color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3),
                       ),
                       label: Text(
-                        'إضافة مساهم / شريك في الأصل',
+                        l10n.addPartnerShare,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 12.5,
@@ -574,9 +559,9 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'بيانات الإيجار والتشغيل والتعاقد',
-                      style: TextStyle(
+                    Text(
+                      l10n.rentalAndFinancialDetails,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF0F56B3),
@@ -584,11 +569,11 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                     ),
                     const SizedBox(height: 14),
                     AppTextField(
-                      label: 'الإيجار الشهري المحصل (ج.م)',
-                      hint: 'مثال: 6000',
+                      label: '${l10n.monthlyRent} (${l10n.egp})',
+                      hint: '6000',
                       controller: _monthlyRentController,
                       keyboardType: TextInputType.number,
-                      validator: (val) => AppValidators.validNumber(val, message: 'يرجى إدخال مبلغ الإيجار الشهري'),
+                      validator: (val) => AppValidators.validNumber(val, message: l10n.monthlyRent),
                     ),
                     const SizedBox(height: 14),
 
@@ -605,13 +590,13 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                         value: _hasAnnualTenPercentIncrease,
                         onChanged: (val) => setState(() => _hasAnnualTenPercentIncrease = val),
                         activeThumbColor: const Color(0xFF0F56B3),
-                        title: const Text(
-                          'تطبيق زيادة سنوية 10% على قيمة الإيجار',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                        title: Text(
+                          l10n.annualRentIncreaseRate,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
                         ),
-                        subtitle: const Text(
-                          'زيادة تراكمية سنوية تلقائية في العقود السنوية وطويلة الأجل',
-                          style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                        subtitle: Text(
+                          l10n.annualRentIncreaseDesc,
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
                         ),
                       ),
                     ),
@@ -620,28 +605,28 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
 
                     // Contract Renewal Fee Field
                     AppTextField(
-                      label: 'قيمة / رسوم تجديد عقد الإيجار عند انتهاء مدته (ج.م)',
-                      hint: 'مثال: 5000 (رسوم التجديد عند انتهاء المدة)',
+                      label: '${l10n.contractRenewalFee} (${l10n.egp})',
+                      hint: '5000',
                       controller: _contractRenewalFeeController,
                       keyboardType: TextInputType.number,
                     ),
 
                     const SizedBox(height: 14),
                     AppTextField(
-                      label: 'متوسط المصروفات الشهرية المقدرة (ج.م)',
-                      hint: 'مثال: 500 (صيانة دورية وزيوت)',
+                      label: '${l10n.averageMonthlyExpenses} (${l10n.egp})',
+                      hint: '500',
                       controller: _averageExpensesController,
                       keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 14),
                     AppTextField(
-                      label: 'اسم السائق / المستأجر الحالي',
-                      hint: 'مثال: أحمد محمود علي',
+                      label: l10n.driverName,
+                      hint: 'Ahmed Mahmoud',
                       controller: _driverNameController,
                     ),
                     const SizedBox(height: 14),
                     AppTextField(
-                      label: 'رقم هاتف السائق',
+                      label: l10n.driverPhone,
                       hint: '010XXXXXXXX',
                       controller: _driverPhoneController,
                       keyboardType: TextInputType.phone,
@@ -658,9 +643,9 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'الحالة وتواريخ التراخيص',
-                      style: TextStyle(
+                    Text(
+                      l10n.statusAndDates,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF0F56B3),
@@ -671,9 +656,9 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                     // Status Dropdown
                     Row(
                       children: [
-                        const Text(
-                          'حالة الأصل:',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                        Text(
+                          '${l10n.assetStatus}:',
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(width: 12),
                         DropdownButton<AssetStatus>(
@@ -681,18 +666,18 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                           onChanged: (val) {
                             if (val != null) setState(() => _selectedStatus = val);
                           },
-                          items: const [
+                          items: [
                             DropdownMenuItem(
                               value: AssetStatus.active,
-                              child: Text('نشط ومؤجر', style: TextStyle(color: Color(0xFF137333), fontWeight: FontWeight.bold)),
+                              child: Text(l10n.statusActive, style: const TextStyle(color: Color(0xFF137333), fontWeight: FontWeight.bold)),
                             ),
                             DropdownMenuItem(
                               value: AssetStatus.maintenance,
-                              child: Text('في الصيانة', style: TextStyle(color: Color(0xFFB06000), fontWeight: FontWeight.bold)),
+                              child: Text(l10n.statusMaintenance, style: const TextStyle(color: Color(0xFFB06000), fontWeight: FontWeight.bold)),
                             ),
                             DropdownMenuItem(
                               value: AssetStatus.inactive,
-                              child: Text('غير نشط / متاح', style: TextStyle(color: Color(0xFF5F6368), fontWeight: FontWeight.bold)),
+                              child: Text(l10n.statusInactive, style: const TextStyle(color: Color(0xFF5F6368), fontWeight: FontWeight.bold)),
                             ),
                           ],
                         ),
@@ -706,7 +691,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                       children: [
                         Expanded(
                           child: _DatePickerTile(
-                            label: 'انتهاء الرخصة',
+                            label: l10n.licenseExpiryDate,
                             date: _licenseExpiryDate,
                             onTap: () => _pickDate(isLicense: true),
                           ),
@@ -714,7 +699,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: _DatePickerTile(
-                            label: 'انتهاء العقد',
+                            label: l10n.contractExpiryDate,
                             date: _contractExpiryDate,
                             onTap: () => _pickDate(isLicense: false),
                           ),
@@ -733,9 +718,9 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'ملاحظات وبنود التعاقد',
-                      style: TextStyle(
+                    Text(
+                      l10n.documentsAndNotes,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF0F56B3),
@@ -743,8 +728,8 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                     ),
                     const SizedBox(height: 12),
                     AppTextField(
-                      label: 'ملاحظات إضافية',
-                      hint: 'أي تفاصيل خاصة بحالة المركبة، التأمين، أو السائق...',
+                      label: l10n.documentsAndNotes,
+                      hint: l10n.notesHint,
                       controller: _notesController,
                       maxLines: 3,
                     ),
@@ -756,7 +741,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
 
               // Save Button
               AppButton(
-                text: isEdit ? 'حفظ التعديلات' : 'تسجيل وإضافة الأصل',
+                text: isEdit ? l10n.edit : l10n.save,
                 onPressed: _saveAsset,
               ),
 

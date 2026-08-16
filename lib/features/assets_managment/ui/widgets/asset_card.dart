@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/models/asset_model.dart';
 import '../../../../core/shared/enums/app_enums.dart';
-import '../../../../core/utils/formatters.dart';
+import '../../../../core/localization/app_localization_extension.dart';
 import '../asset_details_screen.dart';
 
 class AssetCard extends StatelessWidget {
@@ -18,6 +18,8 @@ class AssetCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = context.l10n;
+
     Color stripeColor;
     String statusText;
     Color statusBgColor;
@@ -26,19 +28,19 @@ class AssetCard extends StatelessWidget {
     switch (asset.status) {
       case AssetStatus.active:
         stripeColor = isDark ? const Color(0xFF22C55E) : const Color(0xFF137333); // Green
-        statusText = 'نشط';
+        statusText = l10n.statusActive;
         statusBgColor = isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFE6F4EA);
         statusTextColor = isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333);
         break;
       case AssetStatus.maintenance:
         stripeColor = isDark ? const Color(0xFFF59E0B) : const Color(0xFFE37400); // Orange
-        statusText = 'صيانة';
+        statusText = l10n.statusMaintenance;
         statusBgColor = isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0);
         statusTextColor = isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000);
         break;
       case AssetStatus.inactive:
         stripeColor = isDark ? const Color(0xFF3B82F6) : const Color(0xFF0F56B3); // Blue
-        statusText = asset.modelType == AssetType.plateOnly ? 'لوحة مؤجرة' : 'غير نشط';
+        statusText = asset.modelType == AssetType.plateOnly ? l10n.statusPlateRented : l10n.statusInactive;
         statusBgColor = isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFE8F0FE);
         statusTextColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3);
         break;
@@ -76,7 +78,7 @@ class AssetCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Right Edge Colored Stripe (Start in RTL)
+            // Start Edge Colored Stripe
             Container(
               width: 5,
               height: 120,
@@ -88,10 +90,10 @@ class AssetCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Top Row: Plate & Car Model on Right (Expanded to prevent overflow), Status Badge on Left
+                    // Top Row: Plate & Car Model, Status Badge
                     Row(
                       children: [
-                        // Right: Plate Number & Car Model
+                        // Plate Number & Car Model
                         Expanded(
                           child: Row(
                             children: [
@@ -122,7 +124,7 @@ class AssetCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
 
-                        // Left: Status Badge
+                        // Status Badge
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
@@ -144,16 +146,16 @@ class AssetCard extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    // Metrics Row: Monthly Income on Right, Return Rate on Left
+                    // Metrics Row: Monthly Income, Return Rate
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Right: Monthly Gross Income (الدخل الشهري)
+                        // Monthly Income
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'الدخل الشهري',
+                              l10n.monthlyIncome,
                               style: TextStyle(
                                 fontSize: 11,
                                 color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
@@ -161,7 +163,7 @@ class AssetCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              AppFormatters.formatCurrency(asset.monthlyRent),
+                              context.formatCurrency(asset.monthlyRent),
                               style: TextStyle(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.bold,
@@ -171,12 +173,12 @@ class AssetCard extends StatelessWidget {
                           ],
                         ),
 
-                        // Left: Monthly Return Yield (العائد الشهري)
+                        // Monthly Return Yield
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              'العائد الشهري',
+                              l10n.monthlyReturnYield,
                               style: TextStyle(
                                 fontSize: 11,
                                 color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
@@ -184,7 +186,7 @@ class AssetCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              '${((asset.netMonthlyProfit / (asset.assetValuation > 0 ? asset.assetValuation : 500000)) * 100 * 12).toStringAsFixed(1)}%',
+                              context.formatPercentage((asset.netMonthlyProfit / (asset.assetValuation > 0 ? asset.assetValuation : 500000)) * 100 * 12),
                               style: TextStyle(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.bold,
@@ -212,6 +214,7 @@ class AssetCard extends StatelessWidget {
 
   Widget _buildPartnerSharesBar(BuildContext context) {
     final validShares = asset.partnerShares.where((s) => s.percentage > 0).toList();
+    final l10n = context.l10n;
 
     const colors = [
       Color(0xFF0F56B3), // Brand Blue
@@ -226,7 +229,7 @@ class AssetCard extends StatelessWidget {
 
     if (validShares.isEmpty) {
       return Tooltip(
-        message: 'لا يوجد مساهمين محددين (100% غير مخصص)',
+        message: '${l10n.noPartnersAssigned} (100% ${l10n.unassignedShare})',
         preferBelow: false,
         waitDuration: const Duration(milliseconds: 50),
         verticalOffset: 10,
@@ -265,9 +268,7 @@ class AssetCard extends StatelessWidget {
     for (int i = 0; i < validShares.length; i++) {
       final share = validShares[i];
       final color = colors[i % colors.length];
-      final percentStr = share.percentage % 1 == 0
-          ? '${share.percentage.toInt()}%'
-          : '${share.percentage.toStringAsFixed(1)}%';
+      final percentStr = context.formatPercentage(share.percentage);
       final flex = (share.percentage * 100).round().clamp(1, 10000);
 
       if (i > 0) {
@@ -312,9 +313,7 @@ class AssetCard extends StatelessWidget {
     }
 
     if (hasRemainder && remainder > 0.1) {
-      final percentStr = remainder % 1 == 0
-          ? '${remainder.toInt()}%'
-          : '${remainder.toStringAsFixed(1)}%';
+      final percentStr = context.formatPercentage(remainder);
       final flex = (remainder * 100).round().clamp(1, 10000);
 
       if (segments.isNotEmpty) {
@@ -325,7 +324,7 @@ class AssetCard extends StatelessWidget {
         Expanded(
           flex: flex,
           child: Tooltip(
-            message: 'حصة غير مخصصة ($percentStr)',
+            message: '${l10n.unassignedShare} ($percentStr)',
             preferBelow: false,
             waitDuration: const Duration(milliseconds: 50),
             showDuration: const Duration(seconds: 3),
@@ -366,4 +365,3 @@ class AssetCard extends StatelessWidget {
     );
   }
 }
-

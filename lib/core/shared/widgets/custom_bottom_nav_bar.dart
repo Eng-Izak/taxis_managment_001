@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theming/app_colors.dart';
+import '../../localization/app_localization_extension.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -14,6 +15,7 @@ class CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     return Container(
       decoration: BoxDecoration(
@@ -35,7 +37,7 @@ class CustomBottomNavBar extends StatelessWidget {
               // Tab 0: الأصول (Assets)
               _NavBarItem(
                 icon: Icons.directions_car_rounded,
-                label: 'الأصول',
+                label: l10n.navAssets,
                 isSelected: currentIndex == 0,
                 onTap: () => onTap(0),
               ),
@@ -43,13 +45,14 @@ class CustomBottomNavBar extends StatelessWidget {
               // Tab 1: المساهمين (Shareholders)
               _NavBarItem(
                 icon: Icons.people_alt_rounded,
-                label: 'المساهمين',
+                label: l10n.navPartners,
                 isSelected: currentIndex == 1,
                 onTap: () => onTap(1),
               ),
 
               // Tab 2: الرئيسية (Home Dashboard - CENTER)
               _CenterHomeNavBarItem(
+                label: l10n.navHome,
                 isSelected: currentIndex == 2,
                 onTap: () => onTap(2),
               ),
@@ -57,7 +60,7 @@ class CustomBottomNavBar extends StatelessWidget {
               // Tab 3: المالية (Financials)
               _NavBarItem(
                 icon: Icons.account_balance_wallet_rounded,
-                label: 'المالية',
+                label: l10n.navFinancials,
                 isSelected: currentIndex == 3,
                 onTap: () => onTap(3),
               ),
@@ -65,7 +68,7 @@ class CustomBottomNavBar extends StatelessWidget {
               // Tab 4: الإعدادات (Settings)
               _NavBarItem(
                 icon: Icons.settings_rounded,
-                label: 'الإعدادات',
+                label: l10n.navSettings,
                 isSelected: currentIndex == 4,
                 onTap: () => onTap(4),
               ),
@@ -78,10 +81,12 @@ class CustomBottomNavBar extends StatelessWidget {
 }
 
 class _CenterHomeNavBarItem extends StatelessWidget {
+  final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _CenterHomeNavBarItem({
+    required this.label,
     required this.isSelected,
     required this.onTap,
   });
@@ -136,7 +141,7 @@ class _CenterHomeNavBarItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'الرئيسية',
+                  label,
                   style: TextStyle(
                     fontSize: 10.5,
                     fontWeight: FontWeight.bold,

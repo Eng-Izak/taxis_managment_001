@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/widgets/app_header_widgets.dart';
-import '../../../../core/utils/formatters.dart';
+import '../../../../core/localization/app_localization_extension.dart';
 import '../../home/logic/home_cubit.dart';
 import '../../home/logic/home_state.dart';
 import '../../notifications/ui/notifications_screen.dart';
@@ -16,22 +16,24 @@ class FinancialAnalysisScreen extends StatefulWidget {
 }
 
 class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
-  String _selectedPeriod = 'هذا الشهر';
+  int _selectedPeriodIndex = 0; // 0: thisMonth, 1: currentQuarter, 2: fiscalYear2026
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3);
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SadatTaxiLogo(),
-            SizedBox(width: 8),
+            const SadatTaxiLogo(),
+            const SizedBox(width: 8),
             Text(
-              'التحليل المالي',
-              style: TextStyle(
+              l10n.financialAnalysis,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF0F56B3),
@@ -41,7 +43,6 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
         ),
         centerTitle: false,
         actions: [
-          const ThemeToggleIconButton(),
           const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
@@ -75,21 +76,21 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                 Row(
                   children: [
                     _PeriodFilterPill(
-                      label: 'هذا الشهر',
-                      isSelected: _selectedPeriod == 'هذا الشهر',
-                      onTap: () => setState(() => _selectedPeriod = 'هذا الشهر'),
+                      label: l10n.thisMonth,
+                      isSelected: _selectedPeriodIndex == 0,
+                      onTap: () => setState(() => _selectedPeriodIndex = 0),
                     ),
                     const SizedBox(width: 8),
                     _PeriodFilterPill(
-                      label: 'الربع الحالي',
-                      isSelected: _selectedPeriod == 'الربع الحالي',
-                      onTap: () => setState(() => _selectedPeriod = 'الربع الحالي'),
+                      label: l10n.currentQuarter,
+                      isSelected: _selectedPeriodIndex == 1,
+                      onTap: () => setState(() => _selectedPeriodIndex = 1),
                     ),
                     const SizedBox(width: 8),
                     _PeriodFilterPill(
-                      label: 'السنة المالية 2026',
-                      isSelected: _selectedPeriod == 'السنة المالية 2026',
-                      onTap: () => setState(() => _selectedPeriod = 'السنة المالية 2026'),
+                      label: l10n.fiscalYear2026,
+                      isSelected: _selectedPeriodIndex == 2,
+                      onTap: () => setState(() => _selectedPeriodIndex = 2),
                     ),
                   ],
                 ),
@@ -127,13 +128,13 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                               color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Row(
+                            child: Row(
                               children: [
-                                Icon(Icons.trending_up_rounded, color: Color(0xFFFDE047), size: 14),
-                                SizedBox(width: 4),
+                                const Icon(Icons.trending_up_rounded, color: Color(0xFFFDE047), size: 14),
+                                const SizedBox(width: 4),
                                 Text(
-                                  '+14.8% نمو نقدي',
-                                  style: TextStyle(
+                                  context.digits('+14.8%'),
+                                  style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFFFDE047),
@@ -142,9 +143,9 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                               ],
                             ),
                           ),
-                          const Text(
-                            'صافي التدفق النقدي المحقق',
-                            style: TextStyle(
+                          Text(
+                            l10n.netDistributableCashflow,
+                            style: const TextStyle(
                               fontSize: 13,
                               color: Color(0xFFE2E8F0),
                               fontWeight: FontWeight.w500,
@@ -154,7 +155,7 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        AppFormatters.formatCurrency(netCashFlow),
+                        context.formatCurrency(netCashFlow),
                         style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w900,
@@ -162,9 +163,9 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'عائد تشغيلي صافي بعد استقطاع مصاريف الصيانة ورسوم الرخص',
-                        style: TextStyle(
+                      Text(
+                        l10n.roiCalculationNote,
+                        style: const TextStyle(
                           fontSize: 11,
                           color: Color(0xFFBFDBFE),
                         ),
@@ -186,7 +187,7 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'إجمالي المصروفات',
+                              l10n.totalOperationalExpenses,
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -199,7 +200,7 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                               textBaseline: TextBaseline.alphabetic,
                               children: [
                                 Text(
-                                  AppFormatters.formatNumber(expenses),
+                                  context.formatNumber(expenses),
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w800,
@@ -208,7 +209,7 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'ج.م',
+                                  l10n.egp,
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
@@ -217,9 +218,9 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                               ],
                             ),
                             const SizedBox(height: 6),
-                            const Text(
-                              '↑ 5% عن الشهر الماضي',
-                              style: TextStyle(
+                            Text(
+                              context.digits('↑ 5%'),
+                              style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFFC5221F),
@@ -238,7 +239,7 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'إجمالي الإيرادات',
+                              l10n.grossRentIncome,
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -251,16 +252,16 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                               textBaseline: TextBaseline.alphabetic,
                               children: [
                                 Text(
-                                  AppFormatters.formatNumber(grossIncome),
-                                  style: const TextStyle(
+                                  context.formatNumber(grossIncome),
+                                  style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w800,
-                                    color: Color(0xFF0F56B3),
+                                    color: primaryColor,
                                   ),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'ج.م',
+                                  l10n.egp,
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
@@ -269,9 +270,9 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                               ],
                             ),
                             const SizedBox(height: 6),
-                            const Text(
-                              '↑ 12% عن الشهر الماضي',
-                              style: TextStyle(
+                            Text(
+                              context.digits('↑ 12%'),
+                              style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF137333),
@@ -287,58 +288,58 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                 const SizedBox(height: 24),
 
                 // 4. Section Header 1: سجل التحصيلات (الإيجارات)
-                const Text(
-                  'سجل التحصيلات (الإيجارات)',
+                Text(
+                  l10n.monthlyRentCollections,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F56B3),
+                    color: primaryColor,
                   ),
                 ),
                 const SizedBox(height: 12),
 
                 // Collections Card Container
-                const AppCard(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                AppCard(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Column(
                     children: [
                       _CollectionItem(
                         plateNumber: 'أ ب ج 1234',
-                        subtitle: 'أحمد محمود - أسبوع 1 أكتوبر',
-                        amount: '1,500 ج.م',
-                        amountColor: Color(0xFF0F56B3),
-                        statusText: 'تم الدفع',
-                        statusBgColor: Color(0xFFE6F4EA),
-                        statusTextColor: Color(0xFF137333),
+                        subtitle: 'أحمد محمود',
+                        amount: context.formatCurrency(1500),
+                        amountColor: primaryColor,
+                        statusText: l10n.receivedStatus,
+                        statusBgColor: const Color(0xFFE6F4EA),
+                        statusTextColor: const Color(0xFF137333),
                         icon: Icons.directions_car_rounded,
-                        iconBgColor: Color(0xFFE8F0FE),
-                        iconColor: Color(0xFF0F56B3),
+                        iconBgColor: const Color(0xFFE8F0FE),
+                        iconColor: primaryColor,
                       ),
-                      Divider(height: 1),
+                      const Divider(height: 1),
                       _CollectionItem(
                         plateNumber: 'س ص ع 5678',
-                        subtitle: 'محمد علي - أسبوع 1 أكتوبر',
-                        amount: '1,500 ج.م',
-                        amountColor: Color(0xFF0F56B3),
-                        statusText: 'قيد الانتظار',
-                        statusBgColor: Color(0xFFE8F0FE),
-                        statusTextColor: Color(0xFF1A73E8),
+                        subtitle: 'محمد علي',
+                        amount: context.formatCurrency(1500),
+                        amountColor: primaryColor,
+                        statusText: l10n.pendingStatus,
+                        statusBgColor: const Color(0xFFE8F0FE),
+                        statusTextColor: const Color(0xFF1A73E8),
                         icon: Icons.directions_car_rounded,
-                        iconBgColor: Color(0xFFE8F0FE),
-                        iconColor: Color(0xFF0F56B3),
+                        iconBgColor: const Color(0xFFE8F0FE),
+                        iconColor: primaryColor,
                       ),
-                      Divider(height: 1),
+                      const Divider(height: 1),
                       _CollectionItem(
                         plateNumber: 'ل م ن 9012',
-                        subtitle: 'محمود خالد - أسبوع 4 سبتمبر',
-                        amount: '1,500 ج.م',
-                        amountColor: Color(0xFFC5221F),
-                        statusText: 'متأخر',
-                        statusBgColor: Color(0xFFFCE8E6),
-                        statusTextColor: Color(0xFFC5221F),
+                        subtitle: 'محمود خالد',
+                        amount: context.formatCurrency(1500),
+                        amountColor: const Color(0xFFC5221F),
+                        statusText: l10n.overdueStatus,
+                        statusBgColor: const Color(0xFFFCE8E6),
+                        statusTextColor: const Color(0xFFC5221F),
                         icon: Icons.warning_rounded,
-                        iconBgColor: Color(0xFFFCE8E6),
-                        iconColor: Color(0xFFC5221F),
+                        iconBgColor: const Color(0xFFFCE8E6),
+                        iconColor: const Color(0xFFC5221F),
                       ),
                     ],
                   ),
@@ -347,71 +348,71 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                 const SizedBox(height: 24),
 
                 // 5. Section Header 2: سجل المصروفات
-                const Text(
-                  'سجل المصروفات',
+                Text(
+                  l10n.totalOperationalExpenses,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F56B3),
+                    color: primaryColor,
                   ),
                 ),
                 const SizedBox(height: 12),
 
                 // Expenses Card Container
-                const AppCard(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                AppCard(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Row(
                     children: [
-                      // Red Expense Amount on Left
+                      // Expense Amount
                       Text(
-                        '- 850 ج.م',
-                        style: TextStyle(
+                        '- ${context.formatCurrency(850)}',
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFFC5221F),
                         ),
                       ),
-                      Spacer(),
+                      const Spacer(),
                       // Title & Date
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            'صيانة دورية - أ ب ج 1234',
+                            '${l10n.periodicMaintenance} - أ ب ج 1234',
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF0F56B3),
+                              color: primaryColor,
                             ),
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Row(
                             children: [
                               Text(
-                                '05 أكتوبر 2023',
-                                style: TextStyle(
+                                context.digits('05 Oct 2026'),
+                                style: const TextStyle(
                                   fontSize: 11,
                                   color: Color(0xFF64748B),
                                 ),
                               ),
-                              SizedBox(width: 4),
-                              Icon(Icons.calendar_today_outlined, size: 12, color: Color(0xFF64748B)),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.calendar_today_outlined, size: 12, color: Color(0xFF64748B)),
                             ],
                           ),
                         ],
                       ),
-                      SizedBox(width: 12),
-                      // Wrench Icon on Right
+                      const SizedBox(width: 12),
+                      // Wrench Icon
                       DecoratedBox(
                         decoration: BoxDecoration(
-                          color: Color(0xFFF1F3F4),
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F3F4),
+                          borderRadius: const BorderRadius.all(Radius.circular(10)),
                         ),
                         child: SizedBox(
                           width: 42,
                           height: 42,
                           child: Center(
-                            child: Icon(Icons.build_rounded, color: Color(0xFF5F6368), size: 20),
+                            child: Icon(Icons.build_rounded, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF5F6368), size: 20),
                           ),
                         ),
                       ),
@@ -508,7 +509,7 @@ class _CollectionItem extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Row(
         children: [
-          // Left: Amount & Status Badge
+          // Amount & Status Badge
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -540,7 +541,7 @@ class _CollectionItem extends StatelessWidget {
             ],
           ),
           const Spacer(),
-          // Middle: Plate & Driver
+          // Plate & Driver
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -563,7 +564,7 @@ class _CollectionItem extends StatelessWidget {
             ],
           ),
           const SizedBox(width: 12),
-          // Right: Icon Box
+          // Icon Box
           Container(
             width: 42,
             height: 42,
@@ -581,4 +582,3 @@ class _CollectionItem extends StatelessWidget {
     );
   }
 }
-

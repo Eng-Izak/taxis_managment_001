@@ -376,5 +376,15 @@ class LocalStorageService {
   void setThemeMode(ThemeMode mode) {
     _themeMode = mode;
   }
+
+  // Locale Operations
+  Locale _locale = const Locale('ar', 'EG');
+
+  Locale getLocale() => _locale;
+
+  void setLocale(Locale locale) {
+    _locale = locale;
+  }
 }
+
 

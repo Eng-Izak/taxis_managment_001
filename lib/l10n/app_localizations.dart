@@ -101,8 +101,20 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In ar, this message translates to:
-  /// **'إدارة أصول التاكسي - مدينة السادات'**
+  /// **'إدارة أصول تاكسيات مدينة السادات'**
   String get appTitle;
+
+  /// No description provided for @appSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'منصة استثمارية متخصصة لإدارة أسطول التاكسي وحصص الشركاء'**
+  String get appSubtitle;
+
+  /// No description provided for @fleetManager.
+  ///
+  /// In ar, this message translates to:
+  /// **'مدير الأسطول'**
+  String get fleetManager;
 
   /// No description provided for @dashboard.
   ///
@@ -134,22 +146,22 @@ abstract class AppLocalizations {
   /// **'صافي الإيرادات الشهري'**
   String get netMonthlyRevenue;
 
-  /// No description provided for @totalGrossRent.
+  /// No description provided for @grossRentIncome.
   ///
   /// In ar, this message translates to:
   /// **'إجمالي عوائد الإيجار'**
-  String get totalGrossRent;
+  String get grossRentIncome;
 
-  /// No description provided for @totalExpenses.
+  /// No description provided for @totalOperationalExpenses.
   ///
   /// In ar, this message translates to:
-  /// **'إجمالي المصروفات'**
-  String get totalExpenses;
+  /// **'المصروفات التشغيلية'**
+  String get totalOperationalExpenses;
 
   /// No description provided for @totalPartners.
   ///
   /// In ar, this message translates to:
-  /// **'إجمالي الشركاء'**
+  /// **'إجمالي المساهمين'**
   String get totalPartners;
 
   /// No description provided for @totalAssets.
@@ -170,6 +182,12 @@ abstract class AppLocalizations {
   /// **'ج.م'**
   String get egp;
 
+  /// No description provided for @growthThisMonth.
+  ///
+  /// In ar, this message translates to:
+  /// **'+5% هذا الشهر'**
+  String get growthThisMonth;
+
   /// No description provided for @assetDistribution.
   ///
   /// In ar, this message translates to:
@@ -179,20 +197,38 @@ abstract class AppLocalizations {
   /// No description provided for @fullTaxis.
   ///
   /// In ar, this message translates to:
-  /// **'سيارات أجرة كاملة'**
+  /// **'تاكسي كامل'**
   String get fullTaxis;
+
+  /// No description provided for @fullTaxisDesc.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيارة + لوحة تجارية'**
+  String get fullTaxisDesc;
 
   /// No description provided for @rentedPlatesOnly.
   ///
   /// In ar, this message translates to:
-  /// **'لوحات مؤجرة (فقط)'**
+  /// **'لوحة فقط'**
   String get rentedPlatesOnly;
+
+  /// No description provided for @rentedPlatesOnlyDesc.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأجير لوحة تجارية'**
+  String get rentedPlatesOnlyDesc;
 
   /// No description provided for @vehiclesOnly.
   ///
   /// In ar, this message translates to:
-  /// **'مركبات بدون لوحات'**
+  /// **'مركبة فقط'**
   String get vehiclesOnly;
+
+  /// No description provided for @vehiclesOnlyDesc.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيارة بدون لوحة'**
+  String get vehiclesOnlyDesc;
 
   /// No description provided for @ownershipModels.
   ///
@@ -302,17 +338,17 @@ abstract class AppLocalizations {
   /// **'المالية'**
   String get navFinancials;
 
-  /// No description provided for @navProfile.
-  ///
-  /// In ar, this message translates to:
-  /// **'الملف الشخصي'**
-  String get navProfile;
-
   /// No description provided for @navSettings.
   ///
   /// In ar, this message translates to:
   /// **'الإعدادات'**
   String get navSettings;
+
+  /// No description provided for @assetsManagement.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة الأصول'**
+  String get assetsManagement;
 
   /// No description provided for @assetsList.
   ///
@@ -323,14 +359,92 @@ abstract class AppLocalizations {
   /// No description provided for @addNewAsset.
   ///
   /// In ar, this message translates to:
-  /// **'إضافة أصل جديد'**
+  /// **'إضافة أصل'**
   String get addNewAsset;
+
+  /// No description provided for @addNewAssetFull.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة أصل جديد للمحفظة'**
+  String get addNewAssetFull;
+
+  /// No description provided for @editAsset.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل بيانات الأصل'**
+  String get editAsset;
 
   /// No description provided for @assetDetails.
   ///
   /// In ar, this message translates to:
   /// **'تفاصيل الأصل'**
   String get assetDetails;
+
+  /// No description provided for @searchAssetsHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'بحث برقم اللوحة، الموديل...'**
+  String get searchAssetsHint;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'الكل'**
+  String get filterAll;
+
+  /// No description provided for @filterFullTaxi.
+  ///
+  /// In ar, this message translates to:
+  /// **'تاكسي كامل'**
+  String get filterFullTaxi;
+
+  /// No description provided for @filterPlateOnly.
+  ///
+  /// In ar, this message translates to:
+  /// **'لوحة فقط'**
+  String get filterPlateOnly;
+
+  /// No description provided for @filterVehicleOnly.
+  ///
+  /// In ar, this message translates to:
+  /// **'مركبة فقط'**
+  String get filterVehicleOnly;
+
+  /// No description provided for @monthlyIncome.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدخل الشهري'**
+  String get monthlyIncome;
+
+  /// No description provided for @monthlyReturnYield.
+  ///
+  /// In ar, this message translates to:
+  /// **'العائد الشهري'**
+  String get monthlyReturnYield;
+
+  /// No description provided for @swipeToEdit.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل بيانات الأصل'**
+  String get swipeToEdit;
+
+  /// No description provided for @swipeToArchive.
+  ///
+  /// In ar, this message translates to:
+  /// **'أرشفة الأصل'**
+  String get swipeToArchive;
+
+  /// No description provided for @archiveAssetConfirmTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد أرشفة الأصل'**
+  String get archiveAssetConfirmTitle;
+
+  /// No description provided for @archiveAssetConfirmMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل أنت متأكد من رغبتك في نقل الأصل إلى الأرشيف السجل غير النشط؟'**
+  String get archiveAssetConfirmMessage;
 
   /// No description provided for @plateNumber.
   ///
@@ -344,53 +458,119 @@ abstract class AppLocalizations {
   /// **'رقم الشاسيه'**
   String get chassisNumber;
 
-  /// No description provided for @modelType.
+  /// No description provided for @engineNumber.
   ///
   /// In ar, this message translates to:
-  /// **'نوع الأصل / نموذج الملكية'**
-  String get modelType;
+  /// **'رقم الماتور'**
+  String get engineNumber;
 
-  /// No description provided for @monthlyRent.
+  /// No description provided for @carModelYear.
   ///
   /// In ar, this message translates to:
-  /// **'الإيجار الشهري'**
-  String get monthlyRent;
+  /// **'طراز وسنة الصنع'**
+  String get carModelYear;
 
-  /// No description provided for @driverOrRenter.
+  /// No description provided for @assetValuation.
   ///
   /// In ar, this message translates to:
-  /// **'السائق / المستأجر'**
-  String get driverOrRenter;
+  /// **'القيمة السوقية التقديرية للأصل'**
+  String get assetValuation;
 
-  /// No description provided for @licenseExpiryDate.
+  /// No description provided for @assetValuationShort.
   ///
   /// In ar, this message translates to:
-  /// **'تاريخ انتهاء الرخصة'**
-  String get licenseExpiryDate;
+  /// **'القيمة السوقية'**
+  String get assetValuationShort;
 
-  /// No description provided for @equityPartners.
+  /// No description provided for @assetType.
   ///
   /// In ar, this message translates to:
-  /// **'الشركاء وحصص الملكية'**
-  String get equityPartners;
+  /// **'نوع الأصل'**
+  String get assetType;
 
-  /// No description provided for @ownershipEquity.
+  /// No description provided for @assetStatus.
   ///
   /// In ar, this message translates to:
-  /// **'نسب الملكية'**
-  String get ownershipEquity;
+  /// **'حالة تشغيل الأصل'**
+  String get assetStatus;
+
+  /// No description provided for @statusActive.
+  ///
+  /// In ar, this message translates to:
+  /// **'نشط (تحت التشغيل)'**
+  String get statusActive;
+
+  /// No description provided for @statusMaintenance.
+  ///
+  /// In ar, this message translates to:
+  /// **'صيانة'**
+  String get statusMaintenance;
+
+  /// No description provided for @statusInactive.
+  ///
+  /// In ar, this message translates to:
+  /// **'غير نشط'**
+  String get statusInactive;
+
+  /// No description provided for @statusPlateRented.
+  ///
+  /// In ar, this message translates to:
+  /// **'لوحة مؤجرة'**
+  String get statusPlateRented;
+
+  /// No description provided for @sincePurchase.
+  ///
+  /// In ar, this message translates to:
+  /// **'منذ الشراء'**
+  String get sincePurchase;
+
+  /// No description provided for @equityShares.
+  ///
+  /// In ar, this message translates to:
+  /// **'المساهمين في الأصل وتوزيع الحصص'**
+  String get equityShares;
+
+  /// No description provided for @equityDistribution.
+  ///
+  /// In ar, this message translates to:
+  /// **'نسب الملكية والتوزيع'**
+  String get equityDistribution;
+
+  /// No description provided for @totalEquity.
+  ///
+  /// In ar, this message translates to:
+  /// **'الإجمالي'**
+  String get totalEquity;
+
+  /// No description provided for @unassignedShare.
+  ///
+  /// In ar, this message translates to:
+  /// **'حصة غير مخصصة'**
+  String get unassignedShare;
+
+  /// No description provided for @noPartnersAssigned.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتم إضافة مساهمين بعد. اضغط على الزر أدناه لإضافة مساهم.'**
+  String get noPartnersAssigned;
+
+  /// No description provided for @addPartnerShare.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة مساهم / شريك في الأصل'**
+  String get addPartnerShare;
+
+  /// No description provided for @selectShareholder.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر المساهم'**
+  String get selectShareholder;
 
   /// No description provided for @sharePercentage.
   ///
   /// In ar, this message translates to:
-  /// **'نسبة الحصة'**
+  /// **'النسبة'**
   String get sharePercentage;
-
-  /// No description provided for @monthlyPayout.
-  ///
-  /// In ar, this message translates to:
-  /// **'العائد الشهري للطرف'**
-  String get monthlyPayout;
 
   /// No description provided for @payoutMethod.
   ///
@@ -398,47 +578,233 @@ abstract class AppLocalizations {
   /// **'طريقة التحويل'**
   String get payoutMethod;
 
-  /// No description provided for @statusActive.
+  /// No description provided for @payoutInstapay.
   ///
   /// In ar, this message translates to:
-  /// **'نشط وعامل'**
-  String get statusActive;
+  /// **'إنستاباي'**
+  String get payoutInstapay;
 
-  /// No description provided for @statusMaintenance.
+  /// No description provided for @payoutVodafoneCash.
   ///
   /// In ar, this message translates to:
-  /// **'في الصيانة'**
-  String get statusMaintenance;
+  /// **'فودافون كاش'**
+  String get payoutVodafoneCash;
 
-  /// No description provided for @statusInactive.
+  /// No description provided for @payoutBankTransfer.
   ///
   /// In ar, this message translates to:
-  /// **'متوقف'**
-  String get statusInactive;
+  /// **'تحويل بنكي'**
+  String get payoutBankTransfer;
 
-  /// No description provided for @partnersList.
+  /// No description provided for @rentalAndContractData.
   ///
   /// In ar, this message translates to:
-  /// **'سجل المساهمين'**
-  String get partnersList;
+  /// **'بيانات الإيجار والتشغيل والتعاقد'**
+  String get rentalAndContractData;
 
-  /// No description provided for @addPartner.
+  /// No description provided for @collectedMonthlyRent.
+  ///
+  /// In ar, this message translates to:
+  /// **'الإيجار الشهري المحصل (ج.م)'**
+  String get collectedMonthlyRent;
+
+  /// No description provided for @contractRenewalFee.
+  ///
+  /// In ar, this message translates to:
+  /// **'رسوم تجديد العقد السنوية (ج.م)'**
+  String get contractRenewalFee;
+
+  /// No description provided for @hasAnnualIncrease.
+  ///
+  /// In ar, this message translates to:
+  /// **'تطبيق زيادة سنوية بنسبة 10% على الإيجار'**
+  String get hasAnnualIncrease;
+
+  /// No description provided for @annualIncreaseNotice.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيتم زيادة الإيجار تلقائياً بنسبة 10% سنوياً في تاريخ تجديد العقد'**
+  String get annualIncreaseNotice;
+
+  /// No description provided for @averageMonthlyExpenses.
+  ///
+  /// In ar, this message translates to:
+  /// **'متوسط المصروفات والصيانة الشهرية (ج.م)'**
+  String get averageMonthlyExpenses;
+
+  /// No description provided for @contractExpiryDate.
+  ///
+  /// In ar, this message translates to:
+  /// **'تاريخ انتهاء عقد الإيجار الحالي'**
+  String get contractExpiryDate;
+
+  /// No description provided for @licenseExpiryDate.
+  ///
+  /// In ar, this message translates to:
+  /// **'تاريخ انتهاء رخصة التسيير'**
+  String get licenseExpiryDate;
+
+  /// No description provided for @selectDate.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر التاريخ'**
+  String get selectDate;
+
+  /// No description provided for @driverData.
+  ///
+  /// In ar, this message translates to:
+  /// **'بيانات السائق الحالي (المستأجر)'**
+  String get driverData;
+
+  /// No description provided for @driverName.
+  ///
+  /// In ar, this message translates to:
+  /// **'اسم السائق بالكامل'**
+  String get driverName;
+
+  /// No description provided for @driverPhone.
+  ///
+  /// In ar, this message translates to:
+  /// **'رقم هاتف السائق'**
+  String get driverPhone;
+
+  /// No description provided for @documentsAndNotes.
+  ///
+  /// In ar, this message translates to:
+  /// **'المستندات والملاحظات الإضافية'**
+  String get documentsAndNotes;
+
+  /// No description provided for @notesHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجل أي ملاحظات خاصة بالسيارة، السائق، أو فترات الصيانة...'**
+  String get notesHint;
+
+  /// No description provided for @saveAsset.
+  ///
+  /// In ar, this message translates to:
+  /// **'حفظ بيانات الأصل'**
+  String get saveAsset;
+
+  /// No description provided for @updateAsset.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحديث بيانات الأصل'**
+  String get updateAsset;
+
+  /// No description provided for @saveSuccess.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حفظ الأصل بنجاح!'**
+  String get saveSuccess;
+
+  /// No description provided for @updateSuccess.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تحديث بيانات الأصل بنجاح!'**
+  String get updateSuccess;
+
+  /// No description provided for @documentsRegistry.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجل المستندات والرخص'**
+  String get documentsRegistry;
+
+  /// No description provided for @addDocument.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة مستند'**
+  String get addDocument;
+
+  /// No description provided for @vehicleLicense.
+  ///
+  /// In ar, this message translates to:
+  /// **'رخصة المركبة'**
+  String get vehicleLicense;
+
+  /// No description provided for @insurancePolicy.
+  ///
+  /// In ar, this message translates to:
+  /// **'بوليصة التأمين'**
+  String get insurancePolicy;
+
+  /// No description provided for @purchaseContract.
+  ///
+  /// In ar, this message translates to:
+  /// **'عقد الشراء'**
+  String get purchaseContract;
+
+  /// No description provided for @validUntil.
+  ///
+  /// In ar, this message translates to:
+  /// **'صالحة حتى'**
+  String get validUntil;
+
+  /// No description provided for @comprehensiveInsurance.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأمين شامل'**
+  String get comprehensiveInsurance;
+
+  /// No description provided for @originalCopy.
+  ///
+  /// In ar, this message translates to:
+  /// **'نسخة أصلية'**
+  String get originalCopy;
+
+  /// No description provided for @archiveAssetButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'أرشفة الأصل'**
+  String get archiveAssetButton;
+
+  /// No description provided for @archiveAssetSubtext.
+  ///
+  /// In ar, this message translates to:
+  /// **'نقل الأصل إلى السجل غير النشط'**
+  String get archiveAssetSubtext;
+
+  /// No description provided for @shareholders.
+  ///
+  /// In ar, this message translates to:
+  /// **'المساهمين'**
+  String get shareholders;
+
+  /// No description provided for @shareholdersList.
+  ///
+  /// In ar, this message translates to:
+  /// **'قائمة المساهمين والشركاء'**
+  String get shareholdersList;
+
+  /// No description provided for @addShareholder.
   ///
   /// In ar, this message translates to:
   /// **'إضافة مساهم'**
-  String get addPartner;
+  String get addShareholder;
 
-  /// No description provided for @partnerDetails.
+  /// No description provided for @addShareholderTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة مساهم جديد'**
+  String get addShareholderTitle;
+
+  /// No description provided for @editShareholderTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل بيانات المساهم'**
+  String get editShareholderTitle;
+
+  /// No description provided for @shareholderDetails.
   ///
   /// In ar, this message translates to:
   /// **'تفاصيل المساهم'**
-  String get partnerDetails;
+  String get shareholderDetails;
 
-  /// No description provided for @partnerName.
+  /// No description provided for @shareholderName.
   ///
   /// In ar, this message translates to:
-  /// **'اسم المساهم'**
-  String get partnerName;
+  /// **'اسم المساهم / الشريك'**
+  String get shareholderName;
 
   /// No description provided for @phoneNumber.
   ///
@@ -449,212 +815,596 @@ abstract class AppLocalizations {
   /// No description provided for @nationalId.
   ///
   /// In ar, this message translates to:
-  /// **'الرقم القومي'**
+  /// **'الرقم القومي (14 رقم)'**
   String get nationalId;
 
-  /// No description provided for @bankAccountOrWallet.
+  /// No description provided for @accountDetails.
   ///
   /// In ar, this message translates to:
-  /// **'الحساب البنكي / المحفظة الذكية'**
-  String get bankAccountOrWallet;
+  /// **'بيانات التحويل (إنستاباي / محفظة / بنك)'**
+  String get accountDetails;
 
   /// No description provided for @totalInvestedEquity.
   ///
   /// In ar, this message translates to:
-  /// **'إجمالي الحصص المستثمرة'**
+  /// **'إجمالي الحصص'**
   String get totalInvestedEquity;
-
-  /// No description provided for @totalMonthlyDividends.
-  ///
-  /// In ar, this message translates to:
-  /// **'إجمالي التوزيعات الشهرية'**
-  String get totalMonthlyDividends;
 
   /// No description provided for @ownedAssetsCount.
   ///
   /// In ar, this message translates to:
-  /// **'عدد الأصول المساهم بها'**
+  /// **'عدد الأصول'**
   String get ownedAssetsCount;
 
-  /// No description provided for @investedAssets.
+  /// No description provided for @totalInvestment.
   ///
   /// In ar, this message translates to:
-  /// **'الأصول المساهم بها'**
-  String get investedAssets;
+  /// **'إجمالي الاستثمار'**
+  String get totalInvestment;
 
-  /// No description provided for @financialsAndStats.
+  /// No description provided for @currentMonthReturn.
   ///
   /// In ar, this message translates to:
-  /// **'التقارير والتحليلات المالية'**
-  String get financialsAndStats;
+  /// **'عائد الشهر الحالي'**
+  String get currentMonthReturn;
 
-  /// No description provided for @monthlyIncomeStatement.
+  /// No description provided for @investedAssetsList.
   ///
   /// In ar, this message translates to:
-  /// **'قائمة الدخل والتدفق الشهري'**
-  String get monthlyIncomeStatement;
+  /// **'الأصول المستثمر بها'**
+  String get investedAssetsList;
 
-  /// No description provided for @grossIncome.
+  /// No description provided for @ownershipRatio.
+  ///
+  /// In ar, this message translates to:
+  /// **'نسبة الملكية'**
+  String get ownershipRatio;
+
+  /// No description provided for @mainInvestor.
+  ///
+  /// In ar, this message translates to:
+  /// **'مستثمر رئيسي'**
+  String get mainInvestor;
+
+  /// No description provided for @partnerInvestor.
+  ///
+  /// In ar, this message translates to:
+  /// **'مستثمر مشارك'**
+  String get partnerInvestor;
+
+  /// No description provided for @founderPartner.
+  ///
+  /// In ar, this message translates to:
+  /// **'مؤسس شريك'**
+  String get founderPartner;
+
+  /// No description provided for @underReview.
+  ///
+  /// In ar, this message translates to:
+  /// **'قيد المراجعة'**
+  String get underReview;
+
+  /// No description provided for @noShareholders.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا يوجد مساهمين مسجلين'**
+  String get noShareholders;
+
+  /// No description provided for @viewShareholderDetails.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض التفاصيل'**
+  String get viewShareholderDetails;
+
+  /// No description provided for @financialAnalysis.
+  ///
+  /// In ar, this message translates to:
+  /// **'التحليل المالي'**
+  String get financialAnalysis;
+
+  /// No description provided for @thisMonth.
+  ///
+  /// In ar, this message translates to:
+  /// **'هذا الشهر'**
+  String get thisMonth;
+
+  /// No description provided for @currentQuarter.
+  ///
+  /// In ar, this message translates to:
+  /// **'الربع الحالي'**
+  String get currentQuarter;
+
+  /// No description provided for @fiscalYear2026.
+  ///
+  /// In ar, this message translates to:
+  /// **'السنة المالية 2026'**
+  String get fiscalYear2026;
+
+  /// No description provided for @financialPerformanceBreakdown.
+  ///
+  /// In ar, this message translates to:
+  /// **'بيان الأداء والتدفق النقدي'**
+  String get financialPerformanceBreakdown;
+
+  /// No description provided for @monthlyGrossIncome.
   ///
   /// In ar, this message translates to:
   /// **'إجمالي الإيرادات'**
-  String get grossIncome;
+  String get monthlyGrossIncome;
 
-  /// No description provided for @operationalExpenses.
+  /// No description provided for @maintenanceAndOps.
   ///
   /// In ar, this message translates to:
-  /// **'المصروفات التشغيلية'**
-  String get operationalExpenses;
+  /// **'الصيانة والمصروفات'**
+  String get maintenanceAndOps;
 
-  /// No description provided for @netDistributableProfit.
+  /// No description provided for @netDistributableCashflow.
   ///
   /// In ar, this message translates to:
-  /// **'صافي الأرباح القابلة للتوزيع'**
-  String get netDistributableProfit;
+  /// **'صافي التدفق القابل للتوزيع'**
+  String get netDistributableCashflow;
 
-  /// No description provided for @milestoneRenewals.
+  /// No description provided for @estimatedAnnualROI.
   ///
   /// In ar, this message translates to:
-  /// **'رسوم تجديد التراخيص والعقود (مرحلية)'**
-  String get milestoneRenewals;
+  /// **'العائد السنوي المتوقع على الاستثمار (ROI)'**
+  String get estimatedAnnualROI;
 
-  /// No description provided for @roiAnalysis.
+  /// No description provided for @roiCalculationNote.
   ///
   /// In ar, this message translates to:
-  /// **'تحليل العائد على الاستثمار (ROI)'**
-  String get roiAnalysis;
+  /// **'محسوب على أساس القيمة السوقية الإجمالية للأصول'**
+  String get roiCalculationNote;
 
-  /// No description provided for @annualYield.
+  /// No description provided for @monthlyRentCollections.
   ///
   /// In ar, this message translates to:
-  /// **'العائد السنوي المتوقع'**
-  String get annualYield;
+  /// **'تحصيلات الإيجار الشهرية'**
+  String get monthlyRentCollections;
 
-  /// No description provided for @cashflowTrend.
+  /// No description provided for @receivedStatus.
   ///
   /// In ar, this message translates to:
-  /// **'حركة التدفق النقدي'**
-  String get cashflowTrend;
+  /// **'تم التحصيل'**
+  String get receivedStatus;
 
-  /// No description provided for @transactionsList.
+  /// No description provided for @pendingStatus.
   ///
   /// In ar, this message translates to:
-  /// **'سجل المعاملات والتحصيلات'**
-  String get transactionsList;
+  /// **'قيد التحصيل'**
+  String get pendingStatus;
 
-  /// No description provided for @addTransaction.
+  /// No description provided for @overdueStatus.
   ///
   /// In ar, this message translates to:
-  /// **'تسجيل معاملة مالية'**
-  String get addTransaction;
+  /// **'متأخر'**
+  String get overdueStatus;
 
-  /// No description provided for @transactionType.
+  /// No description provided for @maintenanceCost.
   ///
   /// In ar, this message translates to:
-  /// **'نوع المعاملة'**
-  String get transactionType;
+  /// **'صيانة دورية'**
+  String get maintenanceCost;
 
-  /// No description provided for @typeRentIncome.
+  /// No description provided for @notifications.
   ///
   /// In ar, this message translates to:
-  /// **'تحصيل إيجار شهري'**
-  String get typeRentIncome;
+  /// **'الإشعارات'**
+  String get notifications;
 
-  /// No description provided for @typeOperationalExpense.
+  /// No description provided for @filterFinancial.
   ///
   /// In ar, this message translates to:
-  /// **'مصروف تشغيلي / صيانة'**
-  String get typeOperationalExpense;
+  /// **'مالي'**
+  String get filterFinancial;
 
-  /// No description provided for @typeRenewalFee.
+  /// No description provided for @filterMaintenance.
   ///
   /// In ar, this message translates to:
-  /// **'رسوم تجديد ترخيص / عقد'**
-  String get typeRenewalFee;
+  /// **'صيانة'**
+  String get filterMaintenance;
 
-  /// No description provided for @typeFine.
+  /// No description provided for @filterDocuments.
   ///
   /// In ar, this message translates to:
-  /// **'مخالفة مرورية'**
-  String get typeFine;
+  /// **'مستندات'**
+  String get filterDocuments;
 
-  /// No description provided for @typeDividendPayout.
+  /// No description provided for @today.
   ///
   /// In ar, this message translates to:
-  /// **'توزيع أرباح للشركاء'**
-  String get typeDividendPayout;
+  /// **'اليوم'**
+  String get today;
 
-  /// No description provided for @transactionAmount.
+  /// No description provided for @yesterday.
   ///
   /// In ar, this message translates to:
-  /// **'المبلغ'**
-  String get transactionAmount;
+  /// **'أمس'**
+  String get yesterday;
 
-  /// No description provided for @transactionDate.
+  /// No description provided for @thisWeek.
   ///
   /// In ar, this message translates to:
-  /// **'التاريخ'**
-  String get transactionDate;
+  /// **'هذا الأسبوع'**
+  String get thisWeek;
 
-  /// No description provided for @notes.
+  /// No description provided for @minutesAgo.
   ///
   /// In ar, this message translates to:
-  /// **'ملاحظات'**
-  String get notes;
+  /// **'منذ {count} دقائق'**
+  String minutesAgo(Object count);
 
-  /// No description provided for @paperworkAndDocuments.
+  /// No description provided for @hoursAgo.
   ///
   /// In ar, this message translates to:
-  /// **'الأوراق والمستندات الرسمية'**
-  String get paperworkAndDocuments;
+  /// **'منذ {count} ساعات'**
+  String hoursAgo(Object count);
 
-  /// No description provided for @uploadDocument.
+  /// No description provided for @archive.
   ///
   /// In ar, this message translates to:
-  /// **'إرفاق مستند'**
-  String get uploadDocument;
+  /// **'الأرشيف'**
+  String get archive;
 
-  /// No description provided for @documentType.
+  /// No description provided for @archiveTitle.
   ///
   /// In ar, this message translates to:
-  /// **'نوع المستند'**
-  String get documentType;
+  /// **'أرشيف الملفات والسجلات'**
+  String get archiveTitle;
 
-  /// No description provided for @licenseCard.
+  /// No description provided for @searchArchiveHint.
   ///
   /// In ar, this message translates to:
-  /// **'رخصة التسيير'**
-  String get licenseCard;
+  /// **'بحث في الأرشيف (أصول، عقود، صيانة...)...'**
+  String get searchArchiveHint;
 
-  /// No description provided for @leaseContract.
+  /// No description provided for @catSoldAssets.
   ///
   /// In ar, this message translates to:
-  /// **'عقد الإيجار'**
-  String get leaseContract;
+  /// **'أصول مباعة ومتقاعدة'**
+  String get catSoldAssets;
 
-  /// No description provided for @taxCard.
+  /// No description provided for @catPastContracts.
   ///
   /// In ar, this message translates to:
-  /// **'البطاقة الضريبية'**
-  String get taxCard;
+  /// **'عقود إيجار سابقة'**
+  String get catPastContracts;
 
-  /// No description provided for @insuranceDoc.
+  /// No description provided for @catMaintenanceLogs.
   ///
   /// In ar, this message translates to:
-  /// **'وثيقة التأمين'**
-  String get insuranceDoc;
+  /// **'سجلات الصيانة المؤرشفة'**
+  String get catMaintenanceLogs;
 
-  /// No description provided for @cityElSadat.
+  /// No description provided for @catExpiredDocs.
   ///
   /// In ar, this message translates to:
-  /// **'مدينة السادات - المنوفية'**
-  String get cityElSadat;
+  /// **'وثائق وتراخيص منتهية'**
+  String get catExpiredDocs;
 
-  /// No description provided for @currencyEgp.
+  /// No description provided for @restoreFromArchive.
   ///
   /// In ar, this message translates to:
-  /// **'جنيه مصري (EGP)'**
-  String get currencyEgp;
+  /// **'استعادة من الأرشيف'**
+  String get restoreFromArchive;
+
+  /// No description provided for @permanentDelete.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف نهائي'**
+  String get permanentDelete;
+
+  /// No description provided for @confirmPermanentDelete.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد الحذف النهائي'**
+  String get confirmPermanentDelete;
+
+  /// No description provided for @confirmPermanentDeleteMsg.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل أنت متأكد من حذف هذا السجل نهائياً من الأرشيف؟ لا يمكن التراجع عن هذا الإجراء.'**
+  String get confirmPermanentDeleteMsg;
+
+  /// No description provided for @itemRestored.
+  ///
+  /// In ar, this message translates to:
+  /// **'تمت استعادة السجل من الأرشيف بنجاح'**
+  String get itemRestored;
+
+  /// No description provided for @itemDeleted.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حذف السجل من الأرشيف نهائياً'**
+  String get itemDeleted;
+
+  /// No description provided for @settings.
+  ///
+  /// In ar, this message translates to:
+  /// **'الإعدادات'**
+  String get settings;
+
+  /// No description provided for @appearanceAndTheme.
+  ///
+  /// In ar, this message translates to:
+  /// **'المظهر والسمة العامة'**
+  String get appearanceAndTheme;
+
+  /// No description provided for @lightMode.
+  ///
+  /// In ar, this message translates to:
+  /// **'الوضع الفاتح (Light Mode)'**
+  String get lightMode;
+
+  /// No description provided for @lightModeDesc.
+  ///
+  /// In ar, this message translates to:
+  /// **'واجهة نهارية مشرقة وعالية التباين'**
+  String get lightModeDesc;
+
+  /// No description provided for @darkMode.
+  ///
+  /// In ar, this message translates to:
+  /// **'الوضع الداكن (Dark Mode)'**
+  String get darkMode;
+
+  /// No description provided for @darkModeDesc.
+  ///
+  /// In ar, this message translates to:
+  /// **'مظهر مسائي مريح للعين وموفر للطاقة'**
+  String get darkModeDesc;
+
+  /// No description provided for @systemTheme.
+  ///
+  /// In ar, this message translates to:
+  /// **'تلقائي حسب النظام (System Default)'**
+  String get systemTheme;
+
+  /// No description provided for @systemThemeDesc.
+  ///
+  /// In ar, this message translates to:
+  /// **'مزامنة السمة تلقائياً مع إعدادات جهازك'**
+  String get systemThemeDesc;
+
+  /// No description provided for @switchThemeToLight.
+  ///
+  /// In ar, this message translates to:
+  /// **'التبديل إلى الوضع الفاتح'**
+  String get switchThemeToLight;
+
+  /// No description provided for @switchThemeToDark.
+  ///
+  /// In ar, this message translates to:
+  /// **'التبديل إلى الوضع الداكن'**
+  String get switchThemeToDark;
+
+  /// No description provided for @languageSettings.
+  ///
+  /// In ar, this message translates to:
+  /// **'لغة واجهة التطبيق (Language)'**
+  String get languageSettings;
+
+  /// No description provided for @arabicLanguage.
+  ///
+  /// In ar, this message translates to:
+  /// **'العربية (RTL - اللغة الأساسية)'**
+  String get arabicLanguage;
+
+  /// No description provided for @englishLanguage.
+  ///
+  /// In ar, this message translates to:
+  /// **'English (LTR)'**
+  String get englishLanguage;
+
+  /// No description provided for @notificationSettings.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعدادات الإشعارات والتنبيهات'**
+  String get notificationSettings;
+
+  /// No description provided for @rentDueAlerts.
+  ///
+  /// In ar, this message translates to:
+  /// **'تنبيهات استحقاق الإيجارات'**
+  String get rentDueAlerts;
+
+  /// No description provided for @rentDueAlertsDesc.
+  ///
+  /// In ar, this message translates to:
+  /// **'إشعارات فورية عند استحقاق أو تأخر إيجار السائقين'**
+  String get rentDueAlertsDesc;
+
+  /// No description provided for @maintenanceAlerts.
+  ///
+  /// In ar, this message translates to:
+  /// **'مواعيد الصيانة الدورية'**
+  String get maintenanceAlerts;
+
+  /// No description provided for @maintenanceAlertsDesc.
+  ///
+  /// In ar, this message translates to:
+  /// **'تذكير بمواعيد تغيير الزيت والفحص الدوري للسيارات'**
+  String get maintenanceAlertsDesc;
+
+  /// No description provided for @licenseRenewalAlerts.
+  ///
+  /// In ar, this message translates to:
+  /// **'تجديد رخص التسيير والتأمين'**
+  String get licenseRenewalAlerts;
+
+  /// No description provided for @licenseRenewalAlertsDesc.
+  ///
+  /// In ar, this message translates to:
+  /// **'إشعار مسبق قبل انتهاء التراخيص بـ 30 يوماً'**
+  String get licenseRenewalAlertsDesc;
+
+  /// No description provided for @securityAndProtection.
+  ///
+  /// In ar, this message translates to:
+  /// **'الأمان وحماية البيانات'**
+  String get securityAndProtection;
+
+  /// No description provided for @biometricAuth.
+  ///
+  /// In ar, this message translates to:
+  /// **'التحقق ببصمة الإصبع / الوجه'**
+  String get biometricAuth;
+
+  /// No description provided for @biometricAuthDesc.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلب المصادقة البيومترية عند فتح التطبيق'**
+  String get biometricAuthDesc;
+
+  /// No description provided for @autoSessionLock.
+  ///
+  /// In ar, this message translates to:
+  /// **'القفل التلقائي للجلسة'**
+  String get autoSessionLock;
+
+  /// No description provided for @autoSessionLockDesc.
+  ///
+  /// In ar, this message translates to:
+  /// **'قفل الشاشة عند الخروج من التطبيق للحماية'**
+  String get autoSessionLockDesc;
+
+  /// No description provided for @passcodeSettings.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعدادات رمز المرور المتقدمة'**
+  String get passcodeSettings;
+
+  /// No description provided for @passcodeSettingsDesc.
+  ///
+  /// In ar, this message translates to:
+  /// **'تغيير كود PIN السري للمحفظة'**
+  String get passcodeSettingsDesc;
+
+  /// No description provided for @changePinCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'تغيير رمز المرور (PIN Code)'**
+  String get changePinCode;
+
+  /// No description provided for @backupAndReports.
+  ///
+  /// In ar, this message translates to:
+  /// **'النسخ الاحتياطي وتصدير التقارير'**
+  String get backupAndReports;
+
+  /// No description provided for @exportReport.
+  ///
+  /// In ar, this message translates to:
+  /// **'تصدير تقرير المحفظة والأرباح (Excel/PDF)'**
+  String get exportReport;
+
+  /// No description provided for @exportReportDesc.
+  ///
+  /// In ar, this message translates to:
+  /// **'تنزيل كشف حساب شامل وتوزيعات الشركاء'**
+  String get exportReportDesc;
+
+  /// No description provided for @cloudSync.
+  ///
+  /// In ar, this message translates to:
+  /// **'المزامنة السحابية الفورية'**
+  String get cloudSync;
+
+  /// No description provided for @cloudSyncDesc.
+  ///
+  /// In ar, this message translates to:
+  /// **'آخر مزامنة ناجحة: اليوم 09:30 ص'**
+  String get cloudSyncDesc;
+
+  /// No description provided for @connected.
+  ///
+  /// In ar, this message translates to:
+  /// **'متصل'**
+  String get connected;
+
+  /// No description provided for @reportExportSuccess.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تصدير كشف الحساب بنجاح!'**
+  String get reportExportSuccess;
+
+  /// No description provided for @aboutSystem.
+  ///
+  /// In ar, this message translates to:
+  /// **'عن النظام والدعم'**
+  String get aboutSystem;
+
+  /// No description provided for @systemName.
+  ///
+  /// In ar, this message translates to:
+  /// **'نظام إدارة أصول تاكسيات مدينة السادات'**
+  String get systemName;
+
+  /// No description provided for @systemDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'منصة استثمارية متخصصة لإدارة حصص الشركاء، عقود الإيجار، وتوزيعات الأرباح الشهرية للأسطول التجاري.'**
+  String get systemDescription;
+
+  /// No description provided for @systemVersion.
+  ///
+  /// In ar, this message translates to:
+  /// **'الإصدار 1.0.0 (Build 2026) - El Sadat City Fleet Manager'**
+  String get systemVersion;
+
+  /// No description provided for @noData.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد بيانات مطابقة'**
+  String get noData;
+
+  /// No description provided for @vehicleAndLicenseInfo.
+  ///
+  /// In ar, this message translates to:
+  /// **'بيانات المركبة والترخيص'**
+  String get vehicleAndLicenseInfo;
+
+  /// No description provided for @shareholdersAndEquityAllocation.
+  ///
+  /// In ar, this message translates to:
+  /// **'المساهمين في الأصل وتوزيع الحصص'**
+  String get shareholdersAndEquityAllocation;
+
+  /// No description provided for @totalEquityAllocation.
+  ///
+  /// In ar, this message translates to:
+  /// **'إجمالي الحصص'**
+  String get totalEquityAllocation;
+
+  /// No description provided for @rentalAndFinancialDetails.
+  ///
+  /// In ar, this message translates to:
+  /// **'بيانات الإيجار والتشغيل والتعاقد'**
+  String get rentalAndFinancialDetails;
+
+  /// No description provided for @monthlyRent.
+  ///
+  /// In ar, this message translates to:
+  /// **'الإيجار الشهري'**
+  String get monthlyRent;
+
+  /// No description provided for @annualRentIncreaseRate.
+  ///
+  /// In ar, this message translates to:
+  /// **'تطبيق زيادة سنوية 10% على قيمة الإيجار'**
+  String get annualRentIncreaseRate;
+
+  /// No description provided for @annualRentIncreaseDesc.
+  ///
+  /// In ar, this message translates to:
+  /// **'زيادة تراكمية سنوية تلقائية في العقود السنوية وطويلة الأجل'**
+  String get annualRentIncreaseDesc;
+
+  /// No description provided for @statusAndDates.
+  ///
+  /// In ar, this message translates to:
+  /// **'الحالة وتواريخ التراخيص'**
+  String get statusAndDates;
 
   /// No description provided for @save.
   ///
@@ -692,83 +1442,11 @@ abstract class AppLocalizations {
   /// **'بحث...'**
   String get search;
 
-  /// No description provided for @filter.
+  /// No description provided for @close.
   ///
   /// In ar, this message translates to:
-  /// **'تصفية'**
-  String get filter;
-
-  /// No description provided for @all.
-  ///
-  /// In ar, this message translates to:
-  /// **'الكل'**
-  String get all;
-
-  /// No description provided for @noData.
-  ///
-  /// In ar, this message translates to:
-  /// **'لا توجد بيانات حالياً'**
-  String get noData;
-
-  /// No description provided for @errorOccurred.
-  ///
-  /// In ar, this message translates to:
-  /// **'حدث خطأ ما'**
-  String get errorOccurred;
-
-  /// No description provided for @successSaved.
-  ///
-  /// In ar, this message translates to:
-  /// **'تم الحفظ بنجاح'**
-  String get successSaved;
-
-  /// No description provided for @securitySettings.
-  ///
-  /// In ar, this message translates to:
-  /// **'الأمان والتحقق البيومتري'**
-  String get securitySettings;
-
-  /// No description provided for @enableBiometrics.
-  ///
-  /// In ar, this message translates to:
-  /// **'تفعيل بصمة الإصبع / الوجه'**
-  String get enableBiometrics;
-
-  /// No description provided for @changePasscode.
-  ///
-  /// In ar, this message translates to:
-  /// **'تغيير رمز المرور'**
-  String get changePasscode;
-
-  /// No description provided for @themeSettings.
-  ///
-  /// In ar, this message translates to:
-  /// **'المظهر والإعدادات'**
-  String get themeSettings;
-
-  /// No description provided for @darkMode.
-  ///
-  /// In ar, this message translates to:
-  /// **'الوضع الداكن'**
-  String get darkMode;
-
-  /// No description provided for @language.
-  ///
-  /// In ar, this message translates to:
-  /// **'اللغة (Language)'**
-  String get language;
-
-  /// No description provided for @arabic.
-  ///
-  /// In ar, this message translates to:
-  /// **'العربية'**
-  String get arabic;
-
-  /// No description provided for @english.
-  ///
-  /// In ar, this message translates to:
-  /// **'English'**
-  String get english;
+  /// **'إغلاق'**
+  String get close;
 }
 
 class _AppLocalizationsDelegate
