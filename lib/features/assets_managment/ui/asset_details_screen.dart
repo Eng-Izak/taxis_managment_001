@@ -281,175 +281,116 @@ class AssetDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  // Segmented Progress Bar
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 40,
-                          child: Container(
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF5F6368),
-                              borderRadius: BorderRadius.horizontal(
-                                left: Radius.circular(4),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 3),
-                        Expanded(
-                          flex: 60,
-                          child: Container(
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF0F56B3),
-                              borderRadius: BorderRadius.horizontal(
-                                right: Radius.circular(4),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // Dynamic Segmented Progress Bar with Tooltips
+                  _buildDetailsSharesBar(asset),
 
                   const SizedBox(height: 14),
 
-                  // Partner A Row
-                  Row(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0F56B3),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'أ',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
+                  if (asset.partnerShares.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        'لا توجد حصص مساهمين مسجلة لهذا الأصل.',
+                        style: TextStyle(color: Color(0xFF64748B), fontSize: 12.5),
                       ),
-                      const SizedBox(width: 10),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'الشريك أ',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1F2937),
-                            ),
-                          ),
-                          Text(
-                            'مستثمر رئيسي',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '60%',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0F56B3),
-                            ),
-                          ),
-                          Text(
-                            '270,000 ج.م',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                    )
+                  else
+                    ...asset.partnerShares.asMap().entries.map((entry) {
+                      final i = entry.key;
+                      final share = entry.value;
+                      const colors = [
+                        Color(0xFF0F56B3),
+                        Color(0xFF0D9488),
+                        Color(0xFF7C3AED),
+                        Color(0xFFD97706),
+                        Color(0xFF059669),
+                        Color(0xFFE11D48),
+                        Color(0xFF2563EB),
+                        Color(0xFF475569),
+                      ];
+                      final color = colors[i % colors.length];
+                      final initial = share.partnerName.trim().isNotEmpty
+                          ? share.partnerName.trim().substring(0, 1)
+                          : 'ش';
+                      final shareValue = asset.assetValuation > 0
+                          ? asset.assetValuation * (share.percentage / 100.0)
+                          : 0.0;
 
-                  const Divider(height: 16),
-
-                  // Partner B Row
-                  Row(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE2E8F0),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'ب',
-                            style: TextStyle(
-                              color: Color(0xFF1F2937),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      return Column(
                         children: [
-                          Text(
-                            'الشريك ب',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1F2937),
-                            ),
-                          ),
-                          Text(
-                            'مستثمر',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Color(0xFF64748B),
-                            ),
+                          if (i > 0) const Divider(height: 16),
+                          Row(
+                            children: [
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    initial,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    share.partnerName,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1F2937),
+                                    ),
+                                  ),
+                                  Text(
+                                    share.payoutMethod.name == 'instapay'
+                                        ? 'إنستاباي'
+                                        : share.payoutMethod.name == 'vodafoneCash'
+                                            ? 'فودافون كاش'
+                                            : 'تحويل بنكي',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Spacer(),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '${share.percentage % 1 == 0 ? share.percentage.toInt() : share.percentage.toStringAsFixed(1)}%',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: color,
+                                    ),
+                                  ),
+                                  if (shareValue > 0)
+                                    Text(
+                                      AppFormatters.formatCurrency(shareValue),
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF64748B),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
                           ),
                         ],
-                      ),
-                      const Spacer(),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '40%',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF5F6368),
-                            ),
-                          ),
-                          Text(
-                            '180,000 ج.م',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                      );
+                    }),
                 ],
               ),
             ),
@@ -586,6 +527,152 @@ class AssetDetailsScreen extends StatelessWidget {
             const SizedBox(height: 32),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDetailsSharesBar(AssetModel asset) {
+    final validShares = asset.partnerShares.where((s) => s.percentage > 0).toList();
+
+    const colors = [
+      Color(0xFF0F56B3),
+      Color(0xFF0D9488),
+      Color(0xFF7C3AED),
+      Color(0xFFD97706),
+      Color(0xFF059669),
+      Color(0xFFE11D48),
+      Color(0xFF2563EB),
+      Color(0xFF475569),
+    ];
+
+    if (validShares.isEmpty) {
+      return Tooltip(
+        message: 'لا يوجد مساهمين محددين (100% غير مخصص)',
+        preferBelow: false,
+        waitDuration: const Duration(milliseconds: 50),
+        verticalOffset: 10,
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        textStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 11.5,
+          fontWeight: FontWeight.bold,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: Container(
+            height: 7,
+            color: const Color(0xFFE2E8F0),
+          ),
+        ),
+      );
+    }
+
+    final totalPercentage = validShares.fold<double>(0.0, (sum, s) => sum + s.percentage);
+    final hasRemainder = totalPercentage < 99.9;
+    final remainder = (100.0 - totalPercentage).clamp(0.0, 100.0);
+
+    final List<Widget> segments = [];
+
+    for (int i = 0; i < validShares.length; i++) {
+      final share = validShares[i];
+      final color = colors[i % colors.length];
+      final percentStr = share.percentage % 1 == 0
+          ? '${share.percentage.toInt()}%'
+          : '${share.percentage.toStringAsFixed(1)}%';
+      final flex = (share.percentage * 100).round().clamp(1, 10000);
+
+      if (i > 0) {
+        segments.add(const SizedBox(width: 3));
+      }
+
+      segments.add(
+        Expanded(
+          flex: flex,
+          child: Tooltip(
+            message: '${share.partnerName} ($percentStr)',
+            preferBelow: false,
+            waitDuration: const Duration(milliseconds: 50),
+            showDuration: const Duration(seconds: 3),
+            verticalOffset: 10,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E293B),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            textStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+            ),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: Container(
+                height: 7,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.horizontal(
+                    right: Radius.circular(i == 0 ? 4 : 0),
+                    left: Radius.circular(i == validShares.length - 1 && !hasRemainder ? 4 : 0),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (hasRemainder && remainder > 0.1) {
+      final percentStr = remainder % 1 == 0
+          ? '${remainder.toInt()}%'
+          : '${remainder.toStringAsFixed(1)}%';
+      final flex = (remainder * 100).round().clamp(1, 10000);
+
+      if (segments.isNotEmpty) {
+        segments.add(const SizedBox(width: 3));
+      }
+
+      segments.add(
+        Expanded(
+          flex: flex,
+          child: Tooltip(
+            message: 'حصة غير مخصصة ($percentStr)',
+            preferBelow: false,
+            waitDuration: const Duration(milliseconds: 50),
+            showDuration: const Duration(seconds: 3),
+            verticalOffset: 10,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E293B),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            textStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+            ),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: Container(
+                height: 7,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFCBD5E1),
+                  borderRadius: BorderRadius.horizontal(
+                    left: Radius.circular(4),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: Row(
+        children: segments,
       ),
     );
   }

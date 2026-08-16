@@ -190,29 +190,8 @@ class AssetCard extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    // Segmented Partners Progress Bar
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(3),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 60,
-                            child: Container(
-                              height: 5,
-                              color: const Color(0xFF0F56B3), // 60% Blue
-                            ),
-                          ),
-                          const SizedBox(width: 2),
-                          Expanded(
-                            flex: 40,
-                            child: Container(
-                              height: 5,
-                              color: const Color(0xFF94A3B8), // 40% Grey
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // Dynamic Segmented Partners Equity Progress Bar with Mouse Hover Tooltips
+                    _buildPartnerSharesBar(context),
                   ],
                 ),
               ),
@@ -222,4 +201,161 @@ class AssetCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildPartnerSharesBar(BuildContext context) {
+    final validShares = asset.partnerShares.where((s) => s.percentage > 0).toList();
+
+    const colors = [
+      Color(0xFF0F56B3), // Brand Blue
+      Color(0xFF0D9488), // Teal
+      Color(0xFF7C3AED), // Purple
+      Color(0xFFD97706), // Amber
+      Color(0xFF059669), // Emerald
+      Color(0xFFE11D48), // Rose
+      Color(0xFF2563EB), // Indigo
+      Color(0xFF475569), // Slate
+    ];
+
+    if (validShares.isEmpty) {
+      return Tooltip(
+        message: 'لا يوجد مساهمين محددين (100% غير مخصص)',
+        preferBelow: false,
+        waitDuration: const Duration(milliseconds: 50),
+        verticalOffset: 10,
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(6),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x33000000),
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        textStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 11.5,
+          fontWeight: FontWeight.bold,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(3),
+          child: Container(
+            height: 6,
+            color: const Color(0xFFE2E8F0),
+          ),
+        ),
+      );
+    }
+
+    final totalPercentage = validShares.fold<double>(0.0, (sum, s) => sum + s.percentage);
+    final hasRemainder = totalPercentage < 99.9;
+    final remainder = (100.0 - totalPercentage).clamp(0.0, 100.0);
+
+    final List<Widget> segments = [];
+
+    for (int i = 0; i < validShares.length; i++) {
+      final share = validShares[i];
+      final color = colors[i % colors.length];
+      final percentStr = share.percentage % 1 == 0
+          ? '${share.percentage.toInt()}%'
+          : '${share.percentage.toStringAsFixed(1)}%';
+      final flex = (share.percentage * 100).round().clamp(1, 10000);
+
+      if (i > 0) {
+        segments.add(const SizedBox(width: 2));
+      }
+
+      segments.add(
+        Expanded(
+          flex: flex,
+          child: Tooltip(
+            message: '${share.partnerName} ($percentStr)',
+            preferBelow: false,
+            waitDuration: const Duration(milliseconds: 50),
+            showDuration: const Duration(seconds: 3),
+            verticalOffset: 10,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E293B),
+              borderRadius: BorderRadius.circular(6),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x40000000),
+                  blurRadius: 5,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            textStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+            ),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: Container(
+                height: 6,
+                color: color,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (hasRemainder && remainder > 0.1) {
+      final percentStr = remainder % 1 == 0
+          ? '${remainder.toInt()}%'
+          : '${remainder.toStringAsFixed(1)}%';
+      final flex = (remainder * 100).round().clamp(1, 10000);
+
+      if (segments.isNotEmpty) {
+        segments.add(const SizedBox(width: 2));
+      }
+
+      segments.add(
+        Expanded(
+          flex: flex,
+          child: Tooltip(
+            message: 'حصة غير مخصصة ($percentStr)',
+            preferBelow: false,
+            waitDuration: const Duration(milliseconds: 50),
+            showDuration: const Duration(seconds: 3),
+            verticalOffset: 10,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E293B),
+              borderRadius: BorderRadius.circular(6),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x40000000),
+                  blurRadius: 5,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            textStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+            ),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: Container(
+                height: 6,
+                color: const Color(0xFFCBD5E1),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(3),
+      child: Row(
+        children: segments,
+      ),
+    );
+  }
 }
+
