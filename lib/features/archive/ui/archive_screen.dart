@@ -4,7 +4,13 @@ import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/widgets/app_toast.dart';
 import '../../../../core/localization/app_localization_extension.dart';
 
-enum _ArchiveCategoryEnum { all, soldAssets, pastContracts, maintenanceLogs, expiredDocs }
+enum _ArchiveCategoryEnum {
+  all,
+  soldAssets,
+  pastContracts,
+  maintenanceLogs,
+  expiredDocs,
+}
 
 class ArchiveScreen extends StatefulWidget {
   const ArchiveScreen({super.key});
@@ -89,7 +95,8 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
 
   List<_ArchivedItemData> get _filteredItems {
     return _items.where((item) {
-      if (_selectedCategory != _ArchiveCategoryEnum.all && item.categoryType != _selectedCategory) {
+      if (_selectedCategory != _ArchiveCategoryEnum.all &&
+          item.categoryType != _selectedCategory) {
         return false;
       }
       if (_searchQuery.isNotEmpty) {
@@ -127,7 +134,9 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
             child: Text(l10n.cancel),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFC5221F)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFC5221F),
+            ),
             onPressed: () {
               Navigator.of(ctx).pop();
               setState(() {
@@ -141,7 +150,10 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                 duration: const Duration(seconds: 4),
               );
             },
-            child: Text(l10n.permanentDelete, style: const TextStyle(color: Colors.white)),
+            child: Text(
+              l10n.permanentDelete,
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -151,7 +163,9 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+    final primaryColor = isDark
+        ? AppColors.primaryLight
+        : const Color(0xFF0F56B3);
     final filtered = _filteredItems;
     final l10n = context.l10n;
 
@@ -189,19 +203,38 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                     hintText: l10n.searchArchiveHint,
                     hintStyle: TextStyle(
                       fontSize: 12.5,
-                      color: isDark ? AppColors.darkTextTertiary : const Color(0xFF94A3B8),
+                      color: isDark
+                          ? AppColors.darkTextTertiary
+                          : const Color(0xFF94A3B8),
                     ),
-                    prefixIcon: Icon(Icons.search_rounded, color: primaryColor, size: 22),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                    prefixIcon: Icon(
+                      Icons.search_rounded,
+                      color: primaryColor,
+                      size: 22,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 0,
+                      horizontal: 16,
+                    ),
                     filled: true,
-                    fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8F9FA),
+                    fillColor: isDark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFF8F9FA),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(
+                        color: isDark
+                            ? AppColors.darkCardBorder
+                            : const Color(0xFFE2E8F0),
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(
+                        color: isDark
+                            ? AppColors.darkCardBorder
+                            : const Color(0xFFE2E8F0),
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -219,32 +252,55 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                     children: [
                       _ArchiveFilterPill(
                         label: l10n.filterAll,
-                        isSelected: _selectedCategory == _ArchiveCategoryEnum.all,
-                        onTap: () => setState(() => _selectedCategory = _ArchiveCategoryEnum.all),
+                        isSelected:
+                            _selectedCategory == _ArchiveCategoryEnum.all,
+                        onTap: () => setState(
+                          () => _selectedCategory = _ArchiveCategoryEnum.all,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       _ArchiveFilterPill(
                         label: l10n.catSoldAssets,
-                        isSelected: _selectedCategory == _ArchiveCategoryEnum.soldAssets,
-                        onTap: () => setState(() => _selectedCategory = _ArchiveCategoryEnum.soldAssets),
+                        isSelected:
+                            _selectedCategory ==
+                            _ArchiveCategoryEnum.soldAssets,
+                        onTap: () => setState(
+                          () => _selectedCategory =
+                              _ArchiveCategoryEnum.soldAssets,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       _ArchiveFilterPill(
                         label: l10n.catPastContracts,
-                        isSelected: _selectedCategory == _ArchiveCategoryEnum.pastContracts,
-                        onTap: () => setState(() => _selectedCategory = _ArchiveCategoryEnum.pastContracts),
+                        isSelected:
+                            _selectedCategory ==
+                            _ArchiveCategoryEnum.pastContracts,
+                        onTap: () => setState(
+                          () => _selectedCategory =
+                              _ArchiveCategoryEnum.pastContracts,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       _ArchiveFilterPill(
                         label: l10n.catMaintenanceLogs,
-                        isSelected: _selectedCategory == _ArchiveCategoryEnum.maintenanceLogs,
-                        onTap: () => setState(() => _selectedCategory = _ArchiveCategoryEnum.maintenanceLogs),
+                        isSelected:
+                            _selectedCategory ==
+                            _ArchiveCategoryEnum.maintenanceLogs,
+                        onTap: () => setState(
+                          () => _selectedCategory =
+                              _ArchiveCategoryEnum.maintenanceLogs,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       _ArchiveFilterPill(
                         label: l10n.catExpiredDocs,
-                        isSelected: _selectedCategory == _ArchiveCategoryEnum.expiredDocs,
-                        onTap: () => setState(() => _selectedCategory = _ArchiveCategoryEnum.expiredDocs),
+                        isSelected:
+                            _selectedCategory ==
+                            _ArchiveCategoryEnum.expiredDocs,
+                        onTap: () => setState(
+                          () => _selectedCategory =
+                              _ArchiveCategoryEnum.expiredDocs,
+                        ),
                       ),
                     ],
                   ),
@@ -262,11 +318,19 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.folder_open_rounded, size: 64, color: Color(0xFFCBD5E1)),
+                        const Icon(
+                          Icons.folder_open_rounded,
+                          size: 64,
+                          color: Color(0xFFCBD5E1),
+                        ),
                         const SizedBox(height: 12),
                         Text(
                           l10n.noData,
-                          style: const TextStyle(fontSize: 14, color: Color(0xFF64748B), fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -330,7 +394,9 @@ class _ArchivedCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+    final primaryColor = isDark
+        ? AppColors.primaryLight
+        : const Color(0xFF0F56B3);
     final l10n = context.l10n;
 
     return AppCard(
@@ -344,11 +410,21 @@ class _ArchivedCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 3,
+                ),
                 decoration: BoxDecoration(
-                  color: isDark ? item.tagBgColor.withValues(alpha: 0.35) : item.tagBgColor,
+                  color: isDark
+                      ? item.tagBgColor.withValues(alpha: 0.35)
+                      : item.tagBgColor,
                   borderRadius: BorderRadius.circular(10),
-                  border: isDark ? Border.all(color: item.tagColor.withValues(alpha: 0.3), width: 0.8) : null,
+                  border: isDark
+                      ? Border.all(
+                          color: item.tagColor.withValues(alpha: 0.3),
+                          width: 0.8,
+                        )
+                      : null,
                 ),
                 child: Text(
                   item.tag,
@@ -361,13 +437,21 @@ class _ArchivedCard extends StatelessWidget {
               ),
               Row(
                 children: [
-                  Icon(Icons.calendar_today_outlined, size: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    size: 12,
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     context.digits(item.date),
                     style: TextStyle(
                       fontSize: 11,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
                     ),
                   ),
                 ],
@@ -385,9 +469,13 @@ class _ArchivedCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F3F4),
+                  color: isDark
+                      ? const Color(0xFF1E293B)
+                      : const Color(0xFFF1F3F4),
                   borderRadius: BorderRadius.circular(10),
-                  border: isDark ? Border.all(color: const Color(0xFF334155), width: 1) : null,
+                  border: isDark
+                      ? Border.all(color: const Color(0xFF334155), width: 1)
+                      : null,
                 ),
                 child: Center(
                   child: Icon(item.icon, color: primaryColor, size: 20),
@@ -403,7 +491,9 @@ class _ArchivedCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
+                        color: isDark
+                            ? AppColors.darkTextPrimary
+                            : const Color(0xFF1F2937),
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -411,7 +501,9 @@ class _ArchivedCard extends StatelessWidget {
                       context.digits(item.subtitle),
                       style: TextStyle(
                         fontSize: 11.5,
-                        color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
+                        color: isDark
+                            ? AppColors.darkTextTertiary
+                            : const Color(0xFF64748B),
                       ),
                     ),
                     if (item.metaInfo.isNotEmpty) ...[
@@ -421,7 +513,9 @@ class _ArchivedCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
+                          color: isDark
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFF137333),
                         ),
                       ),
                     ],
@@ -444,10 +538,17 @@ class _ArchivedCard extends StatelessWidget {
                 onTap: onDelete,
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   child: Row(
                     children: [
-                      const Icon(Icons.delete_outline_rounded, color: Color(0xFFC5221F), size: 16),
+                      const Icon(
+                        Icons.delete_outline_rounded,
+                        color: Color(0xFFC5221F),
+                        size: 16,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         l10n.permanentDelete,
@@ -467,14 +568,21 @@ class _ArchivedCard extends StatelessWidget {
                 onTap: onRestore,
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: primaryColor.withValues(alpha: isDark ? 0.2 : 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.restore_rounded, color: primaryColor, size: 16),
+                      Icon(
+                        Icons.restore_rounded,
+                        color: primaryColor,
+                        size: 16,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         l10n.restoreFromArchive,
@@ -510,7 +618,9 @@ class _ArchiveFilterPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+    final primaryColor = isDark
+        ? AppColors.primaryLight
+        : const Color(0xFF0F56B3);
 
     return InkWell(
       onTap: onTap,
@@ -533,7 +643,9 @@ class _ArchiveFilterPill extends StatelessWidget {
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             color: isSelected
                 ? Colors.white
-                : (isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B)),
+                : (isDark
+                      ? AppColors.darkTextSecondary
+                      : const Color(0xFF64748B)),
           ),
         ),
       ),
