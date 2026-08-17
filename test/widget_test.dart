@@ -17,6 +17,7 @@ import 'package:taxis_managment_001/features/auth/logic/auth_cubit.dart';
 import 'package:taxis_managment_001/features/auth/logic/auth_state.dart';
 import 'package:taxis_managment_001/core/shared/widgets/app_phone_field.dart';
 import 'package:taxis_managment_001/core/shared/models/document_meta_model.dart';
+import 'package:taxis_managment_001/core/shared/models/archived_item_model.dart';
 
 void main() {
   group('Taxi Asset Management Financial Engine Tests', () {
@@ -196,6 +197,50 @@ void main() {
       expect(restored, isTrue);
       expect(storage.getAssets().length, initialAssetCount);
       expect(storage.getArchivedItems().length, initialArchiveCount);
+    });
+
+    test('Archives shareholder with documents and transaction history and restores it seamlessly', () {
+      final storage = LocalStorageService();
+      const doc = DocumentMeta(
+        id: 'doc_partner_id',
+        title: 'صورة بطاقة الرقم القومي',
+        type: DocumentType.nationalId,
+        images: ['/storage/id_front.jpg', '/storage/id_back.jpg'],
+      );
+
+      const testShareholder = ShareholderModel(
+        id: 'sh_archive_test',
+        name: 'شريك تجريبي مؤرشف',
+        phone: '01099998888',
+        nationalId: '29801019999999',
+        documents: [doc],
+      );
+
+      storage.addShareholder(testShareholder);
+      final initialShareholderCount = storage.getShareholders().length;
+      final initialArchiveCount = storage.getArchivedItems().length;
+
+      storage.archiveShareholder(testShareholder, reason: 'انسحاب الشريك وتسوية المستحقات');
+
+      expect(storage.getShareholders().length, initialShareholderCount - 1);
+      expect(storage.getArchivedItems().length, initialArchiveCount + 1);
+
+      final archivedItem = storage.getArchivedItems().firstWhere((item) => item.category == ArchiveCategory.archivedShareholders);
+      expect(archivedItem.originalShareholder, isNotNull);
+      expect(archivedItem.originalShareholder!.id, 'sh_archive_test');
+      expect(archivedItem.originalShareholder!.documents.length, 1);
+      expect(archivedItem.originalShareholder!.documents.first.imageCount, 2);
+
+      final restored = storage.restoreArchivedShareholder(archivedItem.id);
+      expect(restored, isTrue);
+      expect(storage.getShareholders().length, initialShareholderCount);
+      expect(storage.getShareholders().any((s) => s.id == 'sh_archive_test'), isTrue);
+
+      final restoredShareholder = storage.getShareholders().firstWhere((s) => s.id == 'sh_archive_test');
+      expect(restoredShareholder.documents.length, 1);
+      expect(restoredShareholder.documents.first.allImages.contains('/storage/id_back.jpg'), isTrue);
+
+      storage.deleteShareholder('sh_archive_test');
     });
 
     test('Generates real dynamic alerts for upcoming license expirations', () {

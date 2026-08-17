@@ -36,6 +36,11 @@ class ShareholdersCubit extends Cubit<ShareholdersState> {
     await loadShareholders();
   }
 
+  Future<void> archiveShareholder(ShareholderModel shareholder, {String? reason}) async {
+    await _partnerRepo.archiveShareholder(shareholder, reason: reason);
+    await loadShareholders();
+  }
+
   Future<void> deleteShareholder(String id) async {
     await _partnerRepo.deleteShareholder(id);
     await loadShareholders();

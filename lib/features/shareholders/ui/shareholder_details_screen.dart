@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
+import '../../../../core/shared/widgets/app_toast.dart';
 import '../../../../core/shared/widgets/documents_section_widget.dart';
 import '../../../../core/shared/models/shareholder_model.dart';
 import '../../../../core/shared/models/asset_model.dart';
@@ -17,6 +18,96 @@ class ShareholderDetailsScreen extends StatelessWidget {
   final ShareholderModel shareholder;
 
   const ShareholderDetailsScreen({super.key, required this.shareholder});
+
+  void _confirmArchiveShareholder(BuildContext context, ShareholderModel currentShareholder) {
+    final isArabic = context.isArabic;
+    final docsCount = currentShareholder.documents.length;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          isArabic ? 'تأكيد أرشفة المساهم' : 'Confirm Shareholder Archiving',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              isArabic
+                  ? 'هل أنت متأكد من رغبتك في نقل المساهم "${currentShareholder.name}" إلى الأرشيف؟'
+                  : 'Are you sure you want to move shareholder "${currentShareholder.name}" to the archive?',
+              style: const TextStyle(fontSize: 13.5),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F56B3).withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFF0F56B3).withValues(alpha: 0.2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.shield_outlined, size: 16, color: Color(0xFF0F56B3)),
+                      const SizedBox(width: 6),
+                      Text(
+                        isArabic ? 'الحفاظ التام على السجلات:' : 'Complete Data Preservation:',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F56B3)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    isArabic
+                        ? '• سيتم الاحتفاظ بجميع بيانات الهوية والتواصل\n• حفظ كافة المستندات والوثائق المرفقة ($docsCount مستند)\n• الاحتفاظ بكامل سجل المعاملات وتوزيع الأرباح السابقة\n• إمكانية استعادة المساهم بنقرة واحدة من شاشة الأرشيف'
+                        : '• Identity & contact data preserved\n• All attached documents ($docsCount docs) saved\n• Complete dividend & transaction history kept\n• Instant one-click restoration from Archive',
+                    style: const TextStyle(fontSize: 11, height: 1.5),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(isArabic ? 'إلغاء' : 'Cancel'),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.archive_outlined, size: 16, color: Colors.white),
+            label: Text(
+              isArabic ? 'نقل للأرشيف' : 'Move to Archive',
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0F56B3),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await context.read<ShareholdersCubit>().archiveShareholder(currentShareholder);
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                AppToast.show(
+                  context,
+                  message: isArabic
+                      ? 'تم نقل المساهم "${currentShareholder.name}" ومستنداته إلى الأرشيف بنجاح'
+                      : 'Shareholder "${currentShareholder.name}" & documents moved to archive',
+                  icon: Icons.archive_rounded,
+                  duration: const Duration(seconds: 4),
+                );
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +158,11 @@ class ShareholderDetailsScreen extends StatelessWidget {
                 ),
               );
             },
+          ),
+          IconButton(
+            icon: Icon(Icons.archive_outlined, color: textSecondary),
+            tooltip: context.isArabic ? 'أرشفة المساهم' : 'Archive Shareholder',
+            onPressed: () => _confirmArchiveShareholder(context, currentShareholder),
           ),
         ],
       ),
@@ -336,7 +432,65 @@ class ShareholderDetailsScreen extends StatelessWidget {
               },
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // Archive Shareholder Card
+            AppCard(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F56B3).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.archive_outlined, color: Color(0xFF0F56B3), size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          context.isArabic ? 'نقل المساهم إلى الأرشيف' : 'Archive Shareholder',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                            color: textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          context.isArabic
+                              ? 'حفظ كامل البيانات والمستندات وسجل المعاملات في الأرشيف'
+                              : 'Keep all data, documents, and transaction logs in archive',
+                          style: TextStyle(fontSize: 11, color: textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton.icon(
+                    onPressed: () => _confirmArchiveShareholder(context, currentShareholder),
+                    icon: const Icon(Icons.archive_rounded, size: 16),
+                    label: Text(
+                      context.isArabic ? 'أرشفة' : 'Archive',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF0F56B3),
+                      side: const BorderSide(color: Color(0xFF0F56B3)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 32),
           ],
         ),
       ),

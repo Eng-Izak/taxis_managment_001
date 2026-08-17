@@ -79,6 +79,14 @@ class HomeCubit extends Cubit<HomeState> {
     return restored;
   }
 
+  Future<bool> restoreArchivedItem(String archiveId) async {
+    final restored = await _assetRepo.restoreArchivedItem(archiveId);
+    if (restored) {
+      await loadDashboardData();
+    }
+    return restored;
+  }
+
   Future<void> deleteArchivedPermanently(String archiveId) async {
     await _assetRepo.deleteArchivedPermanently(archiveId);
   }

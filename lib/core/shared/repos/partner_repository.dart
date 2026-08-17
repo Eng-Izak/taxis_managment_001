@@ -38,6 +38,10 @@ class PartnerRepository {
     }
   }
 
+  Future<void> archiveShareholder(ShareholderModel shareholder, {String? reason}) async {
+    _storageService.archiveShareholder(shareholder, reason: reason);
+  }
+
   Future<void> deleteShareholder(String id) async {
     _storageService.deleteShareholder(id);
   }

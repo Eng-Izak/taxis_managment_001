@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/models/shareholder_model.dart';
 import '../../../../core/shared/models/asset_model.dart';
+import '../../../../core/theming/app_colors.dart';
 import '../../../../core/utils/financial_calculator.dart';
 import '../../../../core/localization/app_localization_extension.dart';
 
@@ -9,12 +10,14 @@ class ShareholderCard extends StatelessWidget {
   final ShareholderModel shareholder;
   final List<AssetModel> allAssets;
   final VoidCallback onTap;
+  final VoidCallback? onArchive;
 
   const ShareholderCard({
     super.key,
     required this.shareholder,
     required this.allAssets,
     required this.onTap,
+    this.onArchive,
   });
 
   @override
@@ -22,6 +25,8 @@ class ShareholderCard extends StatelessWidget {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3);
+    final textPrimary = isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937);
+    final textSecondary = isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B);
 
     // Compute real analytics dynamically from active assets
     final analytics = FinancialCalculator.computeShareholderAnalytics(
@@ -53,30 +58,83 @@ class ShareholderCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Top Row: Status badge & Avatar + Name
+          // Top Row: Avatar + Name (Expanded) + Status Badge + Archive Button
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              // Avatar Box with initials
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF131D31) : const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(10),
+                  border: isDark ? Border.all(color: const Color(0xFF334155), width: 1) : null,
+                ),
+                child: Center(
+                  child: Text(
+                    initials,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: primaryColor,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 10),
+
+              // Name & Role (Expanded to prevent any RenderFlex overflow)
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.bold,
+                        color: textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      role,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
               // Status Badge
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
+                  horizontal: 8,
+                  vertical: 3.5,
                 ),
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFE6F4EA),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   border: isDark ? Border.all(color: const Color(0xFF22C55E).withValues(alpha: 0.3), width: 0.8) : null,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(statusIcon, size: 13, color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333)),
-                    const SizedBox(width: 4),
+                    Icon(statusIcon, size: 12, color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333)),
+                    const SizedBox(width: 3),
                     Text(
                       statusText,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 10.5,
                         fontWeight: FontWeight.bold,
                         color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
                       ),
@@ -85,53 +143,22 @@ class ShareholderCard extends StatelessWidget {
                 ),
               ),
 
-              // Name, Role & Avatar
-              Row(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        name,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: primaryColor,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        role,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
+              // Archive Button
+              if (onArchive != null) ...[
+                const SizedBox(width: 4),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
+                  icon: Icon(
+                    Icons.archive_outlined,
+                    size: 18,
+                    color: textSecondary,
                   ),
-                  const SizedBox(width: 12),
-                  // Avatar Box with initials
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF131D31) : const Color(0xFFE2E8F0),
-                      borderRadius: BorderRadius.circular(10),
-                      border: isDark ? Border.all(color: const Color(0xFF334155), width: 1) : null,
-                    ),
-                    child: Center(
-                      child: Text(
-                        initials,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: primaryColor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                  tooltip: context.isArabic ? 'أرشفة المساهم' : 'Archive Shareholder',
+                  onPressed: onArchive,
+                ),
+              ],
             ],
           ),
 

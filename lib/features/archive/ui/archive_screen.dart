@@ -3,9 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/widgets/app_toast.dart';
+import '../../../../core/shared/widgets/documents_section_widget.dart';
 import '../../../../core/shared/models/archived_item_model.dart';
 import '../../../../core/localization/app_localization_extension.dart';
 import '../../home/logic/home_cubit.dart';
+import '../../shareholders/logic/shareholders_cubit.dart';
 
 class ArchiveScreen extends StatefulWidget {
   const ArchiveScreen({super.key});
@@ -59,12 +61,13 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
 
   Future<void> _restoreItem(ArchivedItemModel item) async {
     final l10n = context.l10n;
-    final success = await context.read<HomeCubit>().restoreArchivedAsset(item.id);
+    final success = await context.read<HomeCubit>().restoreArchivedItem(item.id);
     if (success) {
       setState(() {
         _items.removeWhere((i) => i.id == item.id);
       });
       if (mounted) {
+        context.read<ShareholdersCubit>().loadShareholders();
         AppToast.show(
           context,
           message: '${l10n.itemRestored}: "${item.title}"',
@@ -116,12 +119,217 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
     );
   }
 
+  void _showArchivedDetails(BuildContext context, ArchivedItemModel item) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isArabic = context.isArabic;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+    final textPrimary = isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937);
+    final textSecondary = isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalCtx) => Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: Material(
+          color: isDark ? const Color(0xFF131D31) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: primaryColor.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.archive_outlined, color: primaryColor, size: 20),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          isArabic ? 'تفاصيل السجل المؤرشف' : 'Archived Record Details',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.of(modalCtx).pop(),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+
+              // Content Body
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title & Subtitle Card
+                      AppCard(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.title,
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryColor),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(item.subtitle, style: TextStyle(fontSize: 12.5, color: textSecondary)),
+                            if (item.metaInfo.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text(item.metaInfo, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF137333))),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // If Archived Shareholder: Show Documents & Transaction history
+                      if (item.originalShareholder != null) ...[
+                        // Shareholder Documents
+                        DocumentsSectionWidget(
+                          title: isArabic ? 'المستندات والصور المؤرشفة' : 'Archived Documents & Photos',
+                          documents: item.originalShareholder!.documents,
+                          readOnly: true,
+                          onDocumentsChanged: (_) {},
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Transaction History
+                        if (item.shareholderTransactions != null && item.shareholderTransactions!.isNotEmpty) ...[
+                          AppCard(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  isArabic ? 'سجل المعاملات وتوزيع الأرباح المؤرشفة' : 'Archived Transaction History',
+                                  style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: primaryColor),
+                                ),
+                                const SizedBox(height: 10),
+                                ...item.shareholderTransactions!.map((tx) => Padding(
+                                      padding: const EdgeInsets.only(bottom: 8.0),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(tx.category, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: textPrimary)),
+                                              Text(
+                                                context.formatShortDate(tx.date),
+                                                style: TextStyle(fontSize: 10.5, color: textSecondary),
+                                              ),
+                                            ],
+                                          ),
+                                          Text(
+                                            context.formatCurrency(tx.amount),
+                                            style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF137333)),
+                                          ),
+                                        ],
+                                      ),
+                                    )),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ],
+
+                      // If Archived Asset: Show Documents
+                      if (item.originalAsset != null && item.originalAsset!.documents.isNotEmpty) ...[
+                        DocumentsSectionWidget(
+                          title: isArabic ? 'مستندات الأصل المؤرشفة' : 'Archived Asset Documents',
+                          documents: item.originalAsset!.documents,
+                          readOnly: true,
+                          onDocumentsChanged: (_) {},
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+
+              // Bottom Actions
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8F9FA),
+                  border: Border(top: BorderSide(color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0))),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.restore_rounded, size: 18),
+                        label: Text(isArabic ? 'استعادة من الأرشيف' : 'Restore from Archive'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: primaryColor,
+                          side: BorderSide(color: primaryColor),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        onPressed: () {
+                          Navigator.of(modalCtx).pop();
+                          _restoreItem(item);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFC5221F)),
+                      tooltip: isArabic ? 'حذف نهائي' : 'Delete Permanently',
+                      onPressed: () {
+                        Navigator.of(modalCtx).pop();
+                        _confirmDeleteItem(item);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
     final filtered = _filteredItems;
     final l10n = context.l10n;
+    final isArabic = context.isArabic;
 
     return Scaffold(
       appBar: AppBar(
@@ -195,6 +403,12 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                             ),
                             const SizedBox(width: 8),
                             _ArchiveFilterPill(
+                              label: isArabic ? 'مساهمون مؤرشفون' : 'Archived Shareholders',
+                              isSelected: _selectedCategory == ArchiveCategory.archivedShareholders,
+                              onTap: () => setState(() => _selectedCategory = ArchiveCategory.archivedShareholders),
+                            ),
+                            const SizedBox(width: 8),
+                            _ArchiveFilterPill(
                               label: l10n.catSoldAssets,
                               isSelected: _selectedCategory == ArchiveCategory.soldAssets,
                               onTap: () => setState(() => _selectedCategory = ArchiveCategory.soldAssets),
@@ -258,6 +472,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                             final item = filtered[idx];
                             return _ArchiveCard(
                               item: item,
+                              onTap: () => _showArchivedDetails(context, item),
                               onRestore: () => _restoreItem(item),
                               onDelete: () => _confirmDeleteItem(item),
                             );
@@ -272,11 +487,13 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
 
 class _ArchiveCard extends StatelessWidget {
   final ArchivedItemModel item;
+  final VoidCallback onTap;
   final VoidCallback onRestore;
   final VoidCallback onDelete;
 
   const _ArchiveCard({
     required this.item,
+    required this.onTap,
     required this.onRestore,
     required this.onDelete,
   });
@@ -289,6 +506,8 @@ class _ArchiveCard extends StatelessWidget {
 
     IconData getCategoryIcon() {
       switch (item.category) {
+        case ArchiveCategory.archivedShareholders:
+          return Icons.person_outline_rounded;
         case ArchiveCategory.soldAssets:
           return Icons.directions_car_filled_rounded;
         case ArchiveCategory.pastContracts:
@@ -301,6 +520,7 @@ class _ArchiveCard extends StatelessWidget {
     }
 
     return AppCard(
+      onTap: onTap,
       padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

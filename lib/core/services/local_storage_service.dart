@@ -572,6 +572,35 @@ class LocalStorageService {
     _queueMutation(SyncEntityType.archivedItem, SyncOperationType.create, archivedItem.id, archivedItem.toJson());
   }
 
+  void archiveShareholder(ShareholderModel shareholder, {String? reason}) {
+    // 1. Fetch matching transactions history for this shareholder
+    final matchingTx = _transactions.where(
+      (t) => t.partnerId == shareholder.id || (t.partnerName != null && t.partnerName == shareholder.name),
+    ).toList();
+
+    // 2. Remove from active shareholders
+    _shareholders.removeWhere((s) => s.id == shareholder.id);
+    _persistShareholders();
+    _queueMutation(SyncEntityType.shareholder, SyncOperationType.delete, shareholder.id, null);
+
+    // 3. Create and add to archive with all data, documents, and transaction history
+    final archivedItem = ArchivedItemModel(
+      id: 'arch_sh_${DateTime.now().millisecondsSinceEpoch}',
+      category: ArchiveCategory.archivedShareholders,
+      title: 'المساهم: ${shareholder.name}',
+      subtitle: reason ?? 'الهاتف: ${shareholder.phone} • ${shareholder.documents.length} مستندات • ${matchingTx.length} معاملات مسجلة',
+      date: DateTime.now(),
+      tag: 'مساهم مؤرشف',
+      metaInfo: '${shareholder.documents.length} مستندات مرفقة | ${matchingTx.length} معاملة مالية مسجلة',
+      originalShareholder: shareholder,
+      shareholderTransactions: matchingTx,
+    );
+
+    _archivedItems.insert(0, archivedItem);
+    _persistArchivedItems();
+    _queueMutation(SyncEntityType.archivedItem, SyncOperationType.create, archivedItem.id, archivedItem.toJson());
+  }
+
   bool restoreArchivedAsset(String archiveId) {
     final index = _archivedItems.indexWhere((item) => item.id == archiveId);
     if (index != -1) {
@@ -585,6 +614,36 @@ class LocalStorageService {
       _persistArchivedItems();
       _queueMutation(SyncEntityType.archivedItem, SyncOperationType.delete, archiveId, null);
       return true;
+    }
+    return false;
+  }
+
+  bool restoreArchivedShareholder(String archiveId) {
+    final index = _archivedItems.indexWhere((item) => item.id == archiveId);
+    if (index != -1) {
+      final archivedItem = _archivedItems[index];
+      if (archivedItem.originalShareholder != null) {
+        _shareholders.insert(0, archivedItem.originalShareholder!);
+        _persistShareholders();
+        _queueMutation(SyncEntityType.shareholder, SyncOperationType.create, archivedItem.originalShareholder!.id, archivedItem.originalShareholder!.toJson());
+      }
+      _archivedItems.removeAt(index);
+      _persistArchivedItems();
+      _queueMutation(SyncEntityType.archivedItem, SyncOperationType.delete, archiveId, null);
+      return true;
+    }
+    return false;
+  }
+
+  bool restoreArchivedItem(String archiveId) {
+    final index = _archivedItems.indexWhere((item) => item.id == archiveId);
+    if (index != -1) {
+      final archivedItem = _archivedItems[index];
+      if (archivedItem.category == ArchiveCategory.archivedShareholders || archivedItem.originalShareholder != null) {
+        return restoreArchivedShareholder(archiveId);
+      } else {
+        return restoreArchivedAsset(archiveId);
+      }
     }
     return false;
   }

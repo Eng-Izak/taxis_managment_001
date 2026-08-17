@@ -1,10 +1,13 @@
 import 'asset_model.dart';
+import 'shareholder_model.dart';
+import 'transaction_model.dart';
 
 enum ArchiveCategory {
   soldAssets,
   pastContracts,
   maintenanceLogs,
   expiredDocs,
+  archivedShareholders,
 }
 
 class ArchivedItemModel {
@@ -16,6 +19,8 @@ class ArchivedItemModel {
   final String tag;
   final String metaInfo;
   final AssetModel? originalAsset;
+  final ShareholderModel? originalShareholder;
+  final List<TransactionRecord>? shareholderTransactions;
 
   const ArchivedItemModel({
     required this.id,
@@ -26,6 +31,8 @@ class ArchivedItemModel {
     required this.tag,
     required this.metaInfo,
     this.originalAsset,
+    this.originalShareholder,
+    this.shareholderTransactions,
   });
 
   Map<String, dynamic> toJson() {
@@ -38,6 +45,8 @@ class ArchivedItemModel {
       'tag': tag,
       'metaInfo': metaInfo,
       'originalAsset': originalAsset?.toJson(),
+      'originalShareholder': originalShareholder?.toJson(),
+      'shareholderTransactions': shareholderTransactions?.map((t) => t.toJson()).toList(),
     };
   }
 
@@ -55,6 +64,14 @@ class ArchivedItemModel {
       metaInfo: json['metaInfo'] as String? ?? '',
       originalAsset: json['originalAsset'] != null
           ? AssetModel.fromJson(json['originalAsset'] as Map<String, dynamic>)
+          : null,
+      originalShareholder: json['originalShareholder'] != null
+          ? ShareholderModel.fromJson(json['originalShareholder'] as Map<String, dynamic>)
+          : null,
+      shareholderTransactions: json['shareholderTransactions'] != null
+          ? (json['shareholderTransactions'] as List<dynamic>)
+              .map((t) => TransactionRecord.fromJson(t as Map<String, dynamic>))
+              .toList()
           : null,
     );
   }

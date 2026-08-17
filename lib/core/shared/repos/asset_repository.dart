@@ -66,6 +66,10 @@ class AssetRepository {
     return _storageService.restoreArchivedAsset(archiveId);
   }
 
+  Future<bool> restoreArchivedItem(String archiveId) async {
+    return _storageService.restoreArchivedItem(archiveId);
+  }
+
   Future<void> deleteArchivedPermanently(String archiveId) async {
     _storageService.deleteArchivedPermanently(archiveId);
   }
