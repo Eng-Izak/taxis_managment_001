@@ -7,7 +7,9 @@ import '../../../../core/shared/widgets/app_text_field.dart';
 import '../../../../core/shared/widgets/app_phone_field.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/widgets/app_toast.dart';
+import '../../../../core/shared/widgets/documents_section_widget.dart';
 import '../../../../core/shared/models/asset_model.dart';
+import '../../../../core/shared/models/document_meta_model.dart';
 import '../../../../core/shared/models/partner_share_model.dart';
 import '../../../../core/shared/models/shareholder_model.dart';
 import '../../../../core/shared/enums/app_enums.dart';
@@ -55,6 +57,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
 
   List<ShareholderModel> _registeredShareholders = [];
   final List<_PartnerShareInput> _partnerShares = [];
+  List<DocumentMeta> _documents = [];
 
   @override
   void initState() {
@@ -87,6 +90,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
 
     _licenseExpiryDate = a?.licenseExpiryDate ?? DateTime.now().add(const Duration(days: 365));
     _contractExpiryDate = a?.contractExpiryDate ?? DateTime.now().add(const Duration(days: 730));
+    _documents = a != null ? List<DocumentMeta>.from(a.documents) : [];
 
     // Load initial partner shares if editing
     if (a != null && a.partnerShares.isNotEmpty) {
@@ -218,7 +222,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
       lastMaintenanceDate: DateTime.now(),
       notes: _notesController.text.trim(),
       partnerShares: builtShares,
-      documents: isEdit ? widget.assetToEdit!.documents : const [],
+      documents: _documents,
     );
 
     context.read<HomeCubit>().addOrUpdateAsset(asset);
@@ -616,16 +620,17 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                     const SizedBox(height: 14),
 
                     // 10% Annual Rent Increase Toggle
-                    Container(
-                      decoration: BoxDecoration(
-                        color: _hasAnnualTenPercentIncrease
-                            ? (isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFE8F0FE))
-                            : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8F9FA)),
+                    Material(
+                      color: _hasAnnualTenPercentIncrease
+                          ? (isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFE8F0FE))
+                          : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8F9FA)),
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
+                        side: BorderSide(
                           color: _hasAnnualTenPercentIncrease ? primaryColor : (isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
                         ),
                       ),
+                      clipBehavior: Clip.antiAlias,
                       child: SwitchListTile.adaptive(
                         value: _hasAnnualTenPercentIncrease,
                         onChanged: (val) => setState(() => _hasAnnualTenPercentIncrease = val),
@@ -767,7 +772,17 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
 
               const SizedBox(height: 16),
 
-              // 6. Notes: Text + Numbers
+              // 6. Documents & Multi-Image Attachments
+              DocumentsSectionWidget(
+                documents: _documents,
+                onDocumentsChanged: (docs) {
+                  setState(() => _documents = docs);
+                },
+              ),
+
+              const SizedBox(height: 16),
+
+              // 7. Notes: Text + Numbers
               AppCard(
                 padding: const EdgeInsets.all(16),
                 child: Column(

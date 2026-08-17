@@ -271,9 +271,7 @@ class _AppPhoneFieldState extends State<AppPhoneField> {
 
             return Container(
               height: MediaQuery.of(context).size.height * 0.72,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF131D31) : Colors.white,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                 boxShadow: [
                   BoxShadow(
@@ -283,8 +281,14 @@ class _AppPhoneFieldState extends State<AppPhoneField> {
                   ),
                 ],
               ),
-              child: Column(
-                children: [
+              child: Material(
+                color: isDark ? const Color(0xFF131D31) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                clipBehavior: Clip.antiAlias,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  child: Column(
+                    children: [
                   // Modal Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -386,7 +390,9 @@ class _AppPhoneFieldState extends State<AppPhoneField> {
                   ),
                 ],
               ),
-            );
+            ),
+          ),
+        );
           },
         );
       },

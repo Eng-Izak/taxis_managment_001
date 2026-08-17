@@ -3,9 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/widgets/app_toast.dart';
+import '../../../../core/shared/widgets/documents_section_widget.dart';
 import '../../../../core/shared/models/asset_model.dart';
-import '../../../../core/shared/models/document_meta_model.dart';
-import '../../../../core/shared/enums/app_enums.dart';
 import '../../../../core/localization/app_localization_extension.dart';
 import '../../home/logic/home_cubit.dart';
 import '../../home/logic/home_state.dart';
@@ -15,125 +14,6 @@ class AssetDetailsScreen extends StatelessWidget {
   final AssetModel asset;
 
   const AssetDetailsScreen({super.key, required this.asset});
-
-  void _showAddDocumentDialog(BuildContext context, AssetModel currentAsset) {
-    final titleController = TextEditingController();
-    DocumentType selectedType = DocumentType.licenseCard;
-    DateTime? selectedExpiry = DateTime.now().add(const Duration(days: 365));
-    final l10n = context.l10n;
-
-    showDialog(
-      context: context,
-      builder: (dialogCtx) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            final isDark = Theme.of(context).brightness == Brightness.dark;
-            final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
-
-            return AlertDialog(
-              title: Text(
-                l10n.addDocument,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: titleController,
-                      decoration: InputDecoration(
-                        labelText: context.isArabic ? 'اسم المستند' : 'Document Title',
-                        hintText: context.isArabic ? 'مثال: رخصة القيادة والتسيير' : 'e.g. Vehicle Registration',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<DocumentType>(
-                      initialValue: selectedType,
-                      decoration: InputDecoration(
-                        labelText: context.isArabic ? 'نوع المستند' : 'Document Type',
-                      ),
-                      items: [
-                        DropdownMenuItem(
-                          value: DocumentType.licenseCard,
-                          child: Text(l10n.vehicleLicense),
-                        ),
-                        DropdownMenuItem(
-                          value: DocumentType.leaseContract,
-                          child: Text(context.isArabic ? 'عقد إيجار / تشغيل' : 'Lease Contract'),
-                        ),
-                        DropdownMenuItem(
-                          value: DocumentType.insurance,
-                          child: Text(l10n.insurancePolicy),
-                        ),
-                        DropdownMenuItem(
-                          value: DocumentType.other,
-                          child: Text(context.isArabic ? 'مستند آخر' : 'Other Document'),
-                        ),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) setDialogState(() => selectedType = val);
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        selectedExpiry != null
-                            ? '${l10n.validUntil}: ${context.formatShortDate(selectedExpiry!)}'
-                            : (context.isArabic ? 'حدد تاريخ الانتهاء' : 'Select Expiry Date'),
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                      trailing: Icon(Icons.calendar_today_rounded, color: primaryColor),
-                      onTap: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: selectedExpiry ?? DateTime.now().add(const Duration(days: 180)),
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime(2035),
-                        );
-                        if (picked != null) {
-                          setDialogState(() => selectedExpiry = picked);
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogCtx).pop(),
-                  child: Text(l10n.cancel),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: primaryColor),
-                  onPressed: () {
-                    final title = titleController.text.trim();
-                    if (title.isEmpty) return;
-
-                    final newDoc = DocumentMeta(
-                      id: 'doc_${DateTime.now().millisecondsSinceEpoch}',
-                      title: title,
-                      type: selectedType,
-                      expiryDate: selectedExpiry,
-                      issueDate: DateTime.now(),
-                    );
-
-                    context.read<HomeCubit>().addDocumentToAsset(currentAsset.id, newDoc);
-                    Navigator.of(dialogCtx).pop();
-                    AppToast.show(
-                      context,
-                      message: context.isArabic ? 'تمت إضافة المستند بنجاح' : 'Document added successfully',
-                    );
-                  },
-                  child: Text(context.isArabic ? 'حفظ المستند' : 'Save Document', style: const TextStyle(color: Colors.white)),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
 
   void _confirmArchiveAsset(BuildContext context, AssetModel currentAsset) {
     final l10n = context.l10n;
@@ -467,90 +347,13 @@ class AssetDetailsScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // 4. Real Documents Registry
-                AppCard(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            l10n.documentsRegistry,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: primaryColor,
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () => _showAddDocumentDialog(context, currentAsset),
-                            borderRadius: BorderRadius.circular(6),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.add_rounded, size: 16, color: primaryColor),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    l10n.addDocument,
-                                    style: TextStyle(
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: primaryColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-
-                      if (currentAsset.documents.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12.0),
-                          child: Center(
-                            child: Column(
-                              children: [
-                                Icon(Icons.folder_open_rounded, size: 36, color: isDark ? AppColors.darkTextTertiary : const Color(0xFFCBD5E1)),
-                                const SizedBox(height: 6),
-                                Text(
-                                  context.isArabic ? 'لا توجد مستندات مسجلة لهذا الأصل' : 'No documents recorded for this asset',
-                                  style: TextStyle(fontSize: 12, color: textSecondary),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      else
-                        ...List.generate(currentAsset.documents.length, (index) {
-                          final doc = currentAsset.documents[index];
-                          final isLast = index == currentAsset.documents.length - 1;
-                          final isLicense = doc.type == DocumentType.licenseCard;
-                          final isContract = doc.type == DocumentType.leaseContract;
-
-                          return Column(
-                            children: [
-                              _DocumentRowItem(
-                                title: doc.title,
-                                subtitle: doc.expiryDate != null
-                                    ? '${l10n.validUntil}: ${context.formatShortDate(doc.expiryDate!)}'
-                                    : (context.isArabic ? 'مستند ساري' : 'Valid document'),
-                                icon: isLicense
-                                    ? Icons.description_outlined
-                                    : isContract
-                                        ? Icons.handshake_outlined
-                                        : Icons.shield_outlined,
-                              ),
-                              if (!isLast) const Divider(height: 16),
-                            ],
-                          );
-                        }),
-                    ],
-                  ),
+                // 4. Real Documents Registry (Single & Multi-Image)
+                DocumentsSectionWidget(
+                  documents: currentAsset.documents,
+                  onDocumentsChanged: (updatedDocs) {
+                    final updatedAsset = currentAsset.copyWith(documents: updatedDocs);
+                    context.read<HomeCubit>().addOrUpdateAsset(updatedAsset);
+                  },
                 ),
 
                 const SizedBox(height: 32),
@@ -700,62 +503,6 @@ class AssetDetailsScreen extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(4),
       child: Row(children: segments),
-    );
-  }
-}
-
-class _DocumentRowItem extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-
-  const _DocumentRowItem({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
-    final textPrimary = isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937);
-    final textSecondary = isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B);
-
-    return Row(
-      children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F3F4),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, size: 18, color: primaryColor),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: textPrimary,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: TextStyle(fontSize: 11, color: textSecondary),
-              ),
-            ],
-          ),
-        ),
-        Icon(Icons.check_circle_outline_rounded, size: 18, color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333)),
-      ],
     );
   }
 }

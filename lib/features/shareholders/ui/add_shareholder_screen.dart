@@ -4,7 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/shared/widgets/app_button.dart';
 import '../../../../core/shared/widgets/app_text_field.dart';
 import '../../../../core/shared/widgets/app_phone_field.dart';
+import '../../../../core/shared/widgets/documents_section_widget.dart';
 import '../../../../core/shared/models/shareholder_model.dart';
+import '../../../../core/shared/models/document_meta_model.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/localization/app_localization_extension.dart';
 import '../logic/shareholders_cubit.dart';
@@ -28,6 +30,7 @@ class _AddShareholderScreenState extends State<AddShareholderScreen> {
   late final TextEditingController _nationalIdController;
   late final TextEditingController _accountDetailsController;
   late final TextEditingController _notesController;
+  List<DocumentMeta> _documents = [];
 
   @override
   void initState() {
@@ -38,6 +41,7 @@ class _AddShareholderScreenState extends State<AddShareholderScreen> {
     _nationalIdController = TextEditingController(text: p?.nationalId ?? '');
     _accountDetailsController = TextEditingController(text: p?.accountDetails ?? '');
     _notesController = TextEditingController(text: p?.notes ?? '');
+    _documents = p != null ? List<DocumentMeta>.from(p.documents) : [];
   }
 
   @override
@@ -61,6 +65,7 @@ class _AddShareholderScreenState extends State<AddShareholderScreen> {
       nationalId: _nationalIdController.text.trim(),
       accountDetails: _accountDetailsController.text.trim(),
       notes: _notesController.text.trim(),
+      documents: _documents,
     );
 
     context.read<ShareholdersCubit>().addOrUpdateShareholder(shareholder);
@@ -123,6 +128,16 @@ class _AddShareholderScreenState extends State<AddShareholderScreen> {
                 hint: 'InstaPay / Vodafone Cash / Bank IBAN',
                 controller: _accountDetailsController,
                 keyboardType: TextInputType.text,
+              ),
+              const SizedBox(height: 16),
+
+              // Documents & Multi-Image Section
+              DocumentsSectionWidget(
+                title: context.isArabic ? 'مستندات وهوية المساهم (صور البطاقة / العقود)' : 'Shareholder Documents & ID (Cards/Contracts)',
+                documents: _documents,
+                onDocumentsChanged: (docs) {
+                  setState(() => _documents = docs);
+                },
               ),
               const SizedBox(height: 16),
 

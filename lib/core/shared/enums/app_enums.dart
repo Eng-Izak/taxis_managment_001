@@ -159,20 +159,55 @@ enum DocumentType {
   leaseContract,
   taxCard,
   insurance,
+  nationalId,
+  partnershipAgreement,
+  technicalInspection,
+  paymentReceipt,
   other;
 
   String get arabicLabel {
     switch (this) {
       case DocumentType.licenseCard:
-        return 'رخصة التسيير';
+        return 'رخصة التسيير / القيادة';
       case DocumentType.leaseContract:
-        return 'عقد الإيجار والتأجير';
+        return 'عقد الإيجار والتشغيل';
       case DocumentType.taxCard:
         return 'البطاقة الضريبية';
       case DocumentType.insurance:
         return 'وثيقة التأمين الشامل';
+      case DocumentType.nationalId:
+        return 'بطاقة الرقم القومي';
+      case DocumentType.partnershipAgreement:
+        return 'عقد الشراكة والملكية';
+      case DocumentType.technicalInspection:
+        return 'الفحص الفني وشهادة الصلاحية';
+      case DocumentType.paymentReceipt:
+        return 'إيصال سداد / مخالصة مالية';
       case DocumentType.other:
         return 'مستند إضافي';
+    }
+  }
+
+  String get englishLabel {
+    switch (this) {
+      case DocumentType.licenseCard:
+        return 'Vehicle / Driver License';
+      case DocumentType.leaseContract:
+        return 'Lease / Operation Contract';
+      case DocumentType.taxCard:
+        return 'Tax Card';
+      case DocumentType.insurance:
+        return 'Insurance Policy';
+      case DocumentType.nationalId:
+        return 'National ID Card';
+      case DocumentType.partnershipAgreement:
+        return 'Partnership Agreement';
+      case DocumentType.technicalInspection:
+        return 'Technical Inspection';
+      case DocumentType.paymentReceipt:
+        return 'Payment Receipt';
+      case DocumentType.other:
+        return 'Other Document';
     }
   }
 }

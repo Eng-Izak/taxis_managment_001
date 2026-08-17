@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
+import '../../../../core/shared/widgets/documents_section_widget.dart';
 import '../../../../core/shared/models/shareholder_model.dart';
 import '../../../../core/shared/models/asset_model.dart';
 import '../../../../core/shared/enums/app_enums.dart';
 import '../../../../core/utils/financial_calculator.dart';
 import '../../../../core/localization/app_localization_extension.dart';
 import '../../home/logic/home_cubit.dart';
+import '../logic/shareholders_cubit.dart';
 import '../../assets_managment/ui/asset_details_screen.dart';
 import 'add_shareholder_screen.dart';
 
@@ -26,8 +28,14 @@ class ShareholderDetailsScreen extends StatelessWidget {
     final l10n = context.l10n;
 
     final allAssets = context.watch<HomeCubit>().state.assets;
+    final shareholdersState = context.watch<ShareholdersCubit>().state;
+    final currentShareholder = shareholdersState.shareholders.firstWhere(
+      (s) => s.id == shareholder.id,
+      orElse: () => shareholder,
+    );
+
     final analytics = FinancialCalculator.computeShareholderAnalytics(
-      shareholder: shareholder,
+      shareholder: currentShareholder,
       allAssets: allAssets,
     );
 
@@ -55,7 +63,7 @@ class ShareholderDetailsScreen extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => AddShareholderScreen(shareholderToEdit: shareholder),
+                  builder: (_) => AddShareholderScreen(shareholderToEdit: currentShareholder),
                 ),
               );
             },
@@ -315,6 +323,18 @@ class ShareholderDetailsScreen extends StatelessWidget {
                   },
                 );
               }),
+
+            const SizedBox(height: 16),
+
+            // Shareholder Documents & Multi-Image Section
+            DocumentsSectionWidget(
+              title: context.isArabic ? 'مستندات وهوية المساهم (صور البطاقة / العقود)' : 'Shareholder Documents & ID (Cards/Contracts)',
+              documents: currentShareholder.documents,
+              onDocumentsChanged: (updatedDocs) {
+                final updated = currentShareholder.copyWith(documents: updatedDocs);
+                context.read<ShareholdersCubit>().addOrUpdateShareholder(updated);
+              },
+            ),
 
             const SizedBox(height: 24),
           ],

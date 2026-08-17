@@ -1,4 +1,5 @@
 import '../enums/app_enums.dart';
+import 'document_meta_model.dart';
 
 class ShareholderModel {
   final String id;
@@ -9,6 +10,7 @@ class ShareholderModel {
   final String accountDetails; // e.g. InstaPay handle / Vodafone cash number / IBAN
   final double totalInvestedCapital; // Capital in EGP
   final String notes;
+  final List<DocumentMeta> documents;
 
   const ShareholderModel({
     required this.id,
@@ -19,6 +21,7 @@ class ShareholderModel {
     this.accountDetails = '',
     this.totalInvestedCapital = 0.0,
     this.notes = '',
+    this.documents = const [],
   });
 
   ShareholderModel copyWith({
@@ -30,6 +33,7 @@ class ShareholderModel {
     String? accountDetails,
     double? totalInvestedCapital,
     String? notes,
+    List<DocumentMeta>? documents,
   }) {
     return ShareholderModel(
       id: id ?? this.id,
@@ -40,6 +44,7 @@ class ShareholderModel {
       accountDetails: accountDetails ?? this.accountDetails,
       totalInvestedCapital: totalInvestedCapital ?? this.totalInvestedCapital,
       notes: notes ?? this.notes,
+      documents: documents ?? this.documents,
     );
   }
 
@@ -53,6 +58,7 @@ class ShareholderModel {
       'accountDetails': accountDetails,
       'totalInvestedCapital': totalInvestedCapital,
       'notes': notes,
+      'documents': documents.map((d) => d.toJson()).toList(),
     };
   }
 
@@ -69,6 +75,10 @@ class ShareholderModel {
       accountDetails: json['accountDetails'] as String? ?? '',
       totalInvestedCapital: (json['totalInvestedCapital'] as num?)?.toDouble() ?? 0.0,
       notes: json['notes'] as String? ?? '',
+      documents: (json['documents'] as List<dynamic>?)
+              ?.map((e) => DocumentMeta.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 }

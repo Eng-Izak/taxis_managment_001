@@ -16,6 +16,7 @@ import 'package:taxis_managment_001/core/localization/locale_cubit.dart';
 import 'package:taxis_managment_001/features/auth/logic/auth_cubit.dart';
 import 'package:taxis_managment_001/features/auth/logic/auth_state.dart';
 import 'package:taxis_managment_001/core/shared/widgets/app_phone_field.dart';
+import 'package:taxis_managment_001/core/shared/models/document_meta_model.dart';
 
 void main() {
   group('Taxi Asset Management Financial Engine Tests', () {
@@ -290,6 +291,73 @@ void main() {
         expect(country.minDigits, greaterThan(6));
         expect(country.maxDigits, greaterThanOrEqualTo(country.minDigits));
       }
+    });
+  });
+
+  group('DocumentMeta and Multi-Image Support Tests', () {
+    test('Serializes and deserializes DocumentMeta with multiple images', () {
+      final doc = DocumentMeta(
+        id: 'doc_test_1',
+        title: 'رخصة التسيير وجهين',
+        type: DocumentType.licenseCard,
+        images: const [
+          '/storage/license_front.jpg',
+          '/storage/license_back.jpg',
+        ],
+        expiryDate: DateTime(2027, 8, 15),
+        notes: 'تم استلام الأصل وتوثيقه',
+      );
+
+      expect(doc.imageCount, 2);
+      expect(doc.allImages.length, 2);
+      expect(doc.allImages.first, '/storage/license_front.jpg');
+
+      final json = doc.toJson();
+      final fromJson = DocumentMeta.fromJson(json);
+
+      expect(fromJson.id, doc.id);
+      expect(fromJson.title, doc.title);
+      expect(fromJson.type, DocumentType.licenseCard);
+      expect(fromJson.images.length, 2);
+      expect(fromJson.allImages.contains('/storage/license_back.jpg'), isTrue);
+    });
+
+    test('Falls back seamlessly to fileUrl if images list is empty', () {
+      const doc = DocumentMeta(
+        id: 'doc_legacy',
+        title: 'عقد إيجار قديم',
+        type: DocumentType.leaseContract,
+        fileUrl: '/legacy/path/contract.pdf',
+      );
+
+      expect(doc.imageCount, 1);
+      expect(doc.allImages, ['/legacy/path/contract.pdf']);
+    });
+
+    test('ShareholderModel handles attached documents list correctly', () {
+      const doc1 = DocumentMeta(
+        id: 'doc_sh_1',
+        title: 'بطاقة الرقم القومي',
+        type: DocumentType.nationalId,
+        images: ['/sh/id_front.jpg', '/sh/id_back.jpg'],
+      );
+
+      const shareholder = ShareholderModel(
+        id: 'sh_100',
+        name: 'أحمد محمود',
+        phone: '01012345678',
+        documents: [doc1],
+      );
+
+      expect(shareholder.documents.length, 1);
+      expect(shareholder.documents.first.imageCount, 2);
+
+      final json = shareholder.toJson();
+      final fromJson = ShareholderModel.fromJson(json);
+
+      expect(fromJson.documents.length, 1);
+      expect(fromJson.documents.first.title, 'بطاقة الرقم القومي');
+      expect(fromJson.documents.first.images.length, 2);
     });
   });
 
