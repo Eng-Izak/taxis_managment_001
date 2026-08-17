@@ -15,6 +15,7 @@ import 'package:taxis_managment_001/core/theming/theme_cubit.dart';
 import 'package:taxis_managment_001/core/localization/locale_cubit.dart';
 import 'package:taxis_managment_001/features/auth/logic/auth_cubit.dart';
 import 'package:taxis_managment_001/features/auth/logic/auth_state.dart';
+import 'package:taxis_managment_001/core/shared/widgets/app_phone_field.dart';
 
 void main() {
   group('Taxi Asset Management Financial Engine Tests', () {
@@ -263,6 +264,32 @@ void main() {
       expect(fromJson.entityType, SyncEntityType.asset);
       expect(fromJson.operation, SyncOperationType.create);
       expect(fromJson.entityId, 'asset_99');
+    });
+  });
+
+  group('CountryInfo and Phone Validation Tests', () {
+    test('Finds country by dial code or defaults to Egypt (+20)', () {
+      final egypt = CountryInfo.findByDialCode('+20');
+      expect(egypt.dialCode, '+20');
+      expect(egypt.flag, '🇪🇬');
+      expect(egypt.maxDigits, 11);
+
+      final saudi = CountryInfo.findByDialCode('+966');
+      expect(saudi.dialCode, '+966');
+      expect(saudi.flag, '🇸🇦');
+      expect(saudi.maxDigits, 9);
+
+      final unknown = CountryInfo.findByDialCode('+999');
+      expect(unknown.dialCode, '+20');
+    });
+
+    test('Contains valid supported countries with correct digit requirements', () {
+      expect(CountryInfo.supportedCountries.length, greaterThanOrEqualTo(15));
+      for (final country in CountryInfo.supportedCountries) {
+        expect(country.dialCode.startsWith('+'), isTrue);
+        expect(country.minDigits, greaterThan(6));
+        expect(country.maxDigits, greaterThanOrEqualTo(country.minDigits));
+      }
     });
   });
 

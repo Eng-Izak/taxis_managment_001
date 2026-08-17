@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppTextField extends StatelessWidget {
   final String? label;
@@ -10,9 +11,13 @@ class AppTextField extends StatelessWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final int maxLines;
+  final int? maxLength;
   final bool enabled;
   final ValueChanged<String>? onChanged;
   final String? initialValue;
+  final List<TextInputFormatter>? inputFormatters;
+  final TextCapitalization textCapitalization;
+  final AutovalidateMode? autovalidateMode;
 
   const AppTextField({
     super.key,
@@ -25,9 +30,13 @@ class AppTextField extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.maxLines = 1,
+    this.maxLength,
     this.enabled = true,
     this.onChanged,
     this.initialValue,
+    this.inputFormatters,
+    this.textCapitalization = TextCapitalization.none,
+    this.autovalidateMode,
   });
 
   @override
@@ -53,14 +62,19 @@ class AppTextField extends StatelessWidget {
           keyboardType: keyboardType,
           obscureText: obscureText,
           maxLines: maxLines,
+          maxLength: maxLength,
           enabled: enabled,
           onChanged: onChanged,
+          inputFormatters: inputFormatters,
+          textCapitalization: textCapitalization,
+          autovalidateMode: autovalidateMode ?? AutovalidateMode.onUserInteraction,
           style: const TextStyle(fontSize: 14),
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
             filled: true,
+            counterText: '', // Hide default character counter unless desired
           ),
         ),
       ],

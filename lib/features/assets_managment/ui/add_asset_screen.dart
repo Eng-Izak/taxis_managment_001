@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_button.dart';
 import '../../../../core/shared/widgets/app_text_field.dart';
+import '../../../../core/shared/widgets/app_phone_field.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/widgets/app_toast.dart';
 import '../../../../core/shared/models/asset_model.dart';
@@ -45,6 +47,8 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
   late final TextEditingController _driverNameController;
   late final TextEditingController _driverPhoneController;
   late final TextEditingController _notesController;
+
+  CountryInfo _selectedCountry = CountryInfo.defaultCountry;
 
   DateTime? _licenseExpiryDate;
   DateTime? _contractExpiryDate;
@@ -186,6 +190,12 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
       );
     }).toList();
 
+    // Format phone with dial code if provided
+    final rawPhone = _driverPhoneController.text.trim();
+    final fullPhone = rawPhone.isNotEmpty
+        ? (rawPhone.startsWith('+') ? rawPhone : '${_selectedCountry.dialCode} $rawPhone')
+        : '';
+
     final asset = AssetModel(
       id: isEdit ? widget.assetToEdit!.id : 'asset_${DateTime.now().millisecondsSinceEpoch}',
       plateNumber: _plateNumberController.text.trim(),
@@ -202,7 +212,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
       contractRenewalFee: renewalFee,
       averageMonthlyExpenses: expenses,
       driverOrRenterName: _driverNameController.text.trim(),
-      driverPhone: _driverPhoneController.text.trim(),
+      driverPhone: fullPhone,
       licenseExpiryDate: _licenseExpiryDate,
       contractExpiryDate: _contractExpiryDate,
       lastMaintenanceDate: DateTime.now(),
@@ -215,7 +225,9 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
 
     AppToast.show(
       context,
-      message: isEdit ? 'تم تحديث بيانات الأصل بنجاح' : 'تمت إضافة الأصل الجديد للمحفظة بنجاح',
+      message: isEdit
+          ? (context.isArabic ? 'تم تحديث بيانات الأصل بنجاح' : 'Asset updated successfully')
+          : (context.isArabic ? 'تمت إضافة الأصل الجديد للمحفظة بنجاح' : 'New asset added successfully'),
       duration: const Duration(seconds: 5),
     );
 
@@ -246,11 +258,16 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
     final isEdit = widget.assetToEdit != null;
     final totalShares = _totalSharesPercentage;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+    final textSecondary = isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B);
     final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEdit ? l10n.editAsset : l10n.addNewAssetFull),
+        title: Text(
+          isEdit ? l10n.editAsset : l10n.addNewAssetFull,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+        ),
         centerTitle: false,
       ),
       body: SingleChildScrollView(
@@ -268,10 +285,10 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                   children: [
                     Text(
                       l10n.assetType,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F56B3),
+                        color: primaryColor,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -311,7 +328,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
 
               const SizedBox(height: 16),
 
-              // 2. Vehicle & Identification Details (including Engine Number)
+              // 2. Vehicle & Identification Details
               AppCard(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -319,44 +336,59 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                   children: [
                     Text(
                       l10n.vehicleAndLicenseInfo,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F56B3),
+                        color: primaryColor,
                       ),
                     ),
                     const SizedBox(height: 14),
+
+                    // Plate Number: Text + Numbers
                     AppTextField(
                       label: l10n.plateNumber,
-                      hint: '1234',
+                      hint: context.isArabic ? 'س أ د 4821' : 'ABC 1234',
                       controller: _plateNumberController,
+                      keyboardType: TextInputType.text,
                       validator: (val) => AppValidators.requiredField(val, message: l10n.plateNumber),
                     ),
                     const SizedBox(height: 14),
+
+                    // Car Model & Year: Text + Numbers
                     AppTextField(
                       label: l10n.carModelYear,
                       hint: 'Toyota Corolla 2023',
                       controller: _carModelYearController,
+                      keyboardType: TextInputType.text,
                       validator: (val) => AppValidators.requiredField(val, message: l10n.carModelYear),
                     ),
                     const SizedBox(height: 14),
+
+                    // Engine Number: Text + Numbers
                     AppTextField(
                       label: l10n.engineNumber,
                       hint: '1NZ-FE-7894562',
                       controller: _engineNumberController,
+                      keyboardType: TextInputType.text,
                     ),
                     const SizedBox(height: 14),
+
+                    // Chassis Number: Text + Numbers
                     AppTextField(
                       label: l10n.chassisNumber,
-                      hint: 'VIN',
+                      hint: 'VIN-EGY-982341-BYD',
                       controller: _chassisNumberController,
+                      keyboardType: TextInputType.text,
                     ),
                     const SizedBox(height: 14),
+
+                    // Asset Valuation: STRICTLY NUMBERS ONLY
                     AppTextField(
                       label: '${l10n.assetValuation} (${l10n.egp})',
                       hint: '550000',
                       controller: _assetValuationController,
                       keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: (val) => AppValidators.validNumber(val, message: l10n.assetValuation),
                     ),
                   ],
@@ -379,7 +411,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3),
+                            color: primaryColor,
                           ),
                         ),
                         // Total equity badge
@@ -426,7 +458,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: Text(
                           l10n.noPartnersAssigned,
-                          style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
+                          style: TextStyle(fontSize: 12, color: textSecondary),
                         ),
                       )
                     else
@@ -479,12 +511,15 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                               ),
                               const SizedBox(width: 8),
 
-                              // Percentage TextField
+                              // Percentage TextField: STRICTLY NUMBERS ONLY (1 to 100)
                               Expanded(
                                 flex: 2,
                                 child: TextFormField(
                                   controller: item.percentageController,
                                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(RegExp(r'^\d{0,3}(\.\d{0,2})?')),
+                                  ],
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 13,
@@ -531,18 +566,18 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                       icon: Icon(
                         Icons.person_add_alt_1_rounded,
                         size: 18,
-                        color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3),
+                        color: primaryColor,
                       ),
                       label: Text(
                         l10n.addPartnerShare,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 12.5,
-                          color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3),
+                          color: primaryColor,
                         ),
                       ),
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: isDark ? AppColors.primaryLight : const Color(0xFF0F56B3)),
+                        side: BorderSide(color: primaryColor),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                       ),
@@ -553,7 +588,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
 
               const SizedBox(height: 16),
 
-              // 4. Rental & Financial Details (including 10% Increase & Contract Renewal Fee)
+              // 4. Rental & Financial Details
               AppCard(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -561,18 +596,21 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                   children: [
                     Text(
                       l10n.rentalAndFinancialDetails,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F56B3),
+                        color: primaryColor,
                       ),
                     ),
                     const SizedBox(height: 14),
+
+                    // Monthly Rent: STRICTLY NUMBERS ONLY
                     AppTextField(
                       label: '${l10n.monthlyRent} (${l10n.egp})',
                       hint: '6000',
                       controller: _monthlyRentController,
                       keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: (val) => AppValidators.validNumber(val, message: l10n.monthlyRent),
                     ),
                     const SizedBox(height: 14),
@@ -580,56 +618,72 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                     // 10% Annual Rent Increase Toggle
                     Container(
                       decoration: BoxDecoration(
-                        color: _hasAnnualTenPercentIncrease ? const Color(0xFFE8F0FE) : const Color(0xFFF8F9FA),
+                        color: _hasAnnualTenPercentIncrease
+                            ? (isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFE8F0FE))
+                            : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8F9FA)),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: _hasAnnualTenPercentIncrease ? const Color(0xFF0F56B3) : const Color(0xFFE2E8F0),
+                          color: _hasAnnualTenPercentIncrease ? primaryColor : (isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
                         ),
                       ),
                       child: SwitchListTile.adaptive(
                         value: _hasAnnualTenPercentIncrease,
                         onChanged: (val) => setState(() => _hasAnnualTenPercentIncrease = val),
-                        activeThumbColor: const Color(0xFF0F56B3),
+                        activeThumbColor: primaryColor,
                         title: Text(
                           l10n.annualRentIncreaseRate,
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
                         ),
                         subtitle: Text(
                           l10n.annualRentIncreaseDesc,
-                          style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                          style: TextStyle(fontSize: 11, color: textSecondary),
                         ),
                       ),
                     ),
 
                     const SizedBox(height: 14),
 
-                    // Contract Renewal Fee Field
+                    // Contract Renewal Fee: STRICTLY NUMBERS ONLY
                     AppTextField(
                       label: '${l10n.contractRenewalFee} (${l10n.egp})',
                       hint: '5000',
                       controller: _contractRenewalFeeController,
                       keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     ),
 
                     const SizedBox(height: 14),
+
+                    // Average Monthly Expenses: STRICTLY NUMBERS ONLY
                     AppTextField(
                       label: '${l10n.averageMonthlyExpenses} (${l10n.egp})',
                       hint: '500',
                       controller: _averageExpensesController,
                       keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     ),
+
                     const SizedBox(height: 14),
+
+                    // Driver Name: Text + Numbers
                     AppTextField(
                       label: l10n.driverName,
-                      hint: 'Ahmed Mahmoud',
+                      hint: context.isArabic ? 'كابتن أحمد محمود' : 'Captain Ahmed Mahmoud',
                       controller: _driverNameController,
+                      keyboardType: TextInputType.text,
                     ),
+
                     const SizedBox(height: 14),
-                    AppTextField(
+
+                    // Driver Phone: Country Selector & Strictly Validated Digit Count
+                    AppPhoneField(
                       label: l10n.driverPhone,
-                      hint: '010XXXXXXXX',
                       controller: _driverPhoneController,
-                      keyboardType: TextInputType.phone,
+                      onCountryChanged: (country) {
+                        setState(() {
+                          _selectedCountry = country;
+                        });
+                      },
                     ),
                   ],
                 ),
@@ -645,10 +699,10 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                   children: [
                     Text(
                       l10n.statusAndDates,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F56B3),
+                        color: primaryColor,
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -663,6 +717,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                         const SizedBox(width: 12),
                         DropdownButton<AssetStatus>(
                           value: _selectedStatus,
+                          dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
                           onChanged: (val) {
                             if (val != null) setState(() => _selectedStatus = val);
                           },
@@ -677,7 +732,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                             ),
                             DropdownMenuItem(
                               value: AssetStatus.inactive,
-                              child: Text(l10n.statusInactive, style: const TextStyle(color: Color(0xFF5F6368), fontWeight: FontWeight.bold)),
+                              child: Text(l10n.statusInactive, style: TextStyle(color: textSecondary, fontWeight: FontWeight.bold)),
                             ),
                           ],
                         ),
@@ -712,7 +767,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
 
               const SizedBox(height: 16),
 
-              // 6. Notes
+              // 6. Notes: Text + Numbers
               AppCard(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -720,10 +775,10 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                   children: [
                     Text(
                       l10n.documentsAndNotes,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F56B3),
+                        color: primaryColor,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -731,6 +786,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
                       label: l10n.documentsAndNotes,
                       hint: l10n.notesHint,
                       controller: _notesController,
+                      keyboardType: TextInputType.multiline,
                       maxLines: 3,
                     ),
                   ],
@@ -781,16 +837,21 @@ class _TypeSelectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFE8F0FE) : const Color(0xFFF8F9FA),
+          color: isSelected
+              ? (isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.35) : const Color(0xFFE8F0FE))
+              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8F9FA)),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? const Color(0xFF0F56B3) : const Color(0xFFE2E8F0),
+            color: isSelected ? primaryColor : (isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -799,7 +860,7 @@ class _TypeSelectionCard extends StatelessWidget {
             Icon(
               icon,
               size: 24,
-              color: isSelected ? const Color(0xFF0F56B3) : const Color(0xFF64748B),
+              color: isSelected ? primaryColor : (isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B)),
             ),
             const SizedBox(height: 6),
             Text(
@@ -807,7 +868,7 @@ class _TypeSelectionCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11.5,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? const Color(0xFF0F56B3) : const Color(0xFF1F2937),
+                color: isSelected ? primaryColor : (isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937)),
               ),
               textAlign: TextAlign.center,
             ),
@@ -831,6 +892,9 @@ class _DatePickerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+
     final dateStr = date != null
         ? '${date!.year}/${date!.month.toString().padLeft(2, '0')}/${date!.day.toString().padLeft(2, '0')}'
         : 'اختر التاريخ';
@@ -841,16 +905,19 @@ class _DatePickerTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8F9FA),
+          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8F9FA),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               label,
-              style: const TextStyle(fontSize: 10.5, color: Color(0xFF64748B)),
+              style: TextStyle(
+                fontSize: 10.5,
+                color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
+              ),
             ),
             const SizedBox(height: 4),
             Row(
@@ -858,13 +925,13 @@ class _DatePickerTile extends StatelessWidget {
               children: [
                 Text(
                   dateStr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F56B3),
+                    color: primaryColor,
                   ),
                 ),
-                const Icon(Icons.calendar_month_rounded, size: 16, color: Color(0xFF0F56B3)),
+                Icon(Icons.calendar_month_rounded, size: 16, color: primaryColor),
               ],
             ),
           ],

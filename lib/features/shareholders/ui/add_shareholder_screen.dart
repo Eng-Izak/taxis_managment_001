@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/shared/widgets/app_button.dart';
 import '../../../../core/shared/widgets/app_text_field.dart';
+import '../../../../core/shared/widgets/app_phone_field.dart';
 import '../../../../core/shared/models/shareholder_model.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/localization/app_localization_extension.dart';
@@ -72,7 +74,10 @@ class _AddShareholderScreenState extends State<AddShareholderScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEdit ? l10n.editShareholderTitle : l10n.addShareholderTitle),
+        title: Text(
+          isEdit ? l10n.editShareholderTitle : l10n.addShareholderTitle,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -81,41 +86,57 @@ class _AddShareholderScreenState extends State<AddShareholderScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Shareholder Name: Text + Numbers
               AppTextField(
                 label: l10n.shareholderName,
-                hint: 'Ahmed Mahmoud',
+                hint: context.isArabic ? 'أحمد محمود سالم' : 'Ahmed Mahmoud Salem',
                 controller: _nameController,
+                keyboardType: TextInputType.text,
                 validator: (val) => AppValidators.requiredField(val, message: l10n.shareholderName),
               ),
               const SizedBox(height: 16),
-              AppTextField(
+
+              // Phone Number: Country selector and strict length validation
+              AppPhoneField(
                 label: l10n.phoneNumber,
-                hint: '010XXXXXXXX',
                 controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                validator: AppValidators.validPhone,
+                isRequired: true,
               ),
               const SizedBox(height: 16),
+
+              // National ID: Digits only
               AppTextField(
                 label: l10n.nationalId,
-                hint: '2980101XXXXXXX',
+                hint: '2980101XXXXXXXX',
                 controller: _nationalIdController,
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(14),
+                ],
               ),
               const SizedBox(height: 16),
+
+              // Account Details: Text + Numbers
               AppTextField(
                 label: l10n.accountDetails,
                 hint: 'InstaPay / Vodafone Cash / Bank IBAN',
                 controller: _accountDetailsController,
+                keyboardType: TextInputType.text,
               ),
               const SizedBox(height: 16),
+
+              // Notes: Text + Numbers
               AppTextField(
                 label: l10n.documentsAndNotes,
                 hint: l10n.notesHint,
                 controller: _notesController,
+                keyboardType: TextInputType.multiline,
                 maxLines: 3,
               ),
               const SizedBox(height: 32),
+
+              // Save Button
               AppButton(
                 text: isEdit ? l10n.edit : l10n.save,
                 onPressed: _saveShareholder,
