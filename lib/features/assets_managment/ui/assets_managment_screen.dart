@@ -326,10 +326,10 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
                             },
                             onDismissed: (direction) {
                               if (direction == DismissDirection.endToStart) {
-                                context.read<HomeCubit>().deleteAsset(asset.id);
+                                context.read<HomeCubit>().archiveAsset(asset);
                                 AppToast.show(
                                   context,
-                                  message: '${l10n.itemRestored} (${asset.plateNumber})',
+                                  message: '${context.isArabic ? "تمت أرشفة الأصل بنجاح" : "Asset archived successfully"} (${asset.plateNumber})',
                                   duration: const Duration(seconds: 4),
                                 );
                               }

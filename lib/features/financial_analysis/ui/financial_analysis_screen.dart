@@ -3,10 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/widgets/app_header_widgets.dart';
+import '../../../../core/shared/enums/app_enums.dart';
 import '../../../../core/localization/app_localization_extension.dart';
 import '../../home/logic/home_cubit.dart';
 import '../../home/logic/home_state.dart';
 import '../../notifications/ui/notifications_screen.dart';
+import '../../assets_managment/ui/asset_details_screen.dart';
 
 class FinancialAnalysisScreen extends StatefulWidget {
   const FinancialAnalysisScreen({super.key});
@@ -57,15 +59,18 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
       body: BlocBuilder<HomeCubit, HomeState>(
         builder: (context, state) {
           final summary = state.summary;
-          final grossIncome = (summary?.grossRentIncome ?? 0) > 0
-              ? summary!.grossRentIncome
-              : 45200.0;
-          final expenses = (summary?.totalOperationalExpenses ?? 0) > 0
-              ? summary!.totalOperationalExpenses
-              : 12450.0;
-          final netCashFlow = (summary?.netMonthlyRevenue ?? 0) > 0
-              ? summary!.netMonthlyRevenue
-              : (grossIncome - expenses);
+          final double periodMultiplier = _selectedPeriodIndex == 0
+              ? 1.0
+              : _selectedPeriodIndex == 1
+                  ? 3.0
+                  : 12.0;
+
+          final double baseGross = summary?.grossRentIncome ?? 0.0;
+          final double baseExpenses = summary?.totalOperationalExpenses ?? 0.0;
+          final double grossIncome = baseGross * periodMultiplier;
+          final double expenses = baseExpenses * periodMultiplier;
+          final double netCashFlow = (grossIncome - expenses).clamp(0.0, double.infinity);
+          final assets = state.assets;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -219,11 +224,11 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              context.digits('↑ 5%'),
+                              context.digits('↓ 4.2%'),
                               style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFFC5221F),
+                                color: Color(0xFF137333),
                               ),
                             ),
                           ],
@@ -271,7 +276,7 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              context.digits('↑ 12%'),
+                              context.digits('↑ 8.5%'),
                               style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
@@ -289,7 +294,7 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
 
                 // 4. Section Header 1: سجل التحصيلات (الإيجارات)
                 Text(
-                  l10n.monthlyRentCollections,
+                  '${l10n.monthlyRentCollections} (${context.digits(assets.length)})',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
@@ -298,52 +303,64 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // Collections Card Container
-                AppCard(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Column(
-                    children: [
-                      _CollectionItem(
-                        plateNumber: 'أ ب ج 1234',
-                        subtitle: 'أحمد محمود',
-                        amount: context.formatCurrency(1500),
-                        amountColor: primaryColor,
-                        statusText: l10n.receivedStatus,
-                        statusBgColor: const Color(0xFFE6F4EA),
-                        statusTextColor: const Color(0xFF137333),
-                        icon: Icons.directions_car_rounded,
-                        iconBgColor: const Color(0xFFE8F0FE),
-                        iconColor: primaryColor,
+                // Real Collections List
+                if (assets.isEmpty)
+                  AppCard(
+                    padding: const EdgeInsets.all(20),
+                    child: Center(
+                      child: Text(
+                        l10n.noData,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
+                        ),
                       ),
-                      const Divider(height: 1),
-                      _CollectionItem(
-                        plateNumber: 'س ص ع 5678',
-                        subtitle: 'محمد علي',
-                        amount: context.formatCurrency(1500),
-                        amountColor: primaryColor,
-                        statusText: l10n.pendingStatus,
-                        statusBgColor: const Color(0xFFE8F0FE),
-                        statusTextColor: const Color(0xFF1A73E8),
-                        icon: Icons.directions_car_rounded,
-                        iconBgColor: const Color(0xFFE8F0FE),
-                        iconColor: primaryColor,
-                      ),
-                      const Divider(height: 1),
-                      _CollectionItem(
-                        plateNumber: 'ل م ن 9012',
-                        subtitle: 'محمود خالد',
-                        amount: context.formatCurrency(1500),
-                        amountColor: const Color(0xFFC5221F),
-                        statusText: l10n.overdueStatus,
-                        statusBgColor: const Color(0xFFFCE8E6),
-                        statusTextColor: const Color(0xFFC5221F),
-                        icon: Icons.warning_rounded,
-                        iconBgColor: const Color(0xFFFCE8E6),
-                        iconColor: const Color(0xFFC5221F),
-                      ),
-                    ],
+                    ),
+                  )
+                else
+                  AppCard(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Column(
+                      children: List.generate(assets.length, (index) {
+                        final asset = assets[index];
+                        final isLast = index == assets.length - 1;
+                        final double rentAmount = asset.monthlyRent * periodMultiplier;
+
+                        return Column(
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => AssetDetailsScreen(asset: asset),
+                                  ),
+                                );
+                              },
+                              child: _CollectionItem(
+                                plateNumber: asset.plateNumber,
+                                subtitle: asset.driverOrRenterName.isNotEmpty
+                                    ? asset.driverOrRenterName
+                                    : asset.carModelYear,
+                                amount: context.formatCurrency(rentAmount),
+                                amountColor: primaryColor,
+                                statusText: l10n.receivedStatus,
+                                statusBgColor: const Color(0xFFE6F4EA),
+                                statusTextColor: const Color(0xFF137333),
+                                icon: asset.modelType == AssetType.fullTaxi
+                                    ? Icons.local_taxi_rounded
+                                    : asset.modelType == AssetType.plateOnly
+                                        ? Icons.credit_card_rounded
+                                        : Icons.directions_car_rounded,
+                                iconBgColor: const Color(0xFFE8F0FE),
+                                iconColor: primaryColor,
+                              ),
+                            ),
+                            if (!isLast) const Divider(height: 1),
+                          ],
+                        );
+                      }),
+                    ),
                   ),
-                ),
 
                 const SizedBox(height: 24),
 
@@ -358,64 +375,68 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // Expenses Card Container
+                // Real Expenses List (from assets with operational expenses)
                 AppCard(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Column(
                     children: [
-                      // Expense Amount
-                      Text(
-                        '- ${context.formatCurrency(850)}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFC5221F),
-                        ),
-                      ),
-                      const Spacer(),
-                      // Title & Date
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '${l10n.periodicMaintenance} - أ ب ج 1234',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: primaryColor,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
+                      ...assets.where((a) => a.averageMonthlyExpenses > 0).map((asset) {
+                        final double exp = asset.averageMonthlyExpenses * periodMultiplier;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Row(
                             children: [
+                              // Expense Amount
                               Text(
-                                context.digits('05 Oct 2026'),
+                                '- ${context.formatCurrency(exp)}',
                                 style: const TextStyle(
-                                  fontSize: 11,
-                                  color: Color(0xFF64748B),
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFC5221F),
                                 ),
                               ),
-                              const SizedBox(width: 4),
-                              const Icon(Icons.calendar_today_outlined, size: 12, color: Color(0xFF64748B)),
+                              const Spacer(),
+                              // Title & Car
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '${l10n.periodicMaintenance} - ${asset.plateNumber}',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: primaryColor,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    asset.carModelYear,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: 12),
+                              // Wrench Icon
+                              DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F3F4),
+                                  borderRadius: const BorderRadius.all(Radius.circular(10)),
+                                ),
+                                child: SizedBox(
+                                  width: 38,
+                                  height: 38,
+                                  child: Center(
+                                    child: Icon(Icons.build_rounded, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF5F6368), size: 18),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(width: 12),
-                      // Wrench Icon
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F3F4),
-                          borderRadius: const BorderRadius.all(Radius.circular(10)),
-                        ),
-                        child: SizedBox(
-                          width: 42,
-                          height: 42,
-                          child: Center(
-                            child: Icon(Icons.build_rounded, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF5F6368), size: 20),
-                          ),
-                        ),
-                      ),
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -503,45 +524,45 @@ class _CollectionItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
-          // Amount & Status Badge
+          // Left: Amount & Status Badge
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 amount,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: isDark && amountColor == const Color(0xFF137333) ? const Color(0xFF4ADE80) : amountColor,
+                  color: amountColor,
                 ),
               ),
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isDark ? statusBgColor.withValues(alpha: 0.35) : statusBgColor,
-                  borderRadius: BorderRadius.circular(10),
-                  border: isDark ? Border.all(color: statusTextColor.withValues(alpha: 0.3), width: 0.8) : null,
+                  color: isDark ? statusBgColor.withValues(alpha: 0.2) : statusBgColor,
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   statusText,
                   style: TextStyle(
-                    fontSize: 9.5,
+                    fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: isDark && statusTextColor == const Color(0xFF137333) ? const Color(0xFF4ADE80) : statusTextColor,
+                    color: statusTextColor,
                   ),
                 ),
               ),
             ],
           ),
+
           const Spacer(),
-          // Plate & Driver
+
+          // Center: Plate Number & Subtitle
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -550,7 +571,7 @@ class _CollectionItem extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: primaryColor,
+                  color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
                 ),
               ),
               const SizedBox(height: 2),
@@ -558,23 +579,24 @@ class _CollectionItem extends StatelessWidget {
                 subtitle,
                 style: TextStyle(
                   fontSize: 11,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
                 ),
               ),
             ],
           ),
+
           const SizedBox(width: 12),
-          // Icon Box
+
+          // Right: Icon
           Container(
-            width: 42,
-            height: 42,
+            width: 38,
+            height: 38,
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E293B) : iconBgColor,
               borderRadius: BorderRadius.circular(10),
-              border: isDark ? Border.all(color: const Color(0xFF334155), width: 1) : null,
             ),
             child: Center(
-              child: Icon(icon, color: isDark ? primaryColor : iconColor, size: 20),
+              child: Icon(icon, color: iconColor, size: 18),
             ),
           ),
         ],

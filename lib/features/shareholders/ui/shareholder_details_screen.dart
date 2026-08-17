@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/models/shareholder_model.dart';
+import '../../../../core/shared/models/asset_model.dart';
+import '../../../../core/shared/enums/app_enums.dart';
+import '../../../../core/utils/financial_calculator.dart';
 import '../../../../core/localization/app_localization_extension.dart';
+import '../../home/logic/home_cubit.dart';
+import '../../assets_managment/ui/asset_details_screen.dart';
+import 'add_shareholder_screen.dart';
 
 class ShareholderDetailsScreen extends StatelessWidget {
   final ShareholderModel shareholder;
@@ -18,6 +25,18 @@ class ShareholderDetailsScreen extends StatelessWidget {
     final textTertiary = isDark ? AppColors.darkTextTertiary : const Color(0xFF94A3B8);
     final l10n = context.l10n;
 
+    final allAssets = context.watch<HomeCubit>().state.assets;
+    final analytics = FinancialCalculator.computeShareholderAnalytics(
+      shareholder: shareholder,
+      allAssets: allAssets,
+    );
+
+    final role = analytics.investorRoleKey == 'mainInvestor'
+        ? l10n.mainInvestor
+        : analytics.investorRoleKey == 'partnerInvestor'
+            ? l10n.partnerInvestor
+            : l10n.founderPartner;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -29,6 +48,19 @@ class ShareholderDetailsScreen extends StatelessWidget {
           ),
         ),
         centerTitle: false,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit_rounded, color: primaryColor),
+            tooltip: l10n.edit,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => AddShareholderScreen(shareholderToEdit: shareholder),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -39,7 +71,7 @@ class ShareholderDetailsScreen extends StatelessWidget {
               padding: const EdgeInsets.all(18),
               child: Row(
                 children: [
-                  // Left Side: Total Investment, Email, Phone
+                  // Left Side: Total Investment, Account Details, Phone
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,7 +85,7 @@ class ShareholderDetailsScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          context.formatCurrency(1250000),
+                          context.formatCurrency(analytics.totalInvestedCapital),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w900,
@@ -61,23 +93,37 @@ class ShareholderDetailsScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Icon(Icons.email_outlined, size: 14, color: textTertiary),
-                            const SizedBox(width: 4),
-                            Text(
-                              'ahmed@example.com',
-                              style: TextStyle(fontSize: 11, color: textTertiary),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
+                        if (shareholder.accountDetails.isNotEmpty) ...[
+                          Row(
+                            children: [
+                              Icon(
+                                shareholder.payoutMethod == PayoutMethod.instapay
+                                    ? Icons.flash_on_rounded
+                                    : shareholder.payoutMethod == PayoutMethod.vodafoneCash
+                                        ? Icons.phone_android_rounded
+                                        : Icons.account_balance_rounded,
+                                size: 14,
+                                color: textTertiary,
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  shareholder.accountDetails,
+                                  style: TextStyle(fontSize: 11, color: textTertiary),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                        ],
                         Row(
                           children: [
                             Icon(Icons.phone_outlined, size: 14, color: textTertiary),
                             const SizedBox(width: 4),
                             Text(
-                              context.digits('+20 100 123 4567'),
+                              context.digits(shareholder.phone),
                               style: TextStyle(fontSize: 11, color: textTertiary),
                             ),
                           ],
@@ -90,7 +136,7 @@ class ShareholderDetailsScreen extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      // Avatar
+                      // Avatar Box
                       Container(
                         width: 56,
                         height: 56,
@@ -118,7 +164,7 @@ class ShareholderDetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        l10n.mainInvestor,
+                        role,
                         style: TextStyle(
                           fontSize: 11,
                           color: textSecondary,
@@ -169,7 +215,7 @@ class ShareholderDetailsScreen extends StatelessWidget {
                         const Icon(Icons.north_east_rounded, color: Color(0xFFFDE047), size: 12),
                         const SizedBox(width: 2),
                         Text(
-                          context.digits('+3.2%'),
+                          context.digits('+5.2%'),
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
@@ -193,7 +239,7 @@ class ShareholderDetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        context.formatCurrency(12450),
+                        context.formatCurrency(analytics.totalMonthlyDividend),
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -213,7 +259,7 @@ class ShareholderDetailsScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${l10n.investedAssetsList} (${context.digits(4)})',
+                  '${l10n.investedAssetsList} (${context.digits(analytics.investedAssets.length)})',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
@@ -224,39 +270,51 @@ class ShareholderDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Invested Assets Mock List
-            _InvestedAssetMockCard(
-              plateNumber: 'أ ب ج 1234',
-              carName: 'Toyota Corolla 2022',
-              equityPercent: context.formatPercentage(60),
-              equityFlex: 60,
-              monthlyReturn: context.formatCurrency(4500),
-              icon: Icons.directions_car_rounded,
-            ),
-            _InvestedAssetMockCard(
-              plateNumber: 'س ص ع 5678',
-              carName: 'Hyundai Elantra 2021',
-              equityPercent: context.formatPercentage(40),
-              equityFlex: 40,
-              monthlyReturn: context.formatCurrency(3200),
-              icon: Icons.directions_car_rounded,
-            ),
-            _InvestedAssetMockCard(
-              plateNumber: 'لوحة 3344',
-              carName: l10n.rentedPlatesOnly,
-              equityPercent: context.formatPercentage(100),
-              equityFlex: 100,
-              monthlyReturn: context.formatCurrency(2500),
-              icon: Icons.credit_card_rounded,
-            ),
-            _InvestedAssetMockCard(
-              plateNumber: 'د ر ز 7890',
-              carName: 'Nissan Sunny 2023',
-              equityPercent: context.formatPercentage(30),
-              equityFlex: 30,
-              monthlyReturn: context.formatCurrency(2250),
-              icon: Icons.directions_car_rounded,
-            ),
+            // Real Invested Assets List
+            if (analytics.investmentEntries.isEmpty)
+              AppCard(
+                padding: const EdgeInsets.all(24),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(Icons.directions_car_outlined, size: 48, color: textTertiary),
+                      const SizedBox(height: 10),
+                      Text(
+                        l10n.noPartnersAssigned,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 13, color: textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ...analytics.investmentEntries.map((entry) {
+                final AssetModel asset = entry['asset'] as AssetModel;
+                final double percentage = entry['percentage'] as double;
+                final double payout = entry['monthlyPayout'] as double;
+
+                return _InvestedAssetCard(
+                  asset: asset,
+                  plateNumber: asset.plateNumber,
+                  carName: asset.carModelYear,
+                  equityPercent: context.formatPercentage(percentage),
+                  equityFlex: percentage.round().clamp(1, 100),
+                  monthlyReturn: context.formatCurrency(payout),
+                  icon: asset.modelType == AssetType.fullTaxi
+                      ? Icons.local_taxi_rounded
+                      : asset.modelType == AssetType.plateOnly
+                          ? Icons.confirmation_number_rounded
+                          : Icons.directions_car_rounded,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AssetDetailsScreen(asset: asset),
+                      ),
+                    );
+                  },
+                );
+              }),
 
             const SizedBox(height: 24),
           ],
@@ -266,21 +324,25 @@ class ShareholderDetailsScreen extends StatelessWidget {
   }
 }
 
-class _InvestedAssetMockCard extends StatelessWidget {
+class _InvestedAssetCard extends StatelessWidget {
+  final AssetModel asset;
   final String plateNumber;
   final String carName;
   final String equityPercent;
   final int equityFlex;
   final String monthlyReturn;
   final IconData icon;
+  final VoidCallback onTap;
 
-  const _InvestedAssetMockCard({
+  const _InvestedAssetCard({
+    required this.asset,
     required this.plateNumber,
     required this.carName,
     required this.equityPercent,
     required this.equityFlex,
     required this.monthlyReturn,
     required this.icon,
+    required this.onTap,
   });
 
   @override
@@ -290,6 +352,7 @@ class _InvestedAssetMockCard extends StatelessWidget {
     final l10n = context.l10n;
 
     return AppCard(
+      onTap: onTap,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       child: Column(

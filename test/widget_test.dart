@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taxis_managment_001/core/shared/models/asset_model.dart';
 import 'package:taxis_managment_001/core/shared/models/partner_share_model.dart';
+import 'package:taxis_managment_001/core/shared/models/shareholder_model.dart';
 import 'package:taxis_managment_001/core/shared/enums/app_enums.dart';
 import 'package:taxis_managment_001/core/utils/financial_calculator.dart';
 import 'package:taxis_managment_001/core/utils/formatters.dart';
@@ -54,6 +55,55 @@ void main() {
       expect(p1Dividend, 4500.0); // 7500 * 0.60
       expect(p2Dividend, 3000.0); // 7500 * 0.40
       expect(p1Dividend + p2Dividend, 7500.0);
+    });
+
+    test('Computes real-time dynamic ShareholderAnalytics across fleet', () {
+      const shareholder = ShareholderModel(
+        id: 'p1',
+        name: 'أحمد محمود سالم',
+        phone: '01012345678',
+        totalInvestedCapital: 500000.0,
+      );
+
+      const assets = [
+        AssetModel(
+          id: '1',
+          plateNumber: 'س أ د 4821',
+          chassisNumber: 'VIN1',
+          carModelYear: 'BYD F3 2023',
+          modelType: AssetType.fullTaxi,
+          monthlyRent: 8500.0,
+          averageMonthlyExpenses: 1000.0,
+          assetValuation: 280000.0,
+          partnerShares: [
+            PartnerShare(partnerId: 'p1', partnerName: 'أحمد محمود سالم', percentage: 60.0),
+          ],
+        ),
+        AssetModel(
+          id: '2',
+          plateNumber: 'م ن ف 9182',
+          chassisNumber: 'VIN2',
+          carModelYear: 'Nissan Sunny 2022',
+          modelType: AssetType.fullTaxi,
+          monthlyRent: 9000.0,
+          averageMonthlyExpenses: 1000.0,
+          assetValuation: 320000.0,
+          partnerShares: [
+            PartnerShare(partnerId: 'p1', partnerName: 'أحمد محمود سالم', percentage: 100.0),
+          ],
+        ),
+      ];
+
+      final analytics = FinancialCalculator.computeShareholderAnalytics(
+        shareholder: shareholder,
+        allAssets: assets,
+      );
+
+      expect(analytics.investedAssets.length, 2);
+      expect(analytics.totalMonthlyDividend, 4500.0 + 8000.0); // 7500*0.6 + 8000*1.0 = 12500
+      expect(analytics.averageEquityPercentage, 80.0);
+      expect(analytics.investorRoleKey, 'mainInvestor');
+      expect(analytics.hasActiveInvestments, isTrue);
     });
 
     test('Validates 100% total equity share requirement', () {
@@ -117,6 +167,35 @@ void main() {
       expect(summary.fullTaxisCount, 1);
       expect(summary.plateOnlyCount, 1);
       expect(summary.vehicleOnlyCount, 1);
+    });
+  });
+
+  group('LocalStorageService Real Data Lifecycle Tests', () {
+    test('Archives asset and restores it seamlessly', () {
+      final storage = LocalStorageService();
+      final initialAssetCount = storage.getAssets().length;
+      final initialArchiveCount = storage.getArchivedItems().length;
+
+      final assetToArchive = storage.getAssets().first;
+      storage.archiveAsset(assetToArchive);
+
+      expect(storage.getAssets().length, initialAssetCount - 1);
+      expect(storage.getArchivedItems().length, initialArchiveCount + 1);
+
+      final archivedItem = storage.getArchivedItems().first;
+      final restored = storage.restoreArchivedAsset(archivedItem.id);
+
+      expect(restored, isTrue);
+      expect(storage.getAssets().length, initialAssetCount);
+      expect(storage.getArchivedItems().length, initialArchiveCount);
+    });
+
+    test('Generates real dynamic alerts for upcoming license expirations', () {
+      final storage = LocalStorageService();
+      final alerts = storage.getAlerts();
+
+      expect(alerts.isNotEmpty, isTrue);
+      expect(alerts.any((a) => a.type == AlertType.licenseExpiry), isTrue);
     });
   });
 

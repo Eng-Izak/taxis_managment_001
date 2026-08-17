@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
+import '../../../../core/shared/models/alert_item_model.dart';
+import '../../../../core/shared/enums/app_enums.dart';
 import '../../../../core/localization/app_localization_extension.dart';
+import '../../home/logic/home_cubit.dart';
+import '../../home/logic/home_state.dart';
 
 enum NotificationFilter { all, financial, maintenance, documents }
 
@@ -33,141 +38,151 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Filter Pills Row
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _NotificationFilterChip(
-                    label: l10n.filterAll,
-                    count: 4,
-                    isSelected: _selectedFilter == NotificationFilter.all,
-                    onTap: () => setState(() => _selectedFilter = NotificationFilter.all),
+      body: BlocBuilder<HomeCubit, HomeState>(
+        builder: (context, state) {
+          final alerts = state.alerts;
+
+          // Categorize notifications
+          final financialAlerts = alerts.where((a) => a.type == AlertType.rentDue).toList();
+          final maintenanceAlerts = alerts.where((a) => a.type == AlertType.maintenance).toList();
+          final docAlerts = alerts.where((a) => a.type == AlertType.licenseExpiry).toList();
+
+          final List<AlertItem> currentList;
+          switch (_selectedFilter) {
+            case NotificationFilter.financial:
+              currentList = financialAlerts;
+              break;
+            case NotificationFilter.maintenance:
+              currentList = maintenanceAlerts;
+              break;
+            case NotificationFilter.documents:
+              currentList = docAlerts;
+              break;
+            case NotificationFilter.all:
+              currentList = alerts;
+              break;
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Filter Pills Row
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _NotificationFilterChip(
+                        label: l10n.filterAll,
+                        count: alerts.length,
+                        isSelected: _selectedFilter == NotificationFilter.all,
+                        onTap: () => setState(() => _selectedFilter = NotificationFilter.all),
+                      ),
+                      const SizedBox(width: 8),
+                      _NotificationFilterChip(
+                        label: l10n.filterFinancial,
+                        count: financialAlerts.length,
+                        isSelected: _selectedFilter == NotificationFilter.financial,
+                        onTap: () => setState(() => _selectedFilter = NotificationFilter.financial),
+                      ),
+                      const SizedBox(width: 8),
+                      _NotificationFilterChip(
+                        label: l10n.filterMaintenance,
+                        count: maintenanceAlerts.length,
+                        isSelected: _selectedFilter == NotificationFilter.maintenance,
+                        onTap: () => setState(() => _selectedFilter = NotificationFilter.maintenance),
+                      ),
+                      const SizedBox(width: 8),
+                      _NotificationFilterChip(
+                        label: l10n.filterDocuments,
+                        count: docAlerts.length,
+                        isSelected: _selectedFilter == NotificationFilter.documents,
+                        onTap: () => setState(() => _selectedFilter = NotificationFilter.documents),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  _NotificationFilterChip(
-                    label: l10n.filterFinancial,
-                    count: 1,
-                    isSelected: _selectedFilter == NotificationFilter.financial,
-                    onTap: () => setState(() => _selectedFilter = NotificationFilter.financial),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Notifications Section Header
+                Text(
+                  l10n.today,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: textHeaderColor,
                   ),
-                  const SizedBox(width: 8),
-                  _NotificationFilterChip(
-                    label: l10n.filterMaintenance,
-                    count: 1,
-                    isSelected: _selectedFilter == NotificationFilter.maintenance,
-                    onTap: () => setState(() => _selectedFilter = NotificationFilter.maintenance),
-                  ),
-                  const SizedBox(width: 8),
-                  _NotificationFilterChip(
-                    label: l10n.filterDocuments,
-                    count: null,
-                    isSelected: _selectedFilter == NotificationFilter.documents,
-                    onTap: () => setState(() => _selectedFilter = NotificationFilter.documents),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 12),
+
+                if (currentList.isEmpty)
+                  AppCard(
+                    padding: const EdgeInsets.all(24),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.notifications_none_rounded,
+                            size: 48,
+                            color: isDark ? AppColors.darkTextTertiary : const Color(0xFFCBD5E1),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            context.isArabic ? 'لا توجد إشعارات جديدة في هذا التصنيف' : 'No new notifications in this category',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  ...currentList.map((alert) {
+                    Color iconBgColor;
+                    Color iconColor;
+                    IconData icon;
+
+                    switch (alert.type) {
+                      case AlertType.rentDue:
+                        icon = Icons.warning_rounded;
+                        iconColor = isDark ? const Color(0xFFF87171) : const Color(0xFFC5221F);
+                        iconBgColor = isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.4) : const Color(0xFFFCE8E6);
+                        break;
+                      case AlertType.maintenance:
+                        icon = Icons.build_rounded;
+                        iconColor = isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000);
+                        iconBgColor = isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0);
+                        break;
+                      case AlertType.licenseExpiry:
+                      default:
+                        icon = Icons.description_rounded;
+                        iconColor = primaryColor;
+                        iconBgColor = isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFE8F0FE);
+                        break;
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10.0),
+                      child: _NotificationItemCard(
+                        title: '${alert.title} - ${context.digits(alert.subtitle)}',
+                        timeText: context.digits(l10n.hoursAgo(1)),
+                        icon: icon,
+                        iconColor: iconColor,
+                        iconBgColor: iconBgColor,
+                        hasUnreadDot: alert.priority == AlertPriority.high,
+                      ),
+                    );
+                  }),
+
+                const SizedBox(height: 24),
+              ],
             ),
-
-            const SizedBox(height: 24),
-
-            // Section: اليوم (Today)
-            Text(
-              l10n.today,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: textHeaderColor,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Item 1: Payment Received
-            _NotificationItemCard(
-              title: '${l10n.receivedStatus}: ${context.formatCurrency(1500)} (${l10n.rentedPlatesOnly} ${context.digits("1234")})',
-              timeText: context.digits(l10n.minutesAgo(10)),
-              icon: Icons.account_balance_wallet_rounded,
-              iconColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
-              iconBgColor: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFE6F4EA),
-              hasUnreadDot: true,
-            ),
-            const SizedBox(height: 10),
-
-            // Item 2: Overdue Rent
-            _NotificationItemCard(
-              title: '${l10n.overdueStatus}: ${l10n.rentDue} ${context.digits("5678")} - Mahmoud',
-              timeText: context.digits(l10n.hoursAgo(2)),
-              icon: Icons.warning_rounded,
-              iconColor: isDark ? const Color(0xFFF87171) : const Color(0xFFC5221F),
-              iconBgColor: isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.4) : const Color(0xFFFCE8E6),
-              hasUnreadDot: true,
-            ),
-            const SizedBox(height: 10),
-
-            // Item 3: Maintenance Notice
-            _NotificationItemCard(
-              title: '${l10n.periodicMaintenance} - Toyota Corolla (${context.digits("1234")})',
-              timeText: context.digits(l10n.hoursAgo(5)),
-              icon: Icons.build_rounded,
-              iconColor: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000),
-              iconBgColor: isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0),
-              hasUnreadDot: false,
-            ),
-
-            const SizedBox(height: 24),
-
-            // Section: أمس (Yesterday)
-            Text(
-              l10n.yesterday,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: textHeaderColor,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Item 4: License Renewal Alert
-            _NotificationItemCard(
-              title: '${l10n.licenseRenewalAlerts}: ${context.digits("9012")} (${context.digits("30 days")})',
-              timeText: context.digits('${l10n.yesterday} 04:30 PM'),
-              icon: Icons.description_rounded,
-              iconColor: primaryColor,
-              iconBgColor: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFE8F0FE),
-              hasUnreadDot: false,
-            ),
-
-            const SizedBox(height: 24),
-
-            // Section: هذا الأسبوع (This Week)
-            Text(
-              l10n.thisWeek,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: textHeaderColor,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Item 5: Monthly Report Exported
-            _NotificationItemCard(
-              title: l10n.reportExportSuccess,
-              timeText: context.digits('Sunday 09:00 AM'),
-              icon: Icons.file_download_done_rounded,
-              iconColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
-              iconBgColor: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFE6F4EA),
-              hasUnreadDot: false,
-            ),
-
-            const SizedBox(height: 32),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -181,7 +196,7 @@ class _NotificationFilterChip extends StatelessWidget {
 
   const _NotificationFilterChip({
     required this.label,
-    this.count,
+    required this.count,
     required this.isSelected,
     required this.onTap,
   });
@@ -194,8 +209,7 @@ class _NotificationFilterChip extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+      child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
           color: isSelected
@@ -203,7 +217,7 @@ class _NotificationFilterChip extends StatelessWidget {
               : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
           borderRadius: BorderRadius.circular(20),
           border: isDark && !isSelected
-              ? Border.all(color: AppColors.darkCardBorder, width: 1)
+              ? Border.all(color: const Color(0xFF334155), width: 1)
               : null,
         ),
         child: Row(
@@ -216,10 +230,10 @@ class _NotificationFilterChip extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected
                     ? Colors.white
-                    : (isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B)),
+                    : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B)),
               ),
             ),
-            if (count != null) ...[
+            if (count != null && count! > 0) ...[
               const SizedBox(width: 6),
               Container(
                 width: 18,
@@ -267,28 +281,26 @@ class _NotificationItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
 
     return AppCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Unread Dot
-          if (hasUnreadDot)
-            Container(
-              width: 8,
-              height: 8,
-              margin: const EdgeInsets.only(top: 14, left: 8),
-              decoration: BoxDecoration(
-                color: primaryColor,
-                shape: BoxShape.circle,
-              ),
-            )
-          else
-            const SizedBox(width: 8),
+          // Icon on Start Edge
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: iconBgColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+          ),
+          const SizedBox(width: 12),
 
-          // Content
+          // Notification Content
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -296,13 +308,12 @@ class _NotificationItemCard extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
                     color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
-                    height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   timeText,
                   style: TextStyle(
@@ -314,21 +325,16 @@ class _NotificationItemCard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(width: 12),
-
-          // Right Icon Box
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              borderRadius: BorderRadius.circular(12),
-              border: isDark ? Border.all(color: iconColor.withValues(alpha: 0.3), width: 0.8) : null,
+          // Unread Indicator Dot
+          if (hasUnreadDot)
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: Color(0xFFC5221F),
+                shape: BoxShape.circle,
+              ),
             ),
-            child: Center(
-              child: Icon(icon, color: iconColor, size: 22),
-            ),
-          ),
         ],
       ),
     );

@@ -2,6 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/shared/repos/asset_repository.dart';
 import '../../../core/shared/repos/finance_repository.dart';
 import '../../../core/shared/models/asset_model.dart';
+import '../../../core/shared/models/document_meta_model.dart';
+import '../../../core/shared/models/archived_item_model.dart';
 import '../../../core/shared/enums/app_enums.dart';
 import 'home_state.dart';
 
@@ -61,6 +63,32 @@ class HomeCubit extends Cubit<HomeState> {
 
   Future<void> deleteAsset(String assetId) async {
     await _assetRepo.deleteAsset(assetId);
+    await loadDashboardData();
+  }
+
+  Future<void> archiveAsset(AssetModel asset, {String? reason}) async {
+    await _assetRepo.archiveAsset(asset, reason: reason);
+    await loadDashboardData();
+  }
+
+  Future<bool> restoreArchivedAsset(String archiveId) async {
+    final restored = await _assetRepo.restoreArchivedAsset(archiveId);
+    if (restored) {
+      await loadDashboardData();
+    }
+    return restored;
+  }
+
+  Future<void> deleteArchivedPermanently(String archiveId) async {
+    await _assetRepo.deleteArchivedPermanently(archiveId);
+  }
+
+  Future<List<ArchivedItemModel>> getArchivedItems() async {
+    return _assetRepo.getArchivedItems();
+  }
+
+  Future<void> addDocumentToAsset(String assetId, DocumentMeta doc) async {
+    await _assetRepo.addDocumentToAsset(assetId, doc);
     await loadDashboardData();
   }
 

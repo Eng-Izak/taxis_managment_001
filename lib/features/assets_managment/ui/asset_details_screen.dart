@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
+import '../../../../core/shared/widgets/app_toast.dart';
 import '../../../../core/shared/models/asset_model.dart';
+import '../../../../core/shared/models/document_meta_model.dart';
 import '../../../../core/shared/enums/app_enums.dart';
 import '../../../../core/localization/app_localization_extension.dart';
+import '../../home/logic/home_cubit.dart';
+import '../../home/logic/home_state.dart';
 import 'add_asset_screen.dart';
 
 class AssetDetailsScreen extends StatelessWidget {
@@ -11,441 +16,327 @@ class AssetDetailsScreen extends StatelessWidget {
 
   const AssetDetailsScreen({super.key, required this.asset});
 
+  void _showAddDocumentDialog(BuildContext context, AssetModel currentAsset) {
+    final titleController = TextEditingController();
+    DocumentType selectedType = DocumentType.licenseCard;
+    DateTime? selectedExpiry = DateTime.now().add(const Duration(days: 365));
+    final l10n = context.l10n;
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+
+            return AlertDialog(
+              title: Text(
+                l10n.addDocument,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: titleController,
+                      decoration: InputDecoration(
+                        labelText: context.isArabic ? 'اسم المستند' : 'Document Title',
+                        hintText: context.isArabic ? 'مثال: رخصة القيادة والتسيير' : 'e.g. Vehicle Registration',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<DocumentType>(
+                      initialValue: selectedType,
+                      decoration: InputDecoration(
+                        labelText: context.isArabic ? 'نوع المستند' : 'Document Type',
+                      ),
+                      items: [
+                        DropdownMenuItem(
+                          value: DocumentType.licenseCard,
+                          child: Text(l10n.vehicleLicense),
+                        ),
+                        DropdownMenuItem(
+                          value: DocumentType.leaseContract,
+                          child: Text(context.isArabic ? 'عقد إيجار / تشغيل' : 'Lease Contract'),
+                        ),
+                        DropdownMenuItem(
+                          value: DocumentType.insurance,
+                          child: Text(l10n.insurancePolicy),
+                        ),
+                        DropdownMenuItem(
+                          value: DocumentType.other,
+                          child: Text(context.isArabic ? 'مستند آخر' : 'Other Document'),
+                        ),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) setDialogState(() => selectedType = val);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        selectedExpiry != null
+                            ? '${l10n.validUntil}: ${context.formatShortDate(selectedExpiry!)}'
+                            : (context.isArabic ? 'حدد تاريخ الانتهاء' : 'Select Expiry Date'),
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                      trailing: Icon(Icons.calendar_today_rounded, color: primaryColor),
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: selectedExpiry ?? DateTime.now().add(const Duration(days: 180)),
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2035),
+                        );
+                        if (picked != null) {
+                          setDialogState(() => selectedExpiry = picked);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogCtx).pop(),
+                  child: Text(l10n.cancel),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: primaryColor),
+                  onPressed: () {
+                    final title = titleController.text.trim();
+                    if (title.isEmpty) return;
+
+                    final newDoc = DocumentMeta(
+                      id: 'doc_${DateTime.now().millisecondsSinceEpoch}',
+                      title: title,
+                      type: selectedType,
+                      expiryDate: selectedExpiry,
+                      issueDate: DateTime.now(),
+                    );
+
+                    context.read<HomeCubit>().addDocumentToAsset(currentAsset.id, newDoc);
+                    Navigator.of(dialogCtx).pop();
+                    AppToast.show(
+                      context,
+                      message: context.isArabic ? 'تمت إضافة المستند بنجاح' : 'Document added successfully',
+                    );
+                  },
+                  child: Text(context.isArabic ? 'حفظ المستند' : 'Save Document', style: const TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _confirmArchiveAsset(BuildContext context, AssetModel currentAsset) {
+    final l10n = context.l10n;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.archiveAssetConfirmTitle),
+        content: Text(
+          '${l10n.archiveAssetConfirmMessage}\n\n"${currentAsset.plateNumber}"',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFC5221F)),
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await context.read<HomeCubit>().archiveAsset(currentAsset);
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                AppToast.show(
+                  context,
+                  message: '${l10n.itemRestored}: "${currentAsset.plateNumber}"',
+                );
+              }
+            },
+            child: Text(l10n.swipeToArchive, style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
     final textPrimary = isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937);
     final textSecondary = isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B);
-    final innerBoxBg = isDark ? const Color(0xFF131D31) : const Color(0xFFF8F9FA);
-    final innerBoxBorder = isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0);
     final l10n = context.l10n;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          l10n.assetDetails,
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-            color: textPrimary,
-          ),
-        ),
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.edit_rounded, color: primaryColor),
-            tooltip: l10n.edit,
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => AddAssetScreen(assetToEdit: asset),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-        child: Column(
-          children: [
-            // 1. Vehicle Main Details Card
-            AppCard(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Status Badge on Left & Car Title on Right
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0),
-                          borderRadius: BorderRadius.circular(12),
-                          border: isDark ? Border.all(color: const Color(0xFFFBBF24).withValues(alpha: 0.3), width: 0.8) : null,
-                        ),
-                        child: Text(
-                          l10n.statusActive,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000),
-                          ),
-                        ),
-                      ),
-                      Text(
-                        asset.carModelYear,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
+    return BlocBuilder<HomeCubit, HomeState>(
+      builder: (context, state) {
+        // Find active updated instance or fallback to original
+        final currentAsset = state.assets.firstWhere(
+          (a) => a.id == asset.id,
+          orElse: () => asset,
+        );
 
-                  const SizedBox(height: 14),
-
-                  // Box: Plate Number
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: innerBoxBg,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: innerBoxBorder, width: 0.8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          asset.plateNumber,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: primaryColor,
-                          ),
-                        ),
-                        Text(
-                          l10n.plateNumber,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // Chassis Number Box
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: innerBoxBg,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: innerBoxBorder, width: 0.8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          asset.chassisNumber.isNotEmpty ? asset.chassisNumber : 'N/A',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: textPrimary,
-                          ),
-                        ),
-                        Text(
-                          l10n.chassisNumber,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // Model Type Box
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: innerBoxBg,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: innerBoxBorder, width: 0.8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          asset.modelType == AssetType.fullTaxi
-                              ? l10n.fullTaxis
-                              : asset.modelType == AssetType.plateOnly
-                                  ? l10n.rentedPlatesOnly
-                                  : l10n.vehiclesOnly,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: textPrimary,
-                          ),
-                        ),
-                        Text(
-                          l10n.assetType,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              l10n.assetDetails,
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: textPrimary,
               ),
             ),
-
-            const SizedBox(height: 16),
-
-            // 2. Current Valuation Card
-            AppCard(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.assetValuation,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFE6F4EA),
-                          borderRadius: BorderRadius.circular(8),
-                          border: isDark ? Border.all(color: const Color(0xFF22C55E).withValues(alpha: 0.3), width: 0.8) : null,
-                        ),
-                        child: Text(
-                          context.digits('+12.5%'),
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
-                          ),
-                        ),
-                      ),
-                      Text(
-                        context.formatCurrency(asset.assetValuation > 0 ? asset.assetValuation : 450000),
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: primaryColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+            centerTitle: false,
+            actions: [
+              IconButton(
+                icon: Icon(Icons.archive_outlined, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
+                tooltip: l10n.swipeToArchive,
+                onPressed: () => _confirmArchiveAsset(context, currentAsset),
               ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // 3. Partner Shares & Equity Card
-            AppCard(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+              IconButton(
+                icon: Icon(Icons.edit_rounded, color: primaryColor),
+                tooltip: l10n.editAsset,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => AddAssetScreen(assetToEdit: currentAsset),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Top Card: Plate, Model, Valuation
+                AppCard(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
                     children: [
-                      Icon(
-                        Icons.pie_chart_outline_rounded,
-                        color: primaryColor,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        l10n.equityDistribution,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: primaryColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Dynamic Segmented Progress Bar with Tooltips
-                  _buildDetailsSharesBar(context, asset),
-
-                  const SizedBox(height: 14),
-
-                  if (asset.partnerShares.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text(
-                        l10n.noPartnersAssigned,
-                        style: TextStyle(color: textSecondary, fontSize: 12.5),
-                      ),
-                    )
-                  else
-                    ...asset.partnerShares.asMap().entries.map((entry) {
-                      final i = entry.key;
-                      final share = entry.value;
-                      const colors = [
-                        Color(0xFF0F56B3),
-                        Color(0xFF0D9488),
-                        Color(0xFF7C3AED),
-                        Color(0xFFD97706),
-                        Color(0xFF059669),
-                        Color(0xFFE11D48),
-                        Color(0xFF2563EB),
-                        Color(0xFF475569),
-                      ];
-                      final color = colors[i % colors.length];
-                      final initial = share.partnerName.trim().isNotEmpty
-                          ? share.partnerName.trim().substring(0, 1)
-                          : 'P';
-                      final shareValue = asset.assetValuation > 0
-                          ? asset.assetValuation * (share.percentage / 100.0)
-                          : 0.0;
-
-                      return Column(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          if (i > 0) const Divider(height: 16),
-                          Row(
+                          // Left: Valuation
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l10n.assetValuation,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                context.formatCurrency(currentAsset.assetValuation),
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                  color: primaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          // Right: Plate Badge & Model
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Container(
-                                width: 32,
-                                height: 32,
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: color,
+                                  color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFE8F0FE),
                                   borderRadius: BorderRadius.circular(8),
+                                  border: isDark ? Border.all(color: primaryColor.withValues(alpha: 0.4), width: 0.8) : null,
                                 ),
-                                child: Center(
-                                  child: Text(
-                                    initial,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                    ),
+                                child: Text(
+                                  currentAsset.plateNumber,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: primaryColor,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    share.partnerName,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: textPrimary,
-                                    ),
-                                  ),
-                                  Text(
-                                    share.payoutMethod.name == 'instapay'
-                                        ? 'InstaPay'
-                                        : share.payoutMethod.name == 'vodafoneCash'
-                                            ? 'Vodafone Cash'
-                                            : 'Bank Transfer',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const Spacer(),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    context.formatPercentage(share.percentage),
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: color,
-                                    ),
-                                  ),
-                                  if (shareValue > 0)
-                                    Text(
-                                      context.formatCurrency(shareValue),
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: textSecondary,
-                                      ),
-                                    ),
-                                ],
+                              const SizedBox(height: 4),
+                              Text(
+                                currentAsset.carModelYear,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: textPrimary,
+                                ),
                               ),
                             ],
                           ),
                         ],
-                      );
-                    }),
-                ],
-              ),
-            ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Divider(height: 1),
+                      const SizedBox(height: 12),
 
-            const SizedBox(height: 16),
-
-            // 4. Documents Registry Card
-            AppCard(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
+                      // Driver info
                       Row(
                         children: [
-                          Icon(
-                            Icons.folder_open_rounded,
-                            color: primaryColor,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 6),
+                          Icon(Icons.person_pin_rounded, size: 18, color: primaryColor),
+                          const SizedBox(width: 8),
                           Text(
-                            l10n.catExpiredDocs,
+                            currentAsset.driverOrRenterName.isNotEmpty
+                                ? currentAsset.driverOrRenterName
+                                : (context.isArabic ? 'لم يتم تعيين سائق بعد' : 'No driver assigned'),
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 12.5,
                               fontWeight: FontWeight.bold,
-                              color: primaryColor,
+                              color: textPrimary,
                             ),
                           ),
+                          const Spacer(),
+                          if (currentAsset.driverPhone.isNotEmpty)
+                            Text(
+                              context.digits(currentAsset.driverPhone),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: textSecondary,
+                              ),
+                            ),
                         ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(6),
-                          border: isDark ? Border.all(color: primaryColor.withValues(alpha: 0.3), width: 0.8) : null,
-                        ),
-                        child: Row(
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // 2. Financial Metrics: Monthly Rent & Net Profit
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppCard(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.add, size: 14, color: primaryColor),
-                            const SizedBox(width: 2),
                             Text(
-                              l10n.save,
+                              l10n.monthlyIncome,
+                              style: TextStyle(fontSize: 11, color: textSecondary),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              context.formatCurrency(currentAsset.monthlyRent),
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: primaryColor,
                               ),
@@ -453,37 +344,221 @@ class AssetDetailsScreen extends StatelessWidget {
                           ],
                         ),
                       ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: AppCard(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.monthlyReturnYield,
+                              style: TextStyle(fontSize: 11, color: textSecondary),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              context.formatCurrency(currentAsset.netMonthlyProfit),
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF137333),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // 3. Partner Equity Distribution Section
+                AppCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            l10n.equityDistribution,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: primaryColor,
+                            ),
+                          ),
+                          Text(
+                            '${context.digits(currentAsset.partnerShares.length)} ${l10n.shareholders}',
+                            style: TextStyle(fontSize: 11.5, color: textSecondary),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Interactive Equity Segment Bar
+                      _buildDetailsSharesBar(context, currentAsset),
+                      const SizedBox(height: 14),
+
+                      // List of partners
+                      if (currentAsset.partnerShares.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Text(
+                            l10n.noPartnersAssigned,
+                            style: TextStyle(fontSize: 12, color: textSecondary),
+                          ),
+                        )
+                      else
+                        ...currentAsset.partnerShares.map((share) {
+                          final dividend = currentAsset.netMonthlyProfit * (share.percentage / 100.0);
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10.0),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F3F4),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      share.partnerName.isNotEmpty ? share.partnerName[0] : 'P',
+                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: primaryColor),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        share.partnerName,
+                                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: textPrimary),
+                                      ),
+                                      Text(
+                                        '${context.formatPercentage(share.percentage)} ${l10n.ownershipRatio}',
+                                        style: TextStyle(fontSize: 11, color: textSecondary),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Text(
+                                  context.formatCurrency(dividend),
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF137333),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
                     ],
                   ),
-                  const SizedBox(height: 14),
+                ),
 
-                  const _DocumentRowItem(
-                    title: 'Vehicle License',
-                    subtitle: 'Valid until 2026/12',
-                    icon: Icons.description_outlined,
-                  ),
-                  const Divider(height: 16),
+                const SizedBox(height: 16),
 
-                  const _DocumentRowItem(
-                    title: 'Insurance Policy',
-                    subtitle: 'Comprehensive',
-                    icon: Icons.shield_outlined,
-                  ),
-                  const Divider(height: 16),
+                // 4. Real Documents Registry
+                AppCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            l10n.documentsRegistry,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: primaryColor,
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () => _showAddDocumentDialog(context, currentAsset),
+                            borderRadius: BorderRadius.circular(6),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.add_rounded, size: 16, color: primaryColor),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    l10n.addDocument,
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: primaryColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
 
-                  const _DocumentRowItem(
-                    title: 'Purchase Agreement',
-                    subtitle: 'Original Copy',
-                    icon: Icons.handshake_outlined,
+                      if (currentAsset.documents.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                Icon(Icons.folder_open_rounded, size: 36, color: isDark ? AppColors.darkTextTertiary : const Color(0xFFCBD5E1)),
+                                const SizedBox(height: 6),
+                                Text(
+                                  context.isArabic ? 'لا توجد مستندات مسجلة لهذا الأصل' : 'No documents recorded for this asset',
+                                  style: TextStyle(fontSize: 12, color: textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      else
+                        ...List.generate(currentAsset.documents.length, (index) {
+                          final doc = currentAsset.documents[index];
+                          final isLast = index == currentAsset.documents.length - 1;
+                          final isLicense = doc.type == DocumentType.licenseCard;
+                          final isContract = doc.type == DocumentType.leaseContract;
+
+                          return Column(
+                            children: [
+                              _DocumentRowItem(
+                                title: doc.title,
+                                subtitle: doc.expiryDate != null
+                                    ? '${l10n.validUntil}: ${context.formatShortDate(doc.expiryDate!)}'
+                                    : (context.isArabic ? 'مستند ساري' : 'Valid document'),
+                                icon: isLicense
+                                    ? Icons.description_outlined
+                                    : isContract
+                                        ? Icons.handshake_outlined
+                                        : Icons.shield_outlined,
+                              ),
+                              if (!isLast) const Divider(height: 16),
+                            ],
+                          );
+                        }),
+                    ],
                   ),
-                ],
-              ),
+                ),
+
+                const SizedBox(height: 32),
+              ],
             ),
-
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -610,7 +685,7 @@ class AssetDetailsScreen extends StatelessWidget {
               child: Container(
                 height: 7,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFCBD5E1),
+                  color: Color(0xFFE2E8F0),
                   borderRadius: BorderRadius.horizontal(
                     left: Radius.circular(4),
                   ),
@@ -624,9 +699,7 @@ class AssetDetailsScreen extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(4),
-      child: Row(
-        children: segments,
-      ),
+      child: Row(children: segments),
     );
   }
 }
@@ -646,6 +719,8 @@ class _DocumentRowItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+    final textPrimary = isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937);
+    final textSecondary = isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B);
 
     return Row(
       children: [
@@ -653,40 +728,33 @@ class _DocumentRowItem extends StatelessWidget {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFEFF6FF),
+            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F3F4),
             borderRadius: BorderRadius.circular(8),
-            border: isDark ? Border.all(color: primaryColor.withValues(alpha: 0.3), width: 0.8) : null,
           ),
-          child: Icon(icon, color: primaryColor, size: 18),
+          child: Icon(icon, size: 18, color: primaryColor),
         ),
-        const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: textPrimary,
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 11,
-                color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(fontSize: 11, color: textSecondary),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        const Spacer(),
-        Icon(
-          Icons.file_download_outlined,
-          color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
-          size: 20,
-        ),
+        Icon(Icons.check_circle_outline_rounded, size: 18, color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333)),
       ],
     );
   }

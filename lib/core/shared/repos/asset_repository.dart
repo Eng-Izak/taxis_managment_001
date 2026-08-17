@@ -1,4 +1,6 @@
 import '../models/asset_model.dart';
+import '../models/document_meta_model.dart';
+import '../models/archived_item_model.dart';
 import '../enums/app_enums.dart';
 import '../../services/local_storage_service.dart';
 
@@ -46,5 +48,25 @@ class AssetRepository {
 
   Future<void> deleteAsset(String id) async {
     _storageService.deleteAsset(id);
+  }
+
+  Future<void> archiveAsset(AssetModel asset, {String? reason}) async {
+    _storageService.archiveAsset(asset, reason: reason);
+  }
+
+  Future<void> addDocumentToAsset(String assetId, DocumentMeta doc) async {
+    _storageService.addDocumentToAsset(assetId, doc);
+  }
+
+  Future<List<ArchivedItemModel>> getArchivedItems() async {
+    return _storageService.getArchivedItems();
+  }
+
+  Future<bool> restoreArchivedAsset(String archiveId) async {
+    return _storageService.restoreArchivedAsset(archiveId);
+  }
+
+  Future<void> deleteArchivedPermanently(String archiveId) async {
+    _storageService.deleteArchivedPermanently(archiveId);
   }
 }
