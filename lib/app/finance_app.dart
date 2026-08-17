@@ -6,11 +6,13 @@ import '../core/theming/theme_cubit.dart';
 import '../core/localization/locale_cubit.dart';
 import '../core/routing/app_router.dart';
 import '../core/dependency_injection/di.dart';
+import '../core/sync/sync_cubit.dart';
 import '../core/shared/repos/asset_repository.dart';
 import '../core/shared/repos/partner_repository.dart';
 import '../core/shared/repos/finance_repository.dart';
 import '../features/home/logic/home_cubit.dart';
 import '../features/shareholders/logic/shareholders_cubit.dart';
+import '../features/auth/logic/auth_cubit.dart';
 
 class FinanceApp extends StatelessWidget {
   const FinanceApp({super.key});
@@ -24,6 +26,12 @@ class FinanceApp extends StatelessWidget {
         ),
         BlocProvider<LocaleCubit>(
           create: (_) => getIt<LocaleCubit>(),
+        ),
+        BlocProvider<SyncCubit>(
+          create: (_) => getIt<SyncCubit>(),
+        ),
+        BlocProvider<AuthCubit>(
+          create: (_) => getIt<AuthCubit>(),
         ),
         BlocProvider<HomeCubit>(
           create: (_) => HomeCubit(

@@ -3,12 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:taxis_managment_001/core/shared/models/asset_model.dart';
 import 'package:taxis_managment_001/core/shared/models/partner_share_model.dart';
 import 'package:taxis_managment_001/core/shared/models/shareholder_model.dart';
+import 'package:taxis_managment_001/core/shared/models/user_model.dart';
+import 'package:taxis_managment_001/core/shared/models/sync_entry_model.dart';
 import 'package:taxis_managment_001/core/shared/enums/app_enums.dart';
 import 'package:taxis_managment_001/core/utils/financial_calculator.dart';
 import 'package:taxis_managment_001/core/utils/formatters.dart';
 import 'package:taxis_managment_001/core/services/local_storage_service.dart';
+import 'package:taxis_managment_001/core/services/cloud_sync_service.dart';
+import 'package:taxis_managment_001/core/sync/sync_cubit.dart';
 import 'package:taxis_managment_001/core/theming/theme_cubit.dart';
 import 'package:taxis_managment_001/core/localization/locale_cubit.dart';
+import 'package:taxis_managment_001/features/auth/logic/auth_cubit.dart';
+import 'package:taxis_managment_001/features/auth/logic/auth_state.dart';
 
 void main() {
   group('Taxi Asset Management Financial Engine Tests', () {
@@ -196,6 +202,117 @@ void main() {
 
       expect(alerts.isNotEmpty, isTrue);
       expect(alerts.any((a) => a.type == AlertType.licenseExpiry), isTrue);
+    });
+
+    test('Queues mutations for offline sync and clears queue upon sync', () {
+      final storage = LocalStorageService();
+      storage.clearSyncQueue();
+      expect(storage.getSyncQueue().length, 0);
+
+      const newShareholder = ShareholderModel(
+        id: 'new_partner_test',
+        name: 'كابتن محمود',
+        phone: '01000000000',
+      );
+      storage.addShareholder(newShareholder);
+
+      final queue = storage.getSyncQueue();
+      expect(queue.isNotEmpty, isTrue);
+      expect(queue.any((q) => q.entityId == 'new_partner_test'), isTrue);
+
+      storage.clearSyncQueue();
+      expect(storage.getSyncQueue().length, 0);
+    });
+  });
+
+  group('UserModel and SyncQueueEntry Tests', () {
+    test('Serializes and deserializes UserModel correctly', () {
+      final user = UserModel(
+        id: 'usr_test',
+        email: 'test@sadattaxis.com',
+        displayName: 'مستخدم تجريبي',
+        phone: '01012345678',
+        role: 'مدير المحفظة',
+        lastSyncTime: DateTime(2026, 8, 17, 10, 0),
+        autoSyncEnabled: true,
+      );
+
+      final json = user.toJson();
+      final fromJson = UserModel.fromJson(json);
+
+      expect(fromJson.id, user.id);
+      expect(fromJson.email, user.email);
+      expect(fromJson.displayName, user.displayName);
+      expect(fromJson.autoSyncEnabled, isTrue);
+    });
+
+    test('Serializes and deserializes SyncQueueEntry correctly', () {
+      final entry = SyncQueueEntry(
+        id: 'entry_1',
+        entityType: SyncEntityType.asset,
+        operation: SyncOperationType.create,
+        entityId: 'asset_99',
+        payload: {'plateNumber': 'س أ د 9999'},
+        timestamp: DateTime(2026, 8, 17),
+      );
+
+      final json = entry.toJson();
+      final fromJson = SyncQueueEntry.fromJson(json);
+
+      expect(fromJson.id, entry.id);
+      expect(fromJson.entityType, SyncEntityType.asset);
+      expect(fromJson.operation, SyncOperationType.create);
+      expect(fromJson.entityId, 'asset_99');
+    });
+  });
+
+  group('CloudSyncService and SyncCubit Tests', () {
+    test('SyncCubit manages synchronization flow and emits updated state', () async {
+      final storage = LocalStorageService();
+      final syncService = CloudSyncService(storage);
+      final cubit = SyncCubit(syncService: syncService, storageService: storage);
+
+      expect(cubit.state.userEmail, isNotNull);
+
+      final result = await cubit.triggerSync(force: true);
+      expect(result.isSuccess, isTrue);
+
+      cubit.toggleAutoSync(false);
+      expect(storage.getCurrentUser()?.autoSyncEnabled, isFalse);
+
+      cubit.toggleAutoSync(true);
+      expect(storage.getCurrentUser()?.autoSyncEnabled, isTrue);
+
+      await cubit.close();
+      syncService.dispose();
+    });
+  });
+
+  group('AuthCubit Email Authentication Tests', () {
+    test('Logs in with email, initializes user and emits authenticated state', () async {
+      final storage = LocalStorageService();
+      final syncService = CloudSyncService(storage);
+      final cubit = AuthCubit(storageService: storage, syncService: syncService);
+
+      await cubit.loginWithEmail(
+        email: 'investor.sadat@gmail.com',
+        passwordOrPin: '1234',
+        displayName: 'مستثمر السادات',
+      );
+
+      expect(cubit.state.status, AuthStatus.authenticated);
+      expect(cubit.state.user?.email, 'investor.sadat@gmail.com');
+      expect(cubit.state.user?.displayName, 'مستثمر السادات');
+      expect(cubit.state.isAuthenticated, isTrue);
+
+      await cubit.updateProfile(displayName: 'مستثمر السادات المحدث');
+      expect(cubit.state.user?.displayName, 'مستثمر السادات المحدث');
+
+      await cubit.logout();
+      expect(cubit.state.status, AuthStatus.unauthenticated);
+      expect(cubit.state.user, isNull);
+
+      syncService.dispose();
     });
   });
 

@@ -4,6 +4,7 @@ import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/models/asset_model.dart';
 import '../../../../core/shared/enums/app_enums.dart';
 import '../../../../core/shared/widgets/app_header_widgets.dart';
+import '../../../../core/shared/widgets/sync_status_badge.dart';
 import '../../../../core/shared/widgets/app_toast.dart';
 import '../../../../core/localization/app_localization_extension.dart';
 import '../../home/logic/home_cubit.dart';
@@ -73,6 +74,11 @@ class _AssetsManagmentScreenState extends State<AssetsManagmentScreen> {
         ),
         centerTitle: false,
         actions: [
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: SyncStatusBadge(),
+          ),
+          const SizedBox(width: 4),
           const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {

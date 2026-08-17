@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/theming/theme_cubit.dart';
 import '../../../../core/localization/locale_cubit.dart';
@@ -7,6 +8,12 @@ import '../../../../core/localization/app_localization_extension.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/widgets/app_header_widgets.dart';
 import '../../../../core/shared/widgets/section_header.dart';
+import '../../../../core/shared/widgets/app_toast.dart';
+import '../../../../core/shared/widgets/sync_status_badge.dart';
+import '../../../../core/sync/sync_cubit.dart';
+import '../../../../core/services/cloud_sync_service.dart';
+import '../../../../core/routing/routes.dart';
+import '../../auth/logic/auth_cubit.dart';
 import '../../notifications/ui/notifications_screen.dart';
 import '../../security/ui/security_screen.dart';
 
@@ -24,11 +31,133 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _biometricEnabled = true;
   bool _autoLockEnabled = true;
 
+  void _showSwitchAccountDialog(BuildContext context) {
+    final emailController = TextEditingController(text: context.read<AuthCubit>().state.user?.email ?? '');
+    final l10n = context.l10n;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.switch_account_rounded, color: primaryColor),
+              const SizedBox(width: 8),
+              Text(
+                context.isArabic ? 'ربط بريد إلكتروني آخر' : 'Switch Email Account',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.isArabic
+                    ? 'أدخل البريد الإلكتروني لمزامنة محفظتك الاستثمارية عليه بين الأندرويد والويندوز:'
+                    : 'Enter email to synchronize your fleet portfolio across Android & Windows:',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  color: isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: context.isArabic ? 'البريد الإلكتروني' : 'Email Address',
+                  hintText: 'name@example.com',
+                  prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(l10n.cancel),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: primaryColor),
+              onPressed: () async {
+                final email = emailController.text.trim();
+                if (email.isNotEmpty) {
+                  Navigator.of(ctx).pop();
+                  await context.read<AuthCubit>().loginWithEmail(
+                    email: email,
+                    passwordOrPin: '1234',
+                  );
+                  if (context.mounted) {
+                    AppToast.show(
+                      context,
+                      message: context.isArabic
+                          ? 'تم ربط الحساب بالبريد: $email وجاري المزامنة السحابية'
+                          : 'Linked to $email & sync initiated',
+                    );
+                  }
+                }
+              },
+              child: Text(
+                context.isArabic ? 'حفظ ومزامنة' : 'Save & Sync',
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _confirmSignOut(BuildContext context) {
+    final l10n = context.l10n;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(context.isArabic ? 'تسجيل الخروج' : 'Sign Out'),
+        content: Text(
+          context.isArabic
+              ? 'هل ترغب في تسجيل الخروج؟ ستبقى بياناتك محفوظة ومزامنة في السحابة على بريدك الإلكتروني.'
+              : 'Are you sure you want to sign out? Your portfolio remains saved & synced in the cloud.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFC5221F)),
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await context.read<AuthCubit>().logout();
+              if (context.mounted) {
+                context.go(Routes.login);
+              }
+            },
+            child: Text(
+              context.isArabic ? 'تسجيل الخروج' : 'Sign Out',
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+    final textPrimary = isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937);
+    final textSecondary = isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B);
     final currentThemeMode = context.watch<ThemeCubit>().state;
     final currentLocale = context.watch<LocaleCubit>().state;
+    final authUser = context.watch<AuthCubit>().state.user;
+    final syncState = context.watch<SyncCubit>().state;
     final l10n = context.l10n;
 
     return Scaffold(
@@ -40,16 +169,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(width: 8),
             Text(
               l10n.settings,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF0F56B3),
+                color: primaryColor,
               ),
             ),
           ],
         ),
         centerTitle: false,
         actions: [
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: SyncStatusBadge(),
+          ),
+          const SizedBox(width: 6),
           const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
@@ -66,6 +200,188 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Section 0: الحساب والمزامنة السحابية (Cloud Sync & Email Account)
+            SectionHeader(
+              title: context.isArabic ? 'الحساب والمزامنة السحابية (Android & Windows)' : 'Account & Cloud Sync (Android & Windows)',
+              leadingIcon: Icons.cloud_sync_rounded,
+            ),
+            AppCard(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // User Profile & Email Row
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 26,
+                        backgroundColor: primaryColor.withValues(alpha: 0.15),
+                        child: Icon(Icons.person_rounded, size: 28, color: primaryColor),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  authUser?.displayName ?? (context.isArabic ? 'مدير المحفظة والأسطول' : 'Fleet Manager'),
+                                  style: TextStyle(
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF137333).withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    context.isArabic ? 'موثق' : 'Verified',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF137333),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              authUser?.email ?? 'ahmed.salem@sadattaxis.com',
+                              style: TextStyle(fontSize: 12, color: textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.edit_outlined, color: primaryColor, size: 20),
+                        tooltip: context.isArabic ? 'تغيير الحساب' : 'Switch account',
+                        onPressed: () => _showSwitchAccountDialog(context),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 14),
+                  const Divider(height: 1),
+                  const SizedBox(height: 14),
+
+                  // Sync Status Info Banner
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8F9FA),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: syncState.isOnline ? const Color(0xFF137333) : const Color(0xFFD97706),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  syncState.isOnline
+                                      ? (context.isArabic ? 'متصل بالسحابة (مزامنة تلقائية)' : 'Connected to Cloud (Auto-Sync)')
+                                      : (context.isArabic ? 'وضع محلي (البيانات محفوظة)' : 'Offline Mode (Data Saved Locally)'),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              syncState.lastSyncTime != null
+                                  ? '${context.isArabic ? "آخر مزامنة:" : "Last sync:"} ${context.formatShortDate(syncState.lastSyncTime)}'
+                                  : (context.isArabic ? 'آخر مزامنة: الآن' : 'Last sync: Just now'),
+                              style: TextStyle(fontSize: 11, color: textSecondary),
+                            ),
+                          ],
+                        ),
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          icon: syncState.status == CloudSyncStatus.syncing
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                )
+                              : const Icon(Icons.sync_rounded, size: 16, color: Colors.white),
+                          label: Text(
+                            context.isArabic ? 'مزامنة الآن' : 'Sync Now',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                          onPressed: syncState.status == CloudSyncStatus.syncing
+                              ? null
+                              : () async {
+                                  final res = await context.read<SyncCubit>().triggerSync(force: true);
+                                  if (context.mounted) {
+                                    AppToast.show(
+                                      context,
+                                      message: res.isOnline
+                                          ? (context.isArabic ? 'تمت مزامنة المحفظة مع السحابة بنجاح' : 'Portfolio synced with cloud')
+                                          : (context.isArabic ? 'تم حفظ التعديلات محلياً بنجاح' : 'Saved locally (Offline)'),
+                                    );
+                                  }
+                                },
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Auto Sync Switch
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    value: authUser?.autoSyncEnabled ?? true,
+                    activeThumbColor: primaryColor,
+                    title: Text(
+                      context.isArabic ? 'المزامنة السحابية اللحظية في الخلفية' : 'Real-time Background Sync',
+                      style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      context.isArabic
+                          ? 'مزامنة التعديلات تلقائياً بين نسخة الأندرويد والويندوز فور توفر الإنترنت'
+                          : 'Auto-sync updates between Android & Windows devices when online',
+                      style: TextStyle(fontSize: 11, color: textSecondary),
+                    ),
+                    onChanged: (val) {
+                      context.read<SyncCubit>().toggleAutoSync(val);
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
             // Section 1: المظهر والسمة
             SectionHeader(
               title: l10n.appearanceAndTheme,
@@ -145,17 +461,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SwitchListTile.adaptive(
                     value: _rentDueAlerts,
                     onChanged: (val) => setState(() => _rentDueAlerts = val),
-                    activeThumbColor: isDark ? AppColors.primaryLight : AppColors.primary,
+                    activeThumbColor: primaryColor,
                     title: Text(
                       l10n.rentDueAlerts,
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: Text(
                       l10n.rentDueAlertsDesc,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                      ),
+                      style: TextStyle(fontSize: 11, color: textSecondary),
                     ),
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
@@ -174,17 +487,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SwitchListTile.adaptive(
                     value: _maintenanceAlerts,
                     onChanged: (val) => setState(() => _maintenanceAlerts = val),
-                    activeThumbColor: isDark ? AppColors.primaryLight : AppColors.primary,
+                    activeThumbColor: primaryColor,
                     title: Text(
                       l10n.maintenanceAlerts,
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: Text(
                       l10n.maintenanceAlertsDesc,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                      ),
+                      style: TextStyle(fontSize: 11, color: textSecondary),
                     ),
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
@@ -203,17 +513,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SwitchListTile.adaptive(
                     value: _licenseRenewalAlerts,
                     onChanged: (val) => setState(() => _licenseRenewalAlerts = val),
-                    activeThumbColor: isDark ? AppColors.primaryLight : AppColors.primary,
+                    activeThumbColor: primaryColor,
                     title: Text(
                       l10n.licenseRenewalAlerts,
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: Text(
                       l10n.licenseRenewalAlertsDesc,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                      ),
+                      style: TextStyle(fontSize: 11, color: textSecondary),
                     ),
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
@@ -246,58 +553,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SwitchListTile.adaptive(
                     value: _biometricEnabled,
                     onChanged: (val) => setState(() => _biometricEnabled = val),
-                    activeThumbColor: isDark ? AppColors.primaryLight : AppColors.primary,
+                    activeThumbColor: primaryColor,
                     title: Text(
                       l10n.biometricAuth,
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: Text(
                       l10n.biometricAuthDesc,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                      ),
+                      style: TextStyle(fontSize: 11, color: textSecondary),
                     ),
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: (isDark ? AppColors.primaryLight : AppColors.primary).withValues(alpha: 0.12),
+                        color: primaryColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(
-                        Icons.fingerprint_rounded,
-                        color: isDark ? AppColors.primaryLight : AppColors.primary,
-                        size: 20,
-                      ),
+                      child: Icon(Icons.fingerprint_rounded, color: primaryColor, size: 20),
                     ),
                   ),
                   const Divider(height: 1),
                   SwitchListTile.adaptive(
                     value: _autoLockEnabled,
                     onChanged: (val) => setState(() => _autoLockEnabled = val),
-                    activeThumbColor: isDark ? AppColors.primaryLight : AppColors.primary,
+                    activeThumbColor: primaryColor,
                     title: Text(
                       l10n.autoSessionLock,
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: Text(
                       l10n.autoSessionLockDesc,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                      ),
+                      style: TextStyle(fontSize: 11, color: textSecondary),
                     ),
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: (isDark ? AppColors.primaryLight : AppColors.primary).withValues(alpha: 0.12),
+                        color: primaryColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(
-                        Icons.lock_clock_outlined,
-                        color: isDark ? AppColors.primaryLight : AppColors.primary,
-                        size: 20,
-                      ),
+                      child: Icon(Icons.lock_clock_outlined, color: primaryColor, size: 20),
                     ),
                   ),
                   const Divider(height: 1),
@@ -305,19 +598,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: (isDark ? AppColors.primaryLight : AppColors.primary).withValues(alpha: 0.12),
+                        color: primaryColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(
-                        Icons.pin_outlined,
-                        color: isDark ? AppColors.primaryLight : AppColors.primary,
-                        size: 20,
-                      ),
+                      child: Icon(Icons.pin_outlined, color: primaryColor, size: 20),
                     ),
                     title: Text(l10n.passcodeSettings, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                     subtitle: Text(
                       l10n.passcodeSettingsDesc,
-                      style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
+                      style: TextStyle(fontSize: 11, color: textSecondary),
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
                     onTap: () {
@@ -332,70 +621,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             const SizedBox(height: 20),
 
-            // Section 5: النسخ الاحتياطي وتصدير البيانات
-            SectionHeader(
-              title: l10n.backupAndReports,
-              leadingIcon: Icons.cloud_sync_outlined,
-            ),
+            // Section 5: Sign Out & Account Action
             AppCard(
               padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFE8F0FE),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.file_download_outlined,
-                        color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF0F56B3),
-                        size: 20,
-                      ),
-                    ),
-                    title: Text(l10n.exportReport, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    subtitle: Text(
-                      l10n.exportReportDesc,
-                      style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
-                    ),
-                    trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.reportExportSuccess)),
-                      );
-                    },
+              child: ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFC5221F).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFE6F4EA),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.sync_rounded,
-                        color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
-                        size: 20,
-                      ),
-                    ),
-                    title: Text(l10n.cloudSync, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    subtitle: Text(
-                      l10n.cloudSyncDesc,
-                      style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
-                    ),
-                    trailing: Text(
-                      l10n.connected,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF137333),
-                      ),
-                    ),
-                    onTap: () {},
-                  ),
-                ],
+                  child: const Icon(Icons.logout_rounded, color: Color(0xFFC5221F), size: 20),
+                ),
+                title: Text(
+                  context.isArabic ? 'تسجيل الخروج من الحساب' : 'Sign Out Account',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFC5221F)),
+                ),
+                subtitle: Text(
+                  context.isArabic ? 'الاحتفاظ بآخر نسخة في السحابة وتسجيل الخروج' : 'Keep cloud backup and sign out',
+                  style: TextStyle(fontSize: 11, color: textSecondary),
+                ),
+                onTap: () => _confirmSignOut(context),
               ),
             ),
 
@@ -422,16 +668,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     l10n.systemDescription,
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                      color: textSecondary,
                       height: 1.5,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    l10n.systemVersion,
+                    '${l10n.systemVersion} - Android & Windows Edition',
                     style: TextStyle(
                       fontSize: 11,
-                      color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+                      color: isDark ? AppColors.darkTextTertiary : const Color(0xFF94A3B8),
                     ),
                   ),
                 ],
@@ -466,7 +712,7 @@ class _ThemeSelectionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = isDark ? AppColors.primaryLight : AppColors.primary;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
 
     return InkWell(
       onTap: onTap,
@@ -508,7 +754,7 @@ class _ThemeSelectionTile extends StatelessWidget {
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                       color: isSelected
                           ? primaryColor
-                          : (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
+                          : (isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937)),
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -516,7 +762,7 @@ class _ThemeSelectionTile extends StatelessWidget {
                     subtitle,
                     style: TextStyle(
                       fontSize: 11,
-                      color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextSecondary,
+                      color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B),
                     ),
                   ),
                 ],
@@ -551,7 +797,7 @@ class _LanguageSelectionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = isDark ? AppColors.primaryLight : AppColors.primary;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
 
     return InkWell(
       onTap: onTap,

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/widgets/app_header_widgets.dart';
+import '../../../../core/shared/widgets/sync_status_badge.dart';
 import '../../../../core/shared/enums/app_enums.dart';
 import '../../../../core/localization/app_localization_extension.dart';
 import '../../home/logic/home_cubit.dart';
@@ -45,6 +46,11 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
         ),
         centerTitle: false,
         actions: [
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: SyncStatusBadge(),
+          ),
+          const SizedBox(width: 4),
           const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
