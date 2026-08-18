@@ -82,7 +82,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
       text: a != null && a.contractRenewalFee > 0 ? a.contractRenewalFee.toStringAsFixed(0) : '',
     );
     _averageExpensesController = TextEditingController(
-      text: a != null && a.averageMonthlyExpenses > 0 ? a.averageMonthlyExpenses.toStringAsFixed(0) : '0',
+      text: a != null && a.averageMonthlyExpenses > 0 ? a.averageMonthlyExpenses.toStringAsFixed(0) : '',
     );
     _driverNameController = TextEditingController(text: a?.driverOrRenterName ?? '');
     _driverPhoneController = TextEditingController(text: a?.driverPhone ?? '');

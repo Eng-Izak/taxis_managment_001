@@ -27,15 +27,15 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
   int _currentStep = 0; // 0: Manager Profile, 1: Security & Protection
 
   // Form Controllers - Step 1: User Profile
-  final _nameController = TextEditingController(text: 'أحمد محمود سالم');
-  final _emailController = TextEditingController(text: 'ahmed.salem@sadattaxis.com');
-  final _phoneController = TextEditingController(text: '01012345678');
-  final _roleController = TextEditingController(text: 'مدير الأسطول والمحفظة');
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _roleController = TextEditingController();
   CountryInfo _selectedCountry = CountryInfo.defaultCountry;
 
   // Form Controllers - Step 2: Security & Protection
-  final _pinController = TextEditingController(text: '1234');
-  final _confirmPinController = TextEditingController(text: '1234');
+  final _pinController = TextEditingController();
+  final _confirmPinController = TextEditingController();
   bool _obscurePin = true;
   bool _obscureConfirmPin = true;
   bool _biometricEnabled = true;
@@ -323,6 +323,7 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
                         controller: _nameController,
                         decoration: InputDecoration(
                           labelText: isArabic ? 'الاسم بالكامل *' : 'Full Name *',
+                          hintText: isArabic ? 'أحمد محمود سالم' : 'Ahmed Mahmoud Salem',
                           prefixIcon: const Icon(Icons.badge_outlined, size: 20),
                         ),
                       ),
@@ -334,6 +335,7 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           labelText: isArabic ? 'البريد الإلكتروني للمزامنة السحابية *' : 'Cloud Sync Email *',
+                          hintText: 'ahmed.salem@sadattaxis.com',
                           prefixIcon: const Icon(Icons.alternate_email_rounded, size: 20),
                           helperText: isArabic
                               ? 'البريد المعتمد لمزامنة المحفظة بين الهواتف والأجهزة'
@@ -359,6 +361,7 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
                         controller: _roleController,
                         decoration: InputDecoration(
                           labelText: isArabic ? 'المسمى الوظيفي / الدور' : 'Role / Position',
+                          hintText: isArabic ? 'مدير الأسطول والمحفظة' : 'Fleet & Portfolio Manager',
                           prefixIcon: const Icon(Icons.work_outline_rounded, size: 20),
                         ),
                       ),
@@ -466,6 +469,7 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
                               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                               decoration: InputDecoration(
                                 labelText: isArabic ? 'رمز PIN (4 أرقام)' : 'PIN (4 digits)',
+                                hintText: '••••',
                                 counterText: '',
                                 suffixIcon: IconButton(
                                   icon: Icon(_obscurePin ? Icons.visibility_off : Icons.visibility, size: 18),
@@ -486,6 +490,7 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
                               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                               decoration: InputDecoration(
                                 labelText: isArabic ? 'تأكيد رمز PIN' : 'Confirm PIN',
+                                hintText: '••••',
                                 counterText: '',
                                 suffixIcon: IconButton(
                                   icon: Icon(_obscureConfirmPin ? Icons.visibility_off : Icons.visibility, size: 18),

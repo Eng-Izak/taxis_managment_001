@@ -183,11 +183,21 @@ void main() {
   group('LocalStorageService Real Data Lifecycle Tests', () {
     test('Archives asset and restores it seamlessly', () {
       final storage = LocalStorageService();
+      const sampleAsset = AssetModel(
+        id: 'test_archive_asset',
+        plateNumber: 'س أ د 1122',
+        chassisNumber: 'VIN-999',
+        carModelYear: 'BYD F3',
+        modelType: AssetType.fullTaxi,
+        monthlyRent: 8000.0,
+        averageMonthlyExpenses: 1000.0,
+        assetValuation: 250000.0,
+      );
+      storage.addAsset(sampleAsset);
       final initialAssetCount = storage.getAssets().length;
       final initialArchiveCount = storage.getArchivedItems().length;
 
-      final assetToArchive = storage.getAssets().first;
-      storage.archiveAsset(assetToArchive);
+      storage.archiveAsset(sampleAsset);
 
       expect(storage.getAssets().length, initialAssetCount - 1);
       expect(storage.getArchivedItems().length, initialArchiveCount + 1);
@@ -246,6 +256,18 @@ void main() {
 
     test('Generates real dynamic alerts for upcoming license expirations', () {
       final storage = LocalStorageService();
+      final sampleAsset = AssetModel(
+        id: 'asset_with_expiry',
+        plateNumber: 'س أ د 4821',
+        chassisNumber: 'VIN-123',
+        carModelYear: 'BYD F3',
+        modelType: AssetType.fullTaxi,
+        monthlyRent: 8000.0,
+        averageMonthlyExpenses: 1000.0,
+        assetValuation: 250000.0,
+        licenseExpiryDate: DateTime.now().add(const Duration(days: 10)),
+      );
+      storage.addAsset(sampleAsset);
       final alerts = storage.getAlerts();
 
       expect(alerts.isNotEmpty, isTrue);
@@ -410,6 +432,11 @@ void main() {
   group('CloudSyncService and SyncCubit Tests', () {
     test('SyncCubit manages synchronization flow and emits updated state', () async {
       final storage = LocalStorageService();
+      storage.setCurrentUser(const UserModel(
+        id: 'u_sync_test',
+        email: 'ahmed.salem@sadattaxis.com',
+        displayName: 'أحمد محمود سالم',
+      ));
       final syncService = CloudSyncService(storage);
       final cubit = SyncCubit(syncService: syncService, storageService: storage);
 
@@ -652,6 +679,40 @@ void main() {
       final bioSuccess = lockCubit.unlockWithBiometrics();
       expect(bioSuccess, isTrue);
       expect(lockCubit.state.isLocked, isFalse);
+    });
+
+    test('LocalStorageService starts clean and empty on fresh launch', () {
+      final storage = LocalStorageService();
+      storage.clearAllData();
+
+      expect(storage.getAssets().isEmpty, isTrue);
+      expect(storage.getShareholders().isEmpty, isTrue);
+      expect(storage.getTransactions().isEmpty, isTrue);
+      expect(storage.getArchivedItems().isEmpty, isTrue);
+      expect(storage.getAlerts().isEmpty, isTrue);
+      expect(storage.getCurrentUser(), isNull);
+      expect(storage.isSetupCompleted(), isFalse);
+
+      // Adding user data
+      const user = UserModel(
+        id: 'u_real',
+        email: 'user@test.com',
+        displayName: 'المستثمر أحمد',
+      );
+      storage.setCurrentUser(user);
+      expect(storage.getCurrentUser()?.displayName, 'المستثمر أحمد');
+
+      const asset = AssetModel(
+        id: 'a_real',
+        plateNumber: 'س أ د 1000',
+        chassisNumber: 'VIN-1000',
+        carModelYear: 'Toyota 2024',
+        modelType: AssetType.fullTaxi,
+        monthlyRent: 8000.0,
+      );
+      storage.addAsset(asset);
+      expect(storage.getAssets().length, 1);
+      expect(storage.getAssets().first.plateNumber, 'س أ د 1000');
     });
   });
 }

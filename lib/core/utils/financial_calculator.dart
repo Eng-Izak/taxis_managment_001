@@ -182,12 +182,12 @@ class FinancialCalculator {
         .where((t) => t.type == TransactionType.renewalFee)
         .fold(0.0, (sum, t) => sum + t.amount);
 
-    final avgRoi = totalValuation > 0 ? ((netMonthly * 12) / totalValuation) * 100.0 : 18.0;
+    final avgRoi = totalValuation > 0 ? ((netMonthly * 12) / totalValuation) * 100.0 : 0.0;
 
     return DashboardSummary(
       totalPortfolioValue: totalValuation,
       netMonthlyRevenue: netMonthly,
-      monthlyRevenueGrowthPercentage: 5.2,
+      monthlyRevenueGrowthPercentage: totalValuation > 0 ? 5.2 : 0.0,
       fullTaxisCount: fullTaxis,
       plateOnlyCount: plateOnly,
       vehicleOnlyCount: vehicleOnly,
