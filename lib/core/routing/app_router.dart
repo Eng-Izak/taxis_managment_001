@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'routes.dart';
 import '../../features/splash/ui/splash_screen.dart';
+import '../../features/onboarding/ui/initial_setup_screen.dart';
 import '../../features/auth/ui/login_screen.dart';
 import '../../features/home/ui/home_dashboard_screen.dart';
 import '../../features/assets_managment/ui/assets_managment_screen.dart';
@@ -24,6 +25,10 @@ class AppRouter {
       GoRoute(
         path: Routes.splash,
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: Routes.initialSetup,
+        builder: (context, state) => const InitialSetupScreen(),
       ),
       GoRoute(
         path: Routes.login,

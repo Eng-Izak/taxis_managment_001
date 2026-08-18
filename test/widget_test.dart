@@ -535,4 +535,86 @@ void main() {
       expect(AppFormatters.convertDigits('١٢٣٤', isArabic: false), '1234');
     });
   });
+
+  group('Security and Data Protection Tests', () {
+    test('Verifies default PIN code and allows updating securely', () {
+      final storage = LocalStorageService();
+      expect(storage.getPinCode(), '1234');
+      expect(storage.verifyPin('1234'), isTrue);
+      expect(storage.verifyPin('0000'), isFalse);
+
+      storage.setPinCode('9876');
+      expect(storage.getPinCode(), '9876');
+      expect(storage.verifyPin('9876'), isTrue);
+      expect(storage.verifyPin('1234'), isFalse);
+
+      // Restore
+      storage.setPinCode('1234');
+    });
+
+    test('Persists biometric, auto-lock and PIN requirement settings', () {
+      final storage = LocalStorageService();
+      expect(storage.isBiometricEnabled(), isTrue);
+      expect(storage.isAutoLockEnabled(), isTrue);
+      expect(storage.isRequirePinForTransactions(), isTrue);
+
+      storage.setBiometricEnabled(false);
+      expect(storage.isBiometricEnabled(), isFalse);
+
+      storage.setAutoLockEnabled(false);
+      expect(storage.isAutoLockEnabled(), isFalse);
+
+      storage.setRequirePinForTransactions(false);
+      expect(storage.isRequirePinForTransactions(), isFalse);
+
+      // Restore
+      storage.setBiometricEnabled(true);
+      storage.setAutoLockEnabled(true);
+      storage.setRequirePinForTransactions(true);
+    });
+
+    test('Exports and imports portfolio snapshot data correctly', () {
+      final storage = LocalStorageService();
+      final exported = storage.exportPortfolioData();
+
+      expect(exported['assets'], isNotNull);
+      expect(exported['shareholders'], isNotNull);
+      expect(exported['transactions'], isNotNull);
+      expect(exported['version'], 2);
+    });
+
+    test('Initializes first-run setup and marks completion', () {
+      final storage = LocalStorageService();
+      storage.setSetupCompleted(false);
+      expect(storage.isSetupCompleted(), isFalse);
+
+      const testUser = UserModel(
+        id: 'usr_new_test',
+        email: 'test.admin@sadattaxis.com',
+        displayName: 'كابتن عمر الشامي',
+        phone: '01099887766',
+        role: 'المدير المالي والتنفيذي',
+      );
+
+      storage.completeInitialSetup(
+        user: testUser,
+        pinCode: '5566',
+        biometricEnabled: true,
+        autoLockEnabled: true,
+        requirePinForTransactions: true,
+        lockTimeoutMinutes: 5,
+      );
+
+      expect(storage.isSetupCompleted(), isTrue);
+      expect(storage.getCurrentUser()?.displayName, 'كابتن عمر الشامي');
+      expect(storage.getPinCode(), '5566');
+      expect(storage.verifyPin('5566'), isTrue);
+      expect(storage.getLockTimeoutMinutes(), 5);
+
+      // Restore
+      storage.setPinCode('1234');
+      storage.setLockTimeoutMinutes(1);
+    });
+  });
 }
+

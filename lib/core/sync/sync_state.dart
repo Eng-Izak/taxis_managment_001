@@ -7,6 +7,7 @@ class SyncState {
   final int pendingChangesCount;
   final String? userEmail;
   final String? message;
+  final bool autoSyncEnabled;
 
   const SyncState({
     this.status = CloudSyncStatus.synced,
@@ -15,6 +16,7 @@ class SyncState {
     this.pendingChangesCount = 0,
     this.userEmail,
     this.message,
+    this.autoSyncEnabled = true,
   });
 
   SyncState copyWith({
@@ -24,6 +26,7 @@ class SyncState {
     int? pendingChangesCount,
     String? userEmail,
     String? message,
+    bool? autoSyncEnabled,
   }) {
     return SyncState(
       status: status ?? this.status,
@@ -32,6 +35,7 @@ class SyncState {
       pendingChangesCount: pendingChangesCount ?? this.pendingChangesCount,
       userEmail: userEmail ?? this.userEmail,
       message: message ?? this.message,
+      autoSyncEnabled: autoSyncEnabled ?? this.autoSyncEnabled,
     );
   }
 }

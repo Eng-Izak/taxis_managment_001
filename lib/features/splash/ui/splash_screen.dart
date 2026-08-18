@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/routing/routes.dart';
+import '../../../../core/dependency_injection/di.dart';
+import '../../../../core/services/local_storage_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -16,7 +18,12 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) {
-        context.go(Routes.dashboard);
+        final storage = getIt<LocalStorageService>();
+        if (!storage.isSetupCompleted()) {
+          context.go(Routes.initialSetup);
+        } else {
+          context.go(Routes.dashboard);
+        }
       }
     });
   }

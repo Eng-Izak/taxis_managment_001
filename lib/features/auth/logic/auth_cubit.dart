@@ -72,6 +72,18 @@ class AuthCubit extends Cubit<AuthState> {
     emit(state.copyWith(user: updated));
   }
 
+  void toggleAutoSync(bool enabled) {
+    if (state.user == null) return;
+    final updated = state.user!.copyWith(autoSyncEnabled: enabled);
+    _storageService.setCurrentUser(updated);
+    emit(state.copyWith(user: updated));
+  }
+
+  void refreshUser() {
+    final user = _storageService.getCurrentUser();
+    emit(state.copyWith(user: user));
+  }
+
   Future<void> logout() async {
     _storageService.setCurrentUser(null);
     emit(const AuthState(status: AuthStatus.unauthenticated));

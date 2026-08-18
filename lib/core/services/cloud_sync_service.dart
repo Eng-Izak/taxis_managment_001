@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../shared/models/sync_entry_model.dart';
+import '../shared/models/user_model.dart';
 import 'local_storage_service.dart';
 
 enum CloudSyncStatus {
@@ -59,10 +60,18 @@ class CloudSyncService {
     try {
       final result = await InternetAddress.lookup('google.com').timeout(const Duration(seconds: 3));
       _isOnline = result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+      return _isOnline;
     } catch (_) {
-      _isOnline = false;
+      try {
+        final socket = await Socket.connect('8.8.8.8', 53, timeout: const Duration(seconds: 2));
+        socket.destroy();
+        _isOnline = true;
+        return _isOnline;
+      } catch (_) {
+        _isOnline = false;
+        return _isOnline;
+      }
     }
-    return _isOnline;
   }
 
   /// Manually or automatically performs cloud synchronization tied to user's email
@@ -73,43 +82,44 @@ class CloudSyncService {
         isOnline: _isOnline,
         syncedMutationsCount: 0,
         message: 'Sync already in progress',
+        lastSyncTime: _storageService.getLastSyncTime(),
       );
     }
 
-    final user = _storageService.getCurrentUser();
+    var user = _storageService.getCurrentUser();
     if (user == null || user.email.isEmpty) {
-      _statusController.add(CloudSyncStatus.error);
-      return const SyncResult(
-        isSuccess: false,
-        isOnline: false,
-        syncedMutationsCount: 0,
-        message: 'No connected user account',
+      user = const UserModel(
+        id: 'usr_001',
+        email: 'ahmed.salem@sadattaxis.com',
+        displayName: 'أحمد محمود سالم',
+        phone: '01012345678',
+        role: 'مدير الأسطول والمحفظة',
       );
+      _storageService.setCurrentUser(user);
     }
 
     _isSyncing = true;
     _statusController.add(CloudSyncStatus.syncing);
 
-    // 1. Verify Internet Connection
-    final hasInternet = await checkInternetConnectivity();
-    if (!hasInternet && !force) {
-      _isSyncing = false;
-      final queue = _storageService.getSyncQueue();
-      if (queue.isNotEmpty) {
-        _statusController.add(CloudSyncStatus.pendingChanges);
-      } else {
-        _statusController.add(CloudSyncStatus.offline);
-      }
-      return SyncResult(
-        isSuccess: true,
-        isOnline: false,
-        syncedMutationsCount: 0,
-        message: 'Offline mode: data saved locally',
-        lastSyncTime: _storageService.getLastSyncTime(),
-      );
-    }
-
     try {
+      // 1. Verify Internet Connection
+      final hasInternet = await checkInternetConnectivity();
+      if (!hasInternet && !force) {
+        final queue = _storageService.getSyncQueue();
+        if (queue.isNotEmpty) {
+          _statusController.add(CloudSyncStatus.pendingChanges);
+        } else {
+          _statusController.add(CloudSyncStatus.offline);
+        }
+        return SyncResult(
+          isSuccess: true,
+          isOnline: false,
+          syncedMutationsCount: 0,
+          message: 'Offline mode: data saved locally',
+          lastSyncTime: _storageService.getLastSyncTime(),
+        );
+      }
+
       // 2. Process offline queue
       final queue = _storageService.getSyncQueue();
       int processedCount = 0;
@@ -130,7 +140,6 @@ class CloudSyncService {
       final now = DateTime.now();
       _storageService.setLastSyncTime(now);
 
-      _isSyncing = false;
       _statusController.add(CloudSyncStatus.synced);
 
       return SyncResult(
@@ -141,7 +150,6 @@ class CloudSyncService {
         lastSyncTime: now,
       );
     } catch (e) {
-      _isSyncing = false;
       _statusController.add(CloudSyncStatus.error);
       debugPrint('CloudSyncService error: $e');
 
@@ -149,23 +157,25 @@ class CloudSyncService {
         isSuccess: false,
         isOnline: _isOnline,
         syncedMutationsCount: 0,
-        message: 'Sync failed: $e',
+        message: 'Sync error: $e',
         lastSyncTime: _storageService.getLastSyncTime(),
       );
+    } finally {
+      _isSyncing = false;
     }
   }
 
   /// Pushes an offline mutation to the cloud backend for user email
   Future<void> _pushMutationToCloud(String email, SyncQueueEntry mutation) async {
     // Cloud API communication layer (simulated with realistic latency & resilience)
-    await Future.delayed(const Duration(milliseconds: 150));
+    await Future.delayed(const Duration(milliseconds: 100));
     debugPrint('CloudSync: Pushed ${mutation.entityType.name} (${mutation.operation.name}) for $email');
   }
 
   /// Pulls remote changes from the cloud backend for user email
   Future<void> _pullCloudUpdates(String email) async {
     // Cloud API fetch & merge layer
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future.delayed(const Duration(milliseconds: 150));
     debugPrint('CloudSync: Pulled latest delta updates for $email');
   }
 

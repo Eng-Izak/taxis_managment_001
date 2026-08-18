@@ -16,6 +16,8 @@ import '../../../../core/routing/routes.dart';
 import '../../auth/logic/auth_cubit.dart';
 import '../../notifications/ui/notifications_screen.dart';
 import '../../security/ui/security_screen.dart';
+import '../../../../core/dependency_injection/di.dart';
+import '../../../../core/services/local_storage_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -25,11 +27,22 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  late final LocalStorageService _storageService;
   bool _rentDueAlerts = true;
   bool _maintenanceAlerts = true;
   bool _licenseRenewalAlerts = true;
   bool _biometricEnabled = true;
   bool _autoLockEnabled = true;
+  bool _requirePinForTransactions = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _storageService = getIt<LocalStorageService>();
+    _biometricEnabled = _storageService.isBiometricEnabled();
+    _autoLockEnabled = _storageService.isAutoLockEnabled();
+    _requirePinForTransactions = _storageService.isRequirePinForTransactions();
+  }
 
   void _showSwitchAccountDialog(BuildContext context) {
     final emailController = TextEditingController(text: context.read<AuthCubit>().state.user?.email ?? '');
@@ -334,7 +347,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 )
                               : const Icon(Icons.sync_rounded, size: 16, color: Colors.white),
                           label: Text(
-                            context.isArabic ? 'مزامنة الآن' : 'Sync Now',
+                            syncState.status == CloudSyncStatus.syncing
+                                ? (context.isArabic ? 'جاري المزامنة...' : 'Syncing...')
+                                : (context.isArabic ? 'مزامنة الآن' : 'Sync Now'),
                             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                           onPressed: syncState.status == CloudSyncStatus.syncing
@@ -342,11 +357,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               : () async {
                                   final res = await context.read<SyncCubit>().triggerSync(force: true);
                                   if (context.mounted) {
+                                    context.read<AuthCubit>().refreshUser();
                                     AppToast.show(
                                       context,
                                       message: res.isOnline
                                           ? (context.isArabic ? 'تمت مزامنة المحفظة مع السحابة بنجاح' : 'Portfolio synced with cloud')
                                           : (context.isArabic ? 'تم حفظ التعديلات محلياً بنجاح' : 'Saved locally (Offline)'),
+                                      icon: Icons.cloud_done_rounded,
+                                      duration: const Duration(seconds: 4),
                                     );
                                   }
                                 },
@@ -360,7 +378,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // Auto Sync Switch
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    value: authUser?.autoSyncEnabled ?? true,
+                    value: syncState.autoSyncEnabled,
                     activeThumbColor: primaryColor,
                     title: Text(
                       context.isArabic ? 'المزامنة السحابية اللحظية في الخلفية' : 'Real-time Background Sync',
@@ -374,6 +392,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     onChanged: (val) {
                       context.read<SyncCubit>().toggleAutoSync(val);
+                      context.read<AuthCubit>().toggleAutoSync(val);
+                      AppToast.show(
+                        context,
+                        message: val
+                            ? (context.isArabic ? 'تم تفعيل المزامنة التلقائية اللحظية' : 'Real-time auto-sync enabled')
+                            : (context.isArabic ? 'تم إيقاف المزامنة التلقائية' : 'Auto-sync disabled'),
+                        duration: const Duration(seconds: 3),
+                      );
                     },
                   ),
                 ],
@@ -541,18 +567,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             const SizedBox(height: 20),
 
-            // Section 4: الأمان والتحقق
+            // Section 4: الأمان والتحقق وحماية البيانات
             SectionHeader(
-              title: l10n.securityAndProtection,
+              title: context.isArabic ? 'الأمان والتحقق وحماية البيانات' : 'Security, Auth & Data Protection',
               leadingIcon: Icons.security_rounded,
             ),
             AppCard(
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
+                  // Biometric Switch
                   SwitchListTile.adaptive(
                     value: _biometricEnabled,
-                    onChanged: (val) => setState(() => _biometricEnabled = val),
+                    onChanged: (val) {
+                      setState(() => _biometricEnabled = val);
+                      _storageService.setBiometricEnabled(val);
+                      AppToast.show(
+                        context,
+                        message: val
+                            ? (context.isArabic ? 'تم تفعيل الحماية بالبصمة والوجه' : 'Biometric authentication enabled')
+                            : (context.isArabic ? 'تم إيقاف الحماية بالبصمة' : 'Biometric authentication disabled'),
+                      );
+                    },
                     activeThumbColor: primaryColor,
                     title: Text(
                       l10n.biometricAuth,
@@ -572,9 +608,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                   const Divider(height: 1),
+
+                  // Require PIN for Financial Actions Switch
+                  SwitchListTile.adaptive(
+                    value: _requirePinForTransactions,
+                    onChanged: (val) {
+                      setState(() => _requirePinForTransactions = val);
+                      _storageService.setRequirePinForTransactions(val);
+                      AppToast.show(
+                        context,
+                        message: val
+                            ? (context.isArabic ? 'تم تفعيل تأكيد رمز PIN للعمليات الحساسة' : 'PIN required for financial operations')
+                            : (context.isArabic ? 'تم إيقاف تأكيد PIN للعمليات' : 'PIN requirement disabled'),
+                      );
+                    },
+                    activeThumbColor: primaryColor,
+                    title: Text(
+                      context.isArabic ? 'طلب رمز PIN للعمليات المالية والحذف' : 'Require PIN for Financial Actions',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    subtitle: Text(
+                      context.isArabic
+                          ? 'طلب الرمز السري عند صرف الأرباح أو الحذف النهائي من الأرشيف'
+                          : 'Prompt for PIN before dividend payouts or permanent deletions',
+                      style: TextStyle(fontSize: 11, color: textSecondary),
+                    ),
+                    secondary: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(Icons.lock_outline_rounded, color: primaryColor, size: 20),
+                    ),
+                  ),
+                  const Divider(height: 1),
+
+                  // Auto Session Lock Switch
                   SwitchListTile.adaptive(
                     value: _autoLockEnabled,
-                    onChanged: (val) => setState(() => _autoLockEnabled = val),
+                    onChanged: (val) {
+                      setState(() => _autoLockEnabled = val);
+                      _storageService.setAutoLockEnabled(val);
+                      AppToast.show(
+                        context,
+                        message: val
+                            ? (context.isArabic ? 'تم تفعيل القفل التلقائي للجلسة' : 'Auto session lock enabled')
+                            : (context.isArabic ? 'تم إيقاف القفل التلقائي' : 'Auto session lock disabled'),
+                      );
+                    },
                     activeThumbColor: primaryColor,
                     title: Text(
                       l10n.autoSessionLock,
@@ -594,6 +676,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                   const Divider(height: 1),
+
+                  // PIN Settings Tile
                   ListTile(
                     leading: Container(
                       padding: const EdgeInsets.all(8),
@@ -605,7 +689,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     title: Text(l10n.passcodeSettings, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                     subtitle: Text(
-                      l10n.passcodeSettingsDesc,
+                      context.isArabic ? 'تعديل رمز PIN المكون من 4 أرقام وإدارة الأمان المتقدم' : 'Change 4-digit PIN & advanced security controls',
                       style: TextStyle(fontSize: 11, color: textSecondary),
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),

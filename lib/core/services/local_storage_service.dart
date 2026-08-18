@@ -22,6 +22,12 @@ class LocalStorageService {
   static const String _keyLastSync = 'taxi_app_last_sync_v2';
   static const String _keyThemeMode = 'taxi_app_theme_mode_v2';
   static const String _keyLocale = 'taxi_app_locale_v2';
+  static const String _keyBiometric = 'taxi_app_biometric_v2';
+  static const String _keyAutoLock = 'taxi_app_auto_lock_v2';
+  static const String _keyRequirePin = 'taxi_app_require_pin_v2';
+  static const String _keyPinCode = 'taxi_app_pin_code_v2';
+  static const String _keyLockTimeout = 'taxi_app_lock_timeout_v2';
+  static const String _keySetupCompleted = 'taxi_app_setup_completed_v2';
 
   SharedPreferences? _prefs;
 
@@ -36,6 +42,13 @@ class LocalStorageService {
 
   ThemeMode _themeMode = ThemeMode.light;
   Locale _locale = const Locale('ar', 'EG');
+
+  bool _biometricEnabled = true;
+  bool _autoLockEnabled = true;
+  bool _requirePinForTransactions = true;
+  String _pinCode = '1234';
+  int _lockTimeoutMinutes = 1;
+  bool _isSetupCompleted = false;
 
   LocalStorageService() {
     _initSeedData();
@@ -139,6 +152,14 @@ class LocalStorageService {
     if (localeStr != null) {
       _locale = Locale(localeStr);
     }
+
+    // 9. Security Settings
+    _biometricEnabled = _prefs!.getBool(_keyBiometric) ?? true;
+    _autoLockEnabled = _prefs!.getBool(_keyAutoLock) ?? true;
+    _requirePinForTransactions = _prefs!.getBool(_keyRequirePin) ?? true;
+    _pinCode = _prefs!.getString(_keyPinCode) ?? '1234';
+    _lockTimeoutMinutes = _prefs!.getInt(_keyLockTimeout) ?? 1;
+    _isSetupCompleted = _prefs!.getBool(_keySetupCompleted) ?? false;
   }
 
   void _initSeedData() {
@@ -875,5 +896,61 @@ class LocalStorageService {
   void setLocale(Locale locale) {
     _locale = locale;
     _prefs?.setString(_keyLocale, locale.languageCode);
+  }
+
+  // ================= SECURITY & DATA PROTECTION =================
+  bool isBiometricEnabled() => _biometricEnabled;
+  void setBiometricEnabled(bool val) {
+    _biometricEnabled = val;
+    _prefs?.setBool(_keyBiometric, val);
+  }
+
+  bool isAutoLockEnabled() => _autoLockEnabled;
+  void setAutoLockEnabled(bool val) {
+    _autoLockEnabled = val;
+    _prefs?.setBool(_keyAutoLock, val);
+  }
+
+  bool isRequirePinForTransactions() => _requirePinForTransactions;
+  void setRequirePinForTransactions(bool val) {
+    _requirePinForTransactions = val;
+    _prefs?.setBool(_keyRequirePin, val);
+  }
+
+  String getPinCode() => _pinCode;
+  bool verifyPin(String entered) => entered == _pinCode;
+  void setPinCode(String newPin) {
+    _pinCode = newPin;
+    _prefs?.setString(_keyPinCode, newPin);
+  }
+
+  int getLockTimeoutMinutes() => _lockTimeoutMinutes;
+  void setLockTimeoutMinutes(int mins) {
+    _lockTimeoutMinutes = mins;
+    _prefs?.setInt(_keyLockTimeout, mins);
+  }
+
+  // ================= FIRST-RUN & ONBOARDING =================
+  bool isSetupCompleted() => _isSetupCompleted;
+  void setSetupCompleted(bool val) {
+    _isSetupCompleted = val;
+    _prefs?.setBool(_keySetupCompleted, val);
+  }
+
+  void completeInitialSetup({
+    required UserModel user,
+    required String pinCode,
+    required bool biometricEnabled,
+    required bool autoLockEnabled,
+    required bool requirePinForTransactions,
+    required int lockTimeoutMinutes,
+  }) {
+    setCurrentUser(user);
+    setPinCode(pinCode);
+    setBiometricEnabled(biometricEnabled);
+    setAutoLockEnabled(autoLockEnabled);
+    setRequirePinForTransactions(requirePinForTransactions);
+    setLockTimeoutMinutes(lockTimeoutMinutes);
+    setSetupCompleted(true);
   }
 }

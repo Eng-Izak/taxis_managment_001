@@ -20,6 +20,7 @@ class SyncCubit extends Cubit<SyncState> {
           lastSyncTime: storageService.getLastSyncTime(),
           pendingChangesCount: storageService.getSyncQueue().length,
           userEmail: storageService.getCurrentUser()?.email,
+          autoSyncEnabled: storageService.getCurrentUser()?.autoSyncEnabled ?? true,
         )) {
     _init();
   }
@@ -34,6 +35,7 @@ class SyncCubit extends Cubit<SyncState> {
         lastSyncTime: _storageService.getLastSyncTime(),
         pendingChangesCount: queue.length,
         userEmail: user?.email,
+        autoSyncEnabled: user?.autoSyncEnabled ?? true,
       ));
     });
   }
@@ -50,6 +52,7 @@ class SyncCubit extends Cubit<SyncState> {
       lastSyncTime: result.lastSyncTime ?? _storageService.getLastSyncTime(),
       pendingChangesCount: queue.length,
       userEmail: user?.email,
+      autoSyncEnabled: user?.autoSyncEnabled ?? true,
       message: result.message,
     ));
 
@@ -61,7 +64,7 @@ class SyncCubit extends Cubit<SyncState> {
     if (user != null) {
       final updatedUser = user.copyWith(autoSyncEnabled: enabled);
       _storageService.setCurrentUser(updatedUser);
-      emit(state.copyWith(userEmail: updatedUser.email));
+      emit(state.copyWith(userEmail: updatedUser.email, autoSyncEnabled: enabled));
     }
   }
 
