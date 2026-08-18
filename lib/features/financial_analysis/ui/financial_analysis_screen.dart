@@ -29,6 +29,13 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const Center(
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(start: 12),
+            child: SyncStatusBadge(),
+          ),
+        ),
+        leadingWidth: 105,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -37,20 +44,15 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
             Text(
               l10n.financialAnalysis,
               style: const TextStyle(
-                fontSize: 18,
+                fontSize: 17,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF0F56B3),
               ),
             ),
           ],
         ),
-        centerTitle: false,
+        centerTitle: true,
         actions: [
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
-            child: SyncStatusBadge(),
-          ),
-          const SizedBox(width: 4),
           const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
@@ -59,7 +61,7 @@ class _FinancialAnalysisScreenState extends State<FinancialAnalysisScreen> {
               );
             },
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 6),
         ],
       ),
       body: BlocBuilder<HomeCubit, HomeState>(

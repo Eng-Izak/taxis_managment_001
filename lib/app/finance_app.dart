@@ -7,6 +7,8 @@ import '../core/localization/locale_cubit.dart';
 import '../core/routing/app_router.dart';
 import '../core/dependency_injection/di.dart';
 import '../core/sync/sync_cubit.dart';
+import '../core/security/logic/app_lock_cubit.dart';
+import '../core/security/ui/app_lock_wrapper.dart';
 import '../core/shared/repos/asset_repository.dart';
 import '../core/shared/repos/partner_repository.dart';
 import '../core/shared/repos/finance_repository.dart';
@@ -29,6 +31,9 @@ class FinanceApp extends StatelessWidget {
         ),
         BlocProvider<SyncCubit>(
           create: (_) => getIt<SyncCubit>(),
+        ),
+        BlocProvider<AppLockCubit>(
+          create: (_) => getIt<AppLockCubit>(),
         ),
         BlocProvider<AuthCubit>(
           create: (_) => getIt<AuthCubit>(),
@@ -60,11 +65,13 @@ class FinanceApp extends StatelessWidget {
                 supportedLocales: AppLocalizations.supportedLocales,
                 localizationsDelegates: AppLocalizations.localizationsDelegates,
                 builder: (context, child) {
-                  return Directionality(
-                    textDirection: locale.languageCode == 'ar'
-                        ? TextDirection.rtl
-                        : TextDirection.ltr,
-                    child: child ?? const SizedBox.shrink(),
+                  return AppLockWrapper(
+                    child: Directionality(
+                      textDirection: locale.languageCode == 'ar'
+                          ? TextDirection.rtl
+                          : TextDirection.ltr,
+                      child: child ?? const SizedBox.shrink(),
+                    ),
                   );
                 },
               );

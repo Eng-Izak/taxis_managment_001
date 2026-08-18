@@ -175,6 +175,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const Center(
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(start: 12),
+            child: SyncStatusBadge(),
+          ),
+        ),
+        leadingWidth: 105,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -183,20 +190,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Text(
               l10n.settings,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 17,
                 fontWeight: FontWeight.bold,
                 color: primaryColor,
               ),
             ),
           ],
         ),
-        centerTitle: false,
+        centerTitle: true,
         actions: [
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
-            child: SyncStatusBadge(),
-          ),
-          const SizedBox(width: 6),
           const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
@@ -205,7 +207,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
             },
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 6),
         ],
       ),
       body: SingleChildScrollView(

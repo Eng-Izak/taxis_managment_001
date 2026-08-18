@@ -952,5 +952,15 @@ class LocalStorageService {
     setRequirePinForTransactions(requirePinForTransactions);
     setLockTimeoutMinutes(lockTimeoutMinutes);
     setSetupCompleted(true);
+
+    // Synchronize primary shareholder profile with manager user details
+    final index = _shareholders.indexWhere((s) => s.id == 'partner_1');
+    if (index != -1) {
+      _shareholders[index] = _shareholders[index].copyWith(
+        name: user.displayName,
+        phone: user.phone,
+      );
+      _persistShareholders();
+    }
   }
 }

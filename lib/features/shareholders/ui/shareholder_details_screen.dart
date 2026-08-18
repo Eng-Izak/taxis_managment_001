@@ -146,7 +146,7 @@ class ShareholderDetailsScreen extends StatelessWidget {
             color: textPrimary,
           ),
         ),
-        centerTitle: false,
+        centerTitle: true,
         actions: [
           IconButton(
             icon: Icon(Icons.edit_rounded, color: primaryColor),

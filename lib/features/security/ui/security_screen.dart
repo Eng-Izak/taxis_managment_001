@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/widgets/app_toast.dart';
 import '../../../../core/localization/app_localization_extension.dart';
 import '../../../../core/services/local_storage_service.dart';
+import '../../../../core/security/logic/app_lock_cubit.dart';
 import '../../../../core/dependency_injection/di.dart';
 
 class SecurityScreen extends StatefulWidget {
@@ -317,129 +319,6 @@ class _SecurityScreenState extends State<SecurityScreen> {
     );
   }
 
-  void _showTestLockOverlay() {
-    final isArabic = context.isArabic;
-    final pinController = TextEditingController();
-    String? pinError;
-
-    showModalBottomSheet(
-      context: context,
-      isDismissible: true,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (modalCtx) => StatefulBuilder(
-        builder: (ctx, setModalState) {
-          final isDark = Theme.of(context).brightness == Brightness.dark;
-          final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
-
-          return Container(
-            padding: EdgeInsets.fromLTRB(24, 20, 24, MediaQuery.of(context).viewInsets.bottom + 24),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF131D31) : Colors.white,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: primaryColor.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.lock_rounded, color: primaryColor, size: 32),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  isArabic ? 'تأكيد هوية المستخدم (قفل الأمان)' : 'Security Verification (Session Lock)',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  isArabic
-                      ? 'أدخل رمز PIN أو استخدم القياسات الحيوية لفتح التطبيق'
-                      : 'Enter PIN or use biometrics to unlock',
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: pinController,
-                  obscureText: true,
-                  keyboardType: TextInputType.number,
-                  maxLength: 4,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 22, letterSpacing: 8, fontWeight: FontWeight.bold),
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: InputDecoration(
-                    hintText: '••••',
-                    counterText: '',
-                    errorText: pinError,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Row(
-                  children: [
-                    if (_biometricsEnabled) ...[
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          icon: const Icon(Icons.fingerprint_rounded, size: 20),
-                          label: Text(isArabic ? 'بصمة الإصبع' : 'Biometrics'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: primaryColor,
-                            side: BorderSide(color: primaryColor),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          onPressed: () {
-                            Navigator.of(modalCtx).pop();
-                            AppToast.show(
-                              context,
-                              message: isArabic ? 'تم التحقق بنجاح من البصمة والوجه' : 'Biometric verified successfully',
-                              icon: Icons.check_circle_rounded,
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                    ],
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                        onPressed: () {
-                          if (_storage.verifyPin(pinController.text.trim())) {
-                            Navigator.of(modalCtx).pop();
-                            AppToast.show(
-                              context,
-                              message: isArabic ? 'تم التحقق بنجاح وتم إلغاء القفل' : 'Unlocked successfully',
-                              icon: Icons.check_circle_rounded,
-                            );
-                          } else {
-                            setModalState(() {
-                              pinError = isArabic ? 'رمز PIN غير صحيح' : 'Incorrect PIN';
-                            });
-                          }
-                        },
-                        child: Text(
-                          isArabic ? 'تأكيد الرمز' : 'Unlock',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -738,7 +617,9 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       style: TextStyle(fontSize: 11, color: textSecondary),
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
-                    onTap: _showTestLockOverlay,
+                    onTap: () {
+                      context.read<AppLockCubit>().lock();
+                    },
                   ),
                 ],
               ),

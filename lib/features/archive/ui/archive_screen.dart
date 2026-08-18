@@ -341,7 +341,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
             color: isDark ? AppColors.darkTextPrimary : const Color(0xFF0F56B3),
           ),
         ),
-        centerTitle: false,
+        centerTitle: true,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

@@ -13,6 +13,7 @@ import '../../../../core/services/cloud_sync_service.dart';
 import '../../../../core/sync/sync_cubit.dart';
 import '../../../../core/dependency_injection/di.dart';
 import '../../../../core/routing/routes.dart';
+import '../../../../core/security/logic/app_lock_cubit.dart';
 import '../../auth/logic/auth_cubit.dart';
 
 class InitialSetupScreen extends StatefulWidget {
@@ -129,10 +130,11 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
       lockTimeoutMinutes: _lockTimeoutMinutes,
     );
 
-    // Initialize AuthCubit with new user
+    // Initialize AuthCubit & AppLockCubit with new user
     if (mounted) {
       context.read<AuthCubit>().refreshUser();
       context.read<SyncCubit>().toggleAutoSync(_autoSyncEnabled);
+      context.read<AppLockCubit>().verifyPin(pin);
     }
 
     // Trigger cloud sync snapshot

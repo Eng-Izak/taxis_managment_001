@@ -75,7 +75,7 @@ class AssetDetailsScreen extends StatelessWidget {
                 color: textPrimary,
               ),
             ),
-            centerTitle: false,
+            centerTitle: true,
             actions: [
               IconButton(
                 icon: Icon(Icons.archive_outlined, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),

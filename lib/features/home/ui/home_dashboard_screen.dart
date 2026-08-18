@@ -31,6 +31,13 @@ class HomeDashboardScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const Center(
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(start: 12),
+            child: SyncStatusBadge(),
+          ),
+        ),
+        leadingWidth: 105,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -39,20 +46,15 @@ class HomeDashboardScreen extends StatelessWidget {
             Text(
               l10n.dashboard,
               style: const TextStyle(
-                fontSize: 18,
+                fontSize: 17,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF0F56B3),
               ),
             ),
           ],
         ),
-        centerTitle: false,
+        centerTitle: true,
         actions: [
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
-            child: SyncStatusBadge(),
-          ),
-          const SizedBox(width: 4),
           const ArchiveIconButton(),
           NotificationBellButton(
             onTap: () {
@@ -61,7 +63,7 @@ class HomeDashboardScreen extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 6),
         ],
       ),
       body: BlocBuilder<HomeCubit, HomeState>(

@@ -18,6 +18,7 @@ import 'package:taxis_managment_001/features/auth/logic/auth_state.dart';
 import 'package:taxis_managment_001/core/shared/widgets/app_phone_field.dart';
 import 'package:taxis_managment_001/core/shared/models/document_meta_model.dart';
 import 'package:taxis_managment_001/core/shared/models/archived_item_model.dart';
+import 'package:taxis_managment_001/core/security/logic/app_lock_cubit.dart';
 
 void main() {
   group('Taxi Asset Management Financial Engine Tests', () {
@@ -615,6 +616,44 @@ void main() {
       storage.setPinCode('1234');
       storage.setLockTimeoutMinutes(1);
     });
+
+    test('AppLockCubit manages PIN entry, wrong attempts, and biometrics unlock', () {
+      final storage = LocalStorageService();
+      storage.setSetupCompleted(true);
+      storage.setAutoLockEnabled(true);
+      storage.setPinCode('1234');
+      storage.setBiometricEnabled(true);
+
+      final lockCubit = AppLockCubit(storage);
+      expect(lockCubit.state.isLocked, isTrue);
+
+      // Wrong PIN entry
+      lockCubit.inputDigit('9');
+      lockCubit.inputDigit('9');
+      lockCubit.inputDigit('9');
+      lockCubit.inputDigit('9'); // auto verifies on 4th digit
+      expect(lockCubit.state.isLocked, isTrue);
+      expect(lockCubit.state.errorMessage, isNotNull);
+      expect(lockCubit.state.failedAttempts, 1);
+
+      // Delete and correct PIN entry
+      lockCubit.inputDigit('1');
+      lockCubit.inputDigit('2');
+      lockCubit.inputDigit('3');
+      lockCubit.inputDigit('4');
+      expect(lockCubit.state.isLocked, isFalse);
+      expect(lockCubit.state.errorMessage, isNull);
+
+      // Manual lock
+      lockCubit.lock();
+      expect(lockCubit.state.isLocked, isTrue);
+
+      // Biometrics unlock
+      final bioSuccess = lockCubit.unlockWithBiometrics();
+      expect(bioSuccess, isTrue);
+      expect(lockCubit.state.isLocked, isFalse);
+    });
   });
 }
+
 

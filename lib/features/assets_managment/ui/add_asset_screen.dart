@@ -272,7 +272,7 @@ class _AddAssetScreenState extends State<AddAssetScreen> {
           isEdit ? l10n.editAsset : l10n.addNewAssetFull,
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
         ),
-        centerTitle: false,
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),

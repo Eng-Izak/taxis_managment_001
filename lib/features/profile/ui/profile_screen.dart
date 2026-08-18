@@ -25,16 +25,18 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const Center(
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(start: 12),
+            child: SyncStatusBadge(),
+          ),
+        ),
+        leadingWidth: 105,
         title: Text(
           context.isArabic ? 'الملف الشخصي والحساب' : 'Profile & Account',
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: textPrimary),
         ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-            child: SyncStatusBadge(),
-          ),
-        ],
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),

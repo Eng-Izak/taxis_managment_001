@@ -7,6 +7,7 @@ import '../shared/repos/finance_repository.dart';
 import '../theming/theme_cubit.dart';
 import '../localization/locale_cubit.dart';
 import '../sync/sync_cubit.dart';
+import '../security/logic/app_lock_cubit.dart';
 import '../../features/auth/logic/auth_cubit.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -19,6 +20,11 @@ Future<void> setupDependencyInjection() async {
 
   final syncService = CloudSyncService(storageService);
   getIt.registerSingleton<CloudSyncService>(syncService);
+
+  // Security App Lock Cubit
+  getIt.registerLazySingleton<AppLockCubit>(
+    () => AppLockCubit(getIt<LocalStorageService>()),
+  );
 
   // Theme & Locale Cubits
   getIt.registerLazySingleton<ThemeCubit>(
