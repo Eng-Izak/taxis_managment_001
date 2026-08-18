@@ -186,7 +186,7 @@ class AssetCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              context.formatPercentage((asset.netMonthlyProfit / (asset.assetValuation > 0 ? asset.assetValuation : 500000)) * 100 * 12),
+                              context.formatPercentage(asset.assetValuation > 0 ? ((asset.netMonthlyProfit * 12) / asset.assetValuation) * 100 : 0.0),
                               style: TextStyle(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.bold,

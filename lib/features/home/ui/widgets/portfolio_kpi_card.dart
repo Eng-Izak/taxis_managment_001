@@ -34,13 +34,13 @@ class PortfolioKpiCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
 
-              // Big Value: 500,000 ج.م
+              // Big Value: إجمالي قيمة المحفظة
               Row(
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   Text(
-                    context.formatNumber(summary.totalPortfolioValue > 0 ? summary.totalPortfolioValue : 500000),
+                    context.formatNumber(summary.totalPortfolioValue),
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w900,
@@ -91,7 +91,7 @@ class PortfolioKpiCard extends StatelessWidget {
                           textBaseline: TextBaseline.alphabetic,
                           children: [
                             Text(
-                              context.formatNumber(summary.netMonthlyRevenue > 0 ? summary.netMonthlyRevenue : 15000),
+                              context.formatNumber(summary.netMonthlyRevenue),
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -110,33 +110,34 @@ class PortfolioKpiCard extends StatelessWidget {
                           ],
                         ),
 
-                        // Yellow/Gold Growth Badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                context.digits('+5%'),
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
+                        // Growth Badge
+                        if (summary.monthlyRevenueGrowthPercentage > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '+${context.formatPercentage(summary.monthlyRevenueGrowthPercentage)}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000),
+                                  ),
+                                ),
+                                const SizedBox(width: 3),
+                                Icon(
+                                  Icons.trending_up_rounded,
+                                  size: 14,
                                   color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000),
                                 ),
-                              ),
-                              const SizedBox(width: 3),
-                              Icon(
-                                Icons.trending_up_rounded,
-                                size: 14,
-                                color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ],
