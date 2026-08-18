@@ -27,11 +27,11 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(
         leading: const Center(
           child: Padding(
-            padding: EdgeInsetsDirectional.only(start: 12),
+            padding: EdgeInsetsDirectional.only(start: 8),
             child: SyncStatusBadge(),
           ),
         ),
-        leadingWidth: 105,
+        leadingWidth: 115,
         title: Text(
           context.isArabic ? 'الملف الشخصي والحساب' : 'Profile & Account',
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: textPrimary),

@@ -318,6 +318,16 @@ class LocalStorageService {
     _queueMutation(SyncEntityType.archivedItem, SyncOperationType.delete, archiveId, null);
   }
 
+  void addArchivedItem(ArchivedItemModel item) {
+    _archivedItems.insert(0, item);
+    _persistArchivedItems();
+    _queueMutation(SyncEntityType.archivedItem, SyncOperationType.create, item.id, item.toJson());
+  }
+
+  void deleteArchivedItem(String archiveId) {
+    deleteArchivedPermanently(archiveId);
+  }
+
   // ================= SHAREHOLDERS OPERATIONS =================
   List<ShareholderModel> getShareholders() => List.unmodifiable(_shareholders);
 
@@ -349,6 +359,21 @@ class LocalStorageService {
     _transactions.insert(0, transaction);
     _persistTransactions();
     _queueMutation(SyncEntityType.transaction, SyncOperationType.create, transaction.id, transaction.toJson());
+  }
+
+  void updateTransaction(TransactionRecord transaction) {
+    final index = _transactions.indexWhere((t) => t.id == transaction.id);
+    if (index != -1) {
+      _transactions[index] = transaction;
+      _persistTransactions();
+      _queueMutation(SyncEntityType.transaction, SyncOperationType.update, transaction.id, transaction.toJson());
+    }
+  }
+
+  void deleteTransaction(String transactionId) {
+    _transactions.removeWhere((t) => t.id == transactionId);
+    _persistTransactions();
+    _queueMutation(SyncEntityType.transaction, SyncOperationType.delete, transactionId, null);
   }
 
   // ================= ALERTS OPERATIONS =================
@@ -595,6 +620,33 @@ class LocalStorageService {
     setRequirePinForTransactions(requirePinForTransactions);
     setLockTimeoutMinutes(lockTimeoutMinutes);
     setSetupCompleted(true);
+  }
+
+  /// Applies a full atomic batch of assets, shareholders, and transactions from local sync
+  void applyBatchSnapshot({
+    List<AssetModel>? assets,
+    List<ShareholderModel>? shareholders,
+    List<TransactionRecord>? transactions,
+    List<ArchivedItemModel>? archivedItems,
+  }) {
+    if (assets != null) {
+      _assets = List.from(assets);
+      _persistAssets();
+    }
+    if (shareholders != null) {
+      _shareholders = List.from(shareholders);
+      _persistShareholders();
+    }
+    if (transactions != null) {
+      _transactions = List.from(transactions);
+      _persistTransactions();
+    }
+    if (archivedItems != null) {
+      _archivedItems = List.from(archivedItems);
+      _persistArchivedItems();
+    }
+    _lastSyncTime = DateTime.now().toUtc();
+    _prefs?.setString(_keyLastSync, _lastSyncTime!.toIso8601String());
   }
 
   /// Clears all local application data and resets to clean initial state

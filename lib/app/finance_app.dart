@@ -15,6 +15,7 @@ import '../core/shared/repos/finance_repository.dart';
 import '../features/home/logic/home_cubit.dart';
 import '../features/shareholders/logic/shareholders_cubit.dart';
 import '../features/auth/logic/auth_cubit.dart';
+import '../features/sync/logic/local_sync_cubit.dart';
 
 class FinanceApp extends StatelessWidget {
   const FinanceApp({super.key});
@@ -31,6 +32,9 @@ class FinanceApp extends StatelessWidget {
         ),
         BlocProvider<SyncCubit>(
           create: (_) => getIt<SyncCubit>(),
+        ),
+        BlocProvider<LocalSyncCubit>(
+          create: (_) => getIt<LocalSyncCubit>()..initPlatformSync(),
         ),
         BlocProvider<AppLockCubit>(
           create: (_) => getIt<AppLockCubit>(),
