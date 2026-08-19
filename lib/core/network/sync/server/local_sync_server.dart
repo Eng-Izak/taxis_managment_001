@@ -52,6 +52,40 @@ class LocalSyncServer {
   int get connectedClientsCount => _clients.length;
   int? get serverPort => _server?.port;
 
+  /// Ensures Windows Defender Firewall allows incoming connections on port 8080 for Private networks
+  static Future<void> ensureWindowsFirewallRule({int port = defaultPort, String ruleName = 'SadatTaxiSync'}) async {
+    if (kIsWeb || !Platform.isWindows) return;
+    try {
+      final exePath = Platform.resolvedExecutable;
+      final checkResult = await Process.run('netsh', [
+        'advfirewall',
+        'firewall',
+        'show',
+        'rule',
+        'name=$ruleName',
+      ]);
+
+      if (checkResult.exitCode != 0 || !(checkResult.stdout as String).contains(ruleName)) {
+        debugPrint('[LocalSyncServer] Registering Windows Defender Firewall rule for port $port (Private networks)...');
+        await Process.run('netsh', [
+          'advfirewall',
+          'firewall',
+          'add',
+          'rule',
+          'name=$ruleName',
+          'dir=in',
+          'action=allow',
+          'protocol=TCP',
+          'localport=$port',
+          'profile=private',
+          'program=$exePath',
+        ]);
+      }
+    } catch (e) {
+      debugPrint('[LocalSyncServer] Windows Firewall rule notice: $e');
+    }
+  }
+
   /// Starts the embedded HTTP / WebSocket server on 0.0.0.0:port
   Future<bool> startServer({
     int port = defaultPort,
@@ -64,6 +98,11 @@ class LocalSyncServer {
 
     if (dataProvider != null) {
       fullSyncDataProvider = dataProvider;
+    }
+
+    // Attempt to register firewall rule on Windows for private network sync
+    if (!kIsWeb && Platform.isWindows) {
+      await ensureWindowsFirewallRule(port: port);
     }
 
     try {

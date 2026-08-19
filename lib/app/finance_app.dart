@@ -59,7 +59,7 @@ class FinanceApp extends StatelessWidget {
           return BlocBuilder<LocaleCubit, Locale>(
             builder: (context, locale) {
               return MaterialApp.router(
-                title: 'إدارة أصول تاكسيات مدينة السادات',
+                onGenerateTitle: (ctx) => AppLocalizations.of(ctx).appTitle,
                 debugShowCheckedModeBanner: false,
                 theme: AppTheme.lightTheme,
                 darkTheme: AppTheme.darkTheme,
