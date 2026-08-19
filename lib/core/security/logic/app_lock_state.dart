@@ -3,6 +3,7 @@ class AppLockState {
   final String enteredDigits;
   final String? errorMessage;
   final bool isBiometricsPromptActive;
+  final bool isBiometricAvailable;
   final int failedAttempts;
 
   const AppLockState({
@@ -10,6 +11,7 @@ class AppLockState {
     this.enteredDigits = '',
     this.errorMessage,
     this.isBiometricsPromptActive = false,
+    this.isBiometricAvailable = true,
     this.failedAttempts = 0,
   });
 
@@ -18,6 +20,7 @@ class AppLockState {
     String? enteredDigits,
     String? errorMessage,
     bool? isBiometricsPromptActive,
+    bool? isBiometricAvailable,
     int? failedAttempts,
     bool clearError = false,
   }) {
@@ -26,6 +29,7 @@ class AppLockState {
       enteredDigits: enteredDigits ?? this.enteredDigits,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       isBiometricsPromptActive: isBiometricsPromptActive ?? this.isBiometricsPromptActive,
+      isBiometricAvailable: isBiometricAvailable ?? this.isBiometricAvailable,
       failedAttempts: failedAttempts ?? this.failedAttempts,
     );
   }

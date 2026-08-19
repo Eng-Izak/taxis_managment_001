@@ -19,6 +19,21 @@ import 'package:taxis_managment_001/core/shared/widgets/app_phone_field.dart';
 import 'package:taxis_managment_001/core/shared/models/document_meta_model.dart';
 import 'package:taxis_managment_001/core/shared/models/archived_item_model.dart';
 import 'package:taxis_managment_001/core/security/logic/app_lock_cubit.dart';
+import 'package:taxis_managment_001/core/security/services/biometric_service.dart';
+
+class FakeBiometricService extends BiometricService {
+  final bool shouldSucceed;
+  final bool isSupported;
+  FakeBiometricService({this.shouldSucceed = true, this.isSupported = true});
+
+  @override
+  Future<bool> canAuthenticate() async => isSupported;
+
+  @override
+  Future<bool> authenticate({required String localizedReason, bool biometricOnly = false}) async {
+    return shouldSucceed;
+  }
+}
 
 void main() {
   group('Taxi Asset Management Financial Engine Tests', () {
@@ -644,14 +659,15 @@ void main() {
       storage.setLockTimeoutMinutes(1);
     });
 
-    test('AppLockCubit manages PIN entry, wrong attempts, and biometrics unlock', () {
+    test('AppLockCubit manages PIN entry, wrong attempts, and biometrics unlock', () async {
       final storage = LocalStorageService();
       storage.setSetupCompleted(true);
       storage.setAutoLockEnabled(true);
       storage.setPinCode('1234');
       storage.setBiometricEnabled(true);
 
-      final lockCubit = AppLockCubit(storage);
+      final fakeBiometric = FakeBiometricService(shouldSucceed: true);
+      final lockCubit = AppLockCubit(storage, fakeBiometric);
       expect(lockCubit.state.isLocked, isTrue);
 
       // Wrong PIN entry
@@ -675,10 +691,20 @@ void main() {
       lockCubit.lock();
       expect(lockCubit.state.isLocked, isTrue);
 
-      // Biometrics unlock
-      final bioSuccess = lockCubit.unlockWithBiometrics();
+      // Biometrics unlock (success)
+      final bioSuccess = await lockCubit.unlockWithBiometrics();
       expect(bioSuccess, isTrue);
       expect(lockCubit.state.isLocked, isFalse);
+
+      // Lock again and test biometric failure
+      lockCubit.lock();
+      expect(lockCubit.state.isLocked, isTrue);
+
+      final failingBiometric = FakeBiometricService(shouldSucceed: false);
+      final failingLockCubit = AppLockCubit(storage, failingBiometric);
+      final failSuccess = await failingLockCubit.unlockWithBiometrics();
+      expect(failSuccess, isFalse);
+      expect(failingLockCubit.state.isLocked, isTrue);
     });
 
     test('LocalStorageService starts clean and empty on fresh launch', () {

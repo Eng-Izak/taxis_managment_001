@@ -12,6 +12,7 @@ import '../theming/theme_cubit.dart';
 import '../localization/locale_cubit.dart';
 import '../sync/sync_cubit.dart';
 import '../security/logic/app_lock_cubit.dart';
+import '../security/services/biometric_service.dart';
 import '../../features/auth/logic/auth_cubit.dart';
 import '../../features/sync/logic/local_sync_cubit.dart';
 
@@ -22,6 +23,10 @@ Future<void> setupDependencyInjection() async {
   final storageService = LocalStorageService();
   await storageService.init();
   getIt.registerSingleton<LocalStorageService>(storageService);
+
+  // Biometric Service
+  final biometricService = BiometricService();
+  getIt.registerSingleton<BiometricService>(biometricService);
 
   // Cloud Sync Service
   final syncService = CloudSyncService(storageService);
@@ -53,7 +58,10 @@ Future<void> setupDependencyInjection() async {
 
   // Security App Lock Cubit
   getIt.registerLazySingleton<AppLockCubit>(
-    () => AppLockCubit(getIt<LocalStorageService>()),
+    () => AppLockCubit(
+      getIt<LocalStorageService>(),
+      getIt<BiometricService>(),
+    ),
   );
 
   // Theme & Locale Cubits

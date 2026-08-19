@@ -21,7 +21,18 @@ class _AppLockScreenState extends State<AppLockScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _keyboardFocusNode.requestFocus();
+      _checkAndPromptBiometrics();
     });
+  }
+
+  void _checkAndPromptBiometrics() {
+    if (!mounted) return;
+    final cubit = context.read<AppLockCubit>();
+    if (cubit.isBiometricEnabled) {
+      cubit.authenticateWithBiometrics(
+        isArabic: context.isArabic,
+      );
+    }
   }
 
   @override
@@ -225,12 +236,14 @@ class _AppLockScreenState extends State<AppLockScreen> {
                             children: [
                               const Icon(Icons.error_outline_rounded, size: 16, color: Color(0xFFC5221F)),
                               const SizedBox(width: 8),
-                              Text(
-                                state.errorMessage!,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFFC5221F),
-                                  fontWeight: FontWeight.bold,
+                              Flexible(
+                                child: Text(
+                                  state.errorMessage!,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFFC5221F),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ],
@@ -252,7 +265,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
                             const SizedBox(height: 14),
                             _buildKeypadRow(['7', '8', '9'], isDark, primaryColor),
                             const SizedBox(height: 14),
-                            _buildBottomKeypadRow(isDark, primaryColor, cubit),
+                            _buildBottomKeypadRow(isDark, primaryColor, cubit, isArabic),
                           ],
                         ),
                       ),
@@ -274,7 +287,12 @@ class _AppLockScreenState extends State<AppLockScreen> {
     );
   }
 
-  Widget _buildBottomKeypadRow(bool isDark, Color primaryColor, AppLockCubit cubit) {
+  Widget _buildBottomKeypadRow(
+    bool isDark,
+    Color primaryColor,
+    AppLockCubit cubit,
+    bool isArabic,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -284,7 +302,9 @@ class _AppLockScreenState extends State<AppLockScreen> {
             icon: Icons.fingerprint_rounded,
             color: const Color(0xFF137333),
             isDark: isDark,
-            onTap: () => cubit.unlockWithBiometrics(),
+            onTap: () => cubit.authenticateWithBiometrics(
+              isArabic: isArabic,
+            ),
           )
         else
           const SizedBox(width: 68, height: 68),

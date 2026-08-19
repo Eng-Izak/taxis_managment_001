@@ -1,20 +1,32 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../services/local_storage_service.dart';
+import '../services/biometric_service.dart';
 import 'app_lock_state.dart';
 
 class AppLockCubit extends Cubit<AppLockState> {
   final LocalStorageService _storage;
+  final BiometricService _biometricService;
   DateTime? _lastBackgroundedTime;
+  bool _isAuthenticating = false;
 
-  AppLockCubit(this._storage)
-      : super(AppLockState(
+  AppLockCubit(this._storage, [BiometricService? biometricService])
+      : _biometricService = biometricService ?? BiometricService(),
+        super(AppLockState(
           isLocked: _storage.isSetupCompleted() && _storage.isAutoLockEnabled(),
-        ));
+        )) {
+    checkBiometricAvailability();
+  }
 
   bool get isBiometricEnabled => _storage.isBiometricEnabled();
   bool get isAutoLockEnabled => _storage.isAutoLockEnabled();
   String? get userName => _storage.getCurrentUser()?.displayName;
   String? get userRole => _storage.getCurrentUser()?.role;
+
+  /// Checks if hardware/OS supports biometric authentication
+  Future<void> checkBiometricAvailability() async {
+    final canAuth = await _biometricService.canAuthenticate();
+    emit(state.copyWith(isBiometricAvailable: canAuth));
+  }
 
   /// Handles digit entry from on-screen keypad or keyboard
   void inputDigit(String digit) {
@@ -61,18 +73,70 @@ class AppLockCubit extends Cubit<AppLockState> {
     }
   }
 
-  /// Unlocks using verified biometric authentication
-  bool unlockWithBiometrics() {
+  /// Authenticates using biometrics (Fingerprint / Face ID / Windows Hello)
+  Future<bool> authenticateWithBiometrics({
+    String? reason,
+    bool isArabic = true,
+  }) async {
     if (!_storage.isBiometricEnabled()) return false;
+    if (_isAuthenticating) return false;
 
-    emit(state.copyWith(
-      isLocked: false,
-      enteredDigits: '',
-      clearError: true,
-      failedAttempts: 0,
-    ));
-    return true;
+    _isAuthenticating = true;
+    emit(state.copyWith(isBiometricsPromptActive: true, clearError: true));
+
+    try {
+      final isSupported = await _biometricService.canAuthenticate();
+      if (!isSupported) {
+        emit(state.copyWith(
+          isBiometricsPromptActive: false,
+          isBiometricAvailable: false,
+          errorMessage: isArabic
+              ? 'المصادقة البيومترية غير متوفرة على هذا الجهاز'
+              : 'Biometric authentication not supported on this device',
+        ));
+        return false;
+      }
+
+      final localizedReason = reason ??
+          (isArabic
+              ? 'يرجى تأكيد الهوية لفتح تاكسيات مدينة السادات'
+              : 'Please authenticate to unlock Sadat City Taxis');
+
+      final authenticated = await _biometricService.authenticate(
+        localizedReason: localizedReason,
+      );
+
+      if (authenticated) {
+        emit(state.copyWith(
+          isLocked: false,
+          enteredDigits: '',
+          clearError: true,
+          failedAttempts: 0,
+          isBiometricsPromptActive: false,
+        ));
+        return true;
+      } else {
+        emit(state.copyWith(
+          isBiometricsPromptActive: false,
+        ));
+        return false;
+      }
+    } catch (e) {
+      emit(state.copyWith(
+        isBiometricsPromptActive: false,
+        errorMessage: isArabic
+            ? 'حدث خطأ أثناء التحقق - يرجى استخدام رمز PIN'
+            : 'Authentication error - please use PIN code',
+      ));
+      return false;
+    } finally {
+      _isAuthenticating = false;
+    }
   }
+
+  /// Deprecated alias for authenticateWithBiometrics
+  Future<bool> unlockWithBiometrics({bool isArabic = true}) =>
+      authenticateWithBiometrics(isArabic: isArabic);
 
   /// Manually locks the app session
   void lock() {
@@ -81,6 +145,7 @@ class AppLockCubit extends Cubit<AppLockState> {
       enteredDigits: '',
       clearError: true,
     ));
+    checkBiometricAvailability();
   }
 
   /// Called when app is moved to background or paused
