@@ -30,6 +30,19 @@ class DocumentsSectionWidget extends StatelessWidget {
     }
   }
 
+  void _onEditDocument(BuildContext context, int index) async {
+    final docToEdit = documents[index];
+    final editedDoc = await DocumentUploadDialog.show(
+      context,
+      initialDocument: docToEdit,
+    );
+    if (editedDoc != null) {
+      final updated = List<DocumentMeta>.from(documents);
+      updated[index] = editedDoc;
+      onDocumentsChanged(updated);
+    }
+  }
+
   void _onDeleteDocument(BuildContext context, int index) {
     final isArabic = context.isArabic;
     showDialog(
@@ -215,6 +228,7 @@ class DocumentsSectionWidget extends StatelessWidget {
                   onTap: () => DocumentViewerDialog.show(
                     context,
                     doc,
+                    onEdit: readOnly ? null : () => _onEditDocument(context, index),
                     onDelete: readOnly ? null : () {
                       final updated = List<DocumentMeta>.from(documents)..removeAt(index);
                       onDocumentsChanged(updated);
@@ -332,6 +346,7 @@ class DocumentsSectionWidget extends StatelessWidget {
                           onPressed: () => DocumentViewerDialog.show(
                             context,
                             doc,
+                            onEdit: readOnly ? null : () => _onEditDocument(context, index),
                             onDelete: readOnly ? null : () {
                               final updated = List<DocumentMeta>.from(documents)..removeAt(index);
                               onDocumentsChanged(updated);
@@ -339,6 +354,15 @@ class DocumentsSectionWidget extends StatelessWidget {
                           ),
                         ),
                         if (!readOnly) ...[
+                          const SizedBox(width: 4),
+                          IconButton(
+                            padding: const EdgeInsets.all(6),
+                            constraints: const BoxConstraints(),
+                            visualDensity: VisualDensity.compact,
+                            icon: Icon(Icons.edit_outlined, color: primaryColor, size: 19),
+                            tooltip: isArabic ? 'تعديل المستند' : 'Edit Document',
+                            onPressed: () => _onEditDocument(context, index),
+                          ),
                           const SizedBox(width: 4),
                           IconButton(
                             padding: const EdgeInsets.all(6),

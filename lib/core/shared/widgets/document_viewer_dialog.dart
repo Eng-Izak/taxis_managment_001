@@ -6,20 +6,23 @@ import '../models/document_meta_model.dart';
 class DocumentViewerDialog extends StatefulWidget {
   final DocumentMeta document;
   final VoidCallback? onDelete;
+  final VoidCallback? onEdit;
 
   const DocumentViewerDialog({
     super.key,
     required this.document,
     this.onDelete,
+    this.onEdit,
   });
 
-  static void show(BuildContext context, DocumentMeta document, {VoidCallback? onDelete}) {
+  static void show(BuildContext context, DocumentMeta document, {VoidCallback? onDelete, VoidCallback? onEdit}) {
     showDialog(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.85),
       builder: (ctx) => DocumentViewerDialog(
         document: document,
         onDelete: onDelete,
+        onEdit: onEdit,
       ),
     );
   }
@@ -231,6 +234,17 @@ class _DocumentViewerDialogState extends State<DocumentViewerDialog> {
                       ],
                     ),
                   ),
+
+                  // Edit Action (if provided)
+                  if (widget.onEdit != null)
+                    IconButton(
+                      icon: const Icon(Icons.edit_note_rounded, color: Color(0xFF60A5FA), size: 24),
+                      tooltip: isArabic ? 'تعديل المستند' : 'Edit document',
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        widget.onEdit?.call();
+                      },
+                    ),
 
                   // Delete Action (if provided)
                   if (widget.onDelete != null)

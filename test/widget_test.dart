@@ -461,6 +461,40 @@ void main() {
       expect(doc.allImages, ['/legacy/path/contract.pdf']);
     });
 
+    test('Supports editing document metadata and updating document collection seamlessly', () {
+      final originalDoc = DocumentMeta(
+        id: 'doc_edit_test',
+        title: 'رخصة التسيير القادمة',
+        type: DocumentType.licenseCard,
+        images: const ['/old/license.jpg'],
+        expiryDate: DateTime(2026, 9, 1),
+        notes: 'ملاحظة قديمة',
+      );
+
+      final editedDoc = originalDoc.copyWith(
+        title: 'رخصة التسيير المجددة 2027',
+        expiryDate: DateTime(2027, 9, 1),
+        issueDate: DateTime(2026, 9, 1),
+        images: const ['/new/license_front.jpg', '/new/license_back.jpg'],
+        notes: 'تم التجديد وسداد الرسوم بالكامل',
+      );
+
+      expect(editedDoc.id, originalDoc.id);
+      expect(editedDoc.title, 'رخصة التسيير المجددة 2027');
+      expect(editedDoc.images.length, 2);
+      expect(editedDoc.expiryDate, DateTime(2027, 9, 1));
+      expect(editedDoc.issueDate, DateTime(2026, 9, 1));
+
+      // Test updating in list
+      final docsList = [originalDoc];
+      final index = docsList.indexWhere((d) => d.id == editedDoc.id);
+      expect(index, 0);
+      docsList[index] = editedDoc;
+
+      expect(docsList.first.title, 'رخصة التسيير المجددة 2027');
+      expect(docsList.first.images.first, '/new/license_front.jpg');
+    });
+
     test('ShareholderModel handles attached documents list correctly', () {
       const doc1 = DocumentMeta(
         id: 'doc_sh_1',

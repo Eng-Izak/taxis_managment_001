@@ -473,9 +473,73 @@ class _DocumentUploadDialogState extends State<DocumentUploadDialog> {
 
                       const SizedBox(height: 16),
 
-                      // Dates (Expiry & Issue Date)
+                      // Dates (Issue Date & Expiry Date)
                       Row(
                         children: [
+                          // Issue Date Picker
+                          Expanded(
+                            child: InkWell(
+                              onTap: () async {
+                                final picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: _issueDate ?? DateTime.now(),
+                                  firstDate: DateTime(2000),
+                                  lastDate: DateTime(2035),
+                                );
+                                if (picked != null) {
+                                  setState(() => _issueDate = picked);
+                                }
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8F9FA),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: isDark ? AppColors.darkCardBorder : const Color(0xFFE2E8F0)),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isArabic ? 'تاريخ الإصدار' : 'Issue Date',
+                                      style: TextStyle(fontSize: 10.5, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          _issueDate != null
+                                              ? '${_issueDate!.year}/${_issueDate!.month.toString().padLeft(2, '0')}/${_issueDate!.day.toString().padLeft(2, '0')}'
+                                              : (isArabic ? 'تاريخ الإصدار' : 'Issue Date'),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: _issueDate != null ? primaryColor : (isDark ? AppColors.darkTextTertiary : const Color(0xFF94A3B8)),
+                                          ),
+                                        ),
+                                        Icon(Icons.edit_calendar_rounded, size: 14, color: primaryColor),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (_issueDate != null)
+                            IconButton(
+                              constraints: const BoxConstraints(),
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              icon: const Icon(Icons.clear_rounded, size: 16),
+                              onPressed: () => setState(() => _issueDate = null),
+                            ),
+
+                          const SizedBox(width: 8),
+
+                          // Expiry Date Picker
                           Expanded(
                             child: InkWell(
                               onTap: () async {
@@ -491,7 +555,7 @@ class _DocumentUploadDialogState extends State<DocumentUploadDialog> {
                               },
                               borderRadius: BorderRadius.circular(12),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                                 decoration: BoxDecoration(
                                   color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8F9FA),
                                   borderRadius: BorderRadius.circular(12),
@@ -501,8 +565,10 @@ class _DocumentUploadDialogState extends State<DocumentUploadDialog> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      isArabic ? 'تاريخ الانتهاء (اختياري)' : 'Expiry Date (Optional)',
+                                      isArabic ? 'تاريخ الانتهاء' : 'Expiry Date',
                                       style: TextStyle(fontSize: 10.5, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF64748B)),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 4),
                                     Row(
@@ -511,14 +577,14 @@ class _DocumentUploadDialogState extends State<DocumentUploadDialog> {
                                         Text(
                                           _expiryDate != null
                                               ? '${_expiryDate!.year}/${_expiryDate!.month.toString().padLeft(2, '0')}/${_expiryDate!.day.toString().padLeft(2, '0')}'
-                                              : (isArabic ? 'حدد التاريخ' : 'Select Date'),
+                                              : (isArabic ? 'تاريخ الانتهاء' : 'Expiry Date'),
                                           style: TextStyle(
-                                            fontSize: 12,
+                                            fontSize: 11,
                                             fontWeight: FontWeight.bold,
                                             color: _expiryDate != null ? primaryColor : (isDark ? AppColors.darkTextTertiary : const Color(0xFF94A3B8)),
                                           ),
                                         ),
-                                        Icon(Icons.calendar_today_rounded, size: 14, color: primaryColor),
+                                        Icon(Icons.event_busy_rounded, size: 14, color: primaryColor),
                                       ],
                                     ),
                                   ],
@@ -526,13 +592,13 @@ class _DocumentUploadDialogState extends State<DocumentUploadDialog> {
                               ),
                             ),
                           ),
-                          if (_expiryDate != null) ...[
-                            const SizedBox(width: 6),
+                          if (_expiryDate != null)
                             IconButton(
-                              icon: const Icon(Icons.clear_rounded, size: 18),
+                              constraints: const BoxConstraints(),
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              icon: const Icon(Icons.clear_rounded, size: 16),
                               onPressed: () => setState(() => _expiryDate = null),
                             ),
-                          ],
                         ],
                       ),
 
