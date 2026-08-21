@@ -670,6 +670,59 @@ void main() {
       expect(exported['version'], 2);
     });
 
+    test('Creates quick internal restore point and restores portfolio successfully', () {
+      final storage = LocalStorageService();
+
+      const testAsset = AssetModel(
+        id: 'asset_restore_test',
+        plateNumber: 'س أ د 9988',
+        chassisNumber: 'VIN-RESTORE-1',
+        carModelYear: 'BYD F3 2025',
+        modelType: AssetType.fullTaxi,
+        monthlyRent: 9500.0,
+      );
+      storage.addAsset(testAsset);
+
+      // Create quick restore point
+      storage.createInternalRestorePoint();
+      expect(storage.hasInternalRestorePoint(), isTrue);
+      expect(storage.getInternalRestorePointDate(), isNotNull);
+
+      // Delete asset to simulate data change/loss
+      storage.deleteAsset('asset_restore_test');
+      expect(storage.getAssets().any((a) => a.id == 'asset_restore_test'), isFalse);
+
+      // Restore from internal restore point
+      final restored = storage.restoreFromInternalRestorePoint();
+      expect(restored, isTrue);
+      expect(storage.getAssets().any((a) => a.id == 'asset_restore_test'), isTrue);
+    });
+
+    test('Restores portfolio data from external backup Map correctly', () {
+      final storage = LocalStorageService();
+      final sampleBackup = {
+        'version': 2,
+        'exportedAt': DateTime.now().toIso8601String(),
+        'assets': [
+          {
+            'id': 'ext_asset_001',
+            'plateNumber': 'س أ د 7711',
+            'chassisNumber': 'VIN-EXT-001',
+            'carModelYear': 'Nissan Sunny 2024',
+            'modelType': 'fullTaxi',
+            'monthlyRent': 9000.0,
+          }
+        ],
+        'shareholders': [],
+        'transactions': [],
+        'archivedItems': [],
+      };
+
+      final success = storage.restoreFromBackupData(sampleBackup);
+      expect(success, isTrue);
+      expect(storage.getAssets().any((a) => a.id == 'ext_asset_001'), isTrue);
+    });
+
     test('Initializes first-run setup and marks completion', () {
       final storage = LocalStorageService();
       storage.setSetupCompleted(false);

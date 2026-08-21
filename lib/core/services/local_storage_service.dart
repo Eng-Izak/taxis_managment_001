@@ -28,6 +28,8 @@ class LocalStorageService {
   static const String _keyPinCode = 'taxi_app_pin_code_v2';
   static const String _keyLockTimeout = 'taxi_app_lock_timeout_v2';
   static const String _keySetupCompleted = 'taxi_app_setup_completed_v2';
+  static const String _keyInternalRestorePoint = 'taxi_app_restore_point_data_v2';
+  static const String _keyInternalRestorePointTime = 'taxi_app_restore_point_time_v2';
 
   SharedPreferences? _prefs;
 
@@ -659,7 +661,7 @@ class LocalStorageService {
     _persistArchivedItems();
   }
 
-  // ================= BULK IMPORT & EXPORT (CLOUD SYNC) =================
+  // ================= BULK IMPORT & EXPORT (CLOUD SYNC & BACKUP) =================
   Map<String, dynamic> exportPortfolioData() {
     return {
       'version': 2,
@@ -694,6 +696,55 @@ class LocalStorageService {
       _persistArchivedItems();
     }
     setLastSyncTime(DateTime.now().toUtc());
+  }
+
+  String? _internalRestorePointStr;
+  String? _internalRestorePointTimeStr;
+
+  // ================= INTERNAL RESTORE POINT OPERATIONS =================
+  void createInternalRestorePoint() {
+    final snapshot = exportPortfolioData();
+    _internalRestorePointStr = jsonEncode(snapshot);
+    _internalRestorePointTimeStr = DateTime.now().toUtc().toIso8601String();
+    if (_prefs != null) {
+      _prefs!.setString(_keyInternalRestorePoint, _internalRestorePointStr!);
+      _prefs!.setString(_keyInternalRestorePointTime, _internalRestorePointTimeStr!);
+    }
+  }
+
+  bool hasInternalRestorePoint() {
+    return _internalRestorePointStr != null || (_prefs?.containsKey(_keyInternalRestorePoint) ?? false);
+  }
+
+  DateTime? getInternalRestorePointDate() {
+    final str = _internalRestorePointTimeStr ?? _prefs?.getString(_keyInternalRestorePointTime);
+    if (str != null) {
+      return DateTime.tryParse(str)?.toLocal();
+    }
+    return null;
+  }
+
+  bool restoreFromInternalRestorePoint() {
+    final str = _internalRestorePointStr ?? _prefs?.getString(_keyInternalRestorePoint);
+    if (str == null) return false;
+    try {
+      final decoded = jsonDecode(str) as Map<String, dynamic>;
+      importPortfolioData(decoded);
+      return true;
+    } catch (e) {
+      debugPrint('Restore from internal point error: $e');
+      return false;
+    }
+  }
+
+  bool restoreFromBackupData(Map<String, dynamic> data) {
+    try {
+      importPortfolioData(data);
+      return true;
+    } catch (e) {
+      debugPrint('Restore from backup data error: $e');
+      return false;
+    }
   }
 
   // ================= DISK PERSISTENCE HELPERS =================

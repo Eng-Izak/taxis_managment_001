@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../../core/theming/app_colors.dart';
 import '../../../../core/shared/widgets/app_card.dart';
 import '../../../../core/shared/widgets/app_toast.dart';
@@ -9,6 +11,8 @@ import '../../../../core/localization/app_localization_extension.dart';
 import '../../../../core/services/local_storage_service.dart';
 import '../../../../core/security/logic/app_lock_cubit.dart';
 import '../../../../core/dependency_injection/di.dart';
+import '../../home/logic/home_cubit.dart';
+import '../../shareholders/logic/shareholders_cubit.dart';
 
 class SecurityScreen extends StatefulWidget {
   const SecurityScreen({super.key});
@@ -292,15 +296,15 @@ class _SecurityScreenState extends State<SecurityScreen> {
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text(isArabic ? 'إغلاق' : 'Close'),
           ),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
+          OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: primaryColor),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            icon: const Icon(Icons.copy_rounded, size: 16, color: Colors.white),
+            icon: Icon(Icons.copy_rounded, size: 16, color: primaryColor),
             label: Text(
-              isArabic ? 'نسخ الحزمة المشفرة' : 'Copy Backup',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              isArabic ? 'نسخ للحافظة' : 'Copy JSON',
+              style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
             ),
             onPressed: () {
               Clipboard.setData(ClipboardData(text: jsonString));
@@ -314,8 +318,439 @@ class _SecurityScreenState extends State<SecurityScreen> {
               );
             },
           ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            icon: const Icon(Icons.download_rounded, size: 16, color: Colors.white),
+            label: Text(
+              isArabic ? 'حفظ كملف محلي' : 'Save File',
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _exportBackupToFile(jsonString);
+            },
+          ),
         ],
       ),
+    );
+  }
+
+  Future<void> _exportBackupToFile(String jsonString) async {
+    final isArabic = context.isArabic;
+    try {
+      final now = DateTime.now();
+      final defaultFileName = 'taxi_portfolio_backup_${now.year}_${now.month.toString().padLeft(2, '0')}_${now.day.toString().padLeft(2, '0')}.json';
+      final bytes = Uint8List.fromList(utf8.encode(jsonString));
+
+      final resultUri = await FilePicker.saveFile(
+        dialogTitle: isArabic ? 'حفظ ملف النسخة الاحتياطية' : 'Save Backup File',
+        fileName: defaultFileName,
+        bytes: bytes,
+        type: FileType.custom,
+        allowedExtensions: ['json', 'bak'],
+      );
+
+      if (resultUri != null) {
+        if (mounted) {
+          AppToast.show(
+            context,
+            message: isArabic
+                ? 'تم حفظ ملف النسخة الاحتياطية بنجاح كملف محلي'
+                : 'Backup saved successfully to local file',
+            icon: Icons.check_circle_rounded,
+            duration: const Duration(seconds: 4),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Export backup file error: $e');
+      if (mounted) {
+        Clipboard.setData(ClipboardData(text: jsonString));
+        AppToast.show(
+          context,
+          message: isArabic
+              ? 'تم نسخ النسخة الاحتياطية للحافظة بدلاً من الحفظ'
+              : 'Backup copied to clipboard as fallback',
+          icon: Icons.copy_rounded,
+        );
+      }
+    }
+  }
+
+  void _createQuickRestorePoint() {
+    final isArabic = context.isArabic;
+    _storage.createInternalRestorePoint();
+    setState(() {});
+    AppToast.show(
+      context,
+      message: isArabic
+          ? 'تم إنشاء نقطة استعادة سريعة لجميع البيانات بتاريخ اليوم'
+          : 'Quick restore point created successfully',
+      icon: Icons.bookmark_added_rounded,
+      duration: const Duration(seconds: 4),
+    );
+  }
+
+  Future<void> _showRestoreBackupOptionsDialog() async {
+    final isArabic = context.isArabic;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : const Color(0xFF0F56B3);
+    final hasRestorePoint = _storage.hasInternalRestorePoint();
+    final restoreDate = _storage.getInternalRestorePointDate();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.settings_backup_restore_rounded, color: primaryColor),
+            const SizedBox(width: 8),
+            Text(
+              isArabic ? 'استعادة بيانات التطبيق' : 'Restore Application Data',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              isArabic
+                  ? 'يمكنك استعادة بيانات التطبيق بالكامل من ملف نسخة احتياطية محلي أو من نقطة الاستعادة السريعة:'
+                  : 'Restore your full portfolio data from a local backup file or internal restore point:',
+              style: const TextStyle(fontSize: 12.5),
+            ),
+            const SizedBox(height: 14),
+
+            // Option 1: File Restore
+            InkWell(
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _pickAndRestoreBackupFile();
+              },
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: primaryColor.withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.file_open_outlined, color: primaryColor, size: 24),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isArabic ? 'اختيار ملف نسخة احتياطية (.json)' : 'Pick Backup File (.json)',
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            isArabic ? 'تحديد ملف نسخة احتياطية سابقة محفظ على الجهاز' : 'Select a backup file saved on device',
+                            style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // Option 2: Internal Restore Point
+            InkWell(
+              onTap: hasRestorePoint
+                  ? () {
+                      Navigator.of(ctx).pop();
+                      _confirmRestoreFromInternalPoint();
+                    }
+                  : null,
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: hasRestorePoint
+                      ? (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : const Color(0xFFE6F4EA))
+                      : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC)),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: hasRestorePoint
+                        ? const Color(0xFF137333)
+                        : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.bookmark_rounded,
+                      color: hasRestorePoint ? const Color(0xFF137333) : Colors.grey,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isArabic ? 'نقطة الاستعادة الداخلية السريعة' : 'Quick Internal Restore Point',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: hasRestorePoint ? null : Colors.grey,
+                            ),
+                          ),
+                          Text(
+                            hasRestorePoint
+                                ? (isArabic
+                                    ? 'تاريخ الإنشاء: ${restoreDate != null ? context.formatShortDate(restoreDate) : "متوفرة"}'
+                                    : 'Created: ${restoreDate != null ? context.formatShortDate(restoreDate) : "Available"}')
+                                : (isArabic ? 'لم يتم إنشاء نقطة استعادة سريعة بعد' : 'No restore point created yet'),
+                            style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (hasRestorePoint) const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(isArabic ? 'إلغاء' : 'Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickAndRestoreBackupFile() async {
+    final isArabic = context.isArabic;
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.any,
+      );
+
+      if (result.isNotEmpty) {
+        final platformFile = result.first;
+        if (platformFile.path != null) {
+          final file = File(platformFile.path!);
+          final jsonStr = await file.readAsString();
+          _confirmAndRestoreJsonData(jsonStr);
+        }
+      }
+    } catch (e) {
+      debugPrint('Pick backup file error: $e');
+      if (mounted) {
+        AppToast.show(
+          context,
+          message: isArabic ? 'تعذر فتح ملف النسخة الاحتياطية' : 'Failed to read backup file',
+          icon: Icons.error_outline_rounded,
+        );
+      }
+    }
+  }
+
+  void _confirmRestoreFromInternalPoint() {
+    final isArabic = context.isArabic;
+    final restoreDate = _storage.getInternalRestorePointDate();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Color(0xFFD97706)),
+            const SizedBox(width: 8),
+            Text(
+              isArabic ? 'تأكيد استعادة البيانات' : 'Confirm Restore',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Text(
+          isArabic
+              ? 'هل أنت تأكد من استعادة بيانات التطبيق من نقطة الاستعادة الداخلية بتاريخ (${restoreDate != null ? context.formatShortDate(restoreDate) : "السابقة"})؟\n\nتنبيه: سيتم استبدال البيانات الحالية بالبيانات المحفوظة في نقطة الاستعادة.'
+              : 'Are you sure you want to restore application data from the internal restore point?\n\nWarning: Current data will be replaced by the saved restore point.',
+          style: const TextStyle(fontSize: 12.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(isArabic ? 'إلغاء' : 'Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F56B3)),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              final success = _storage.restoreFromInternalRestorePoint();
+              if (success) {
+                _onDataRestoredSuccess();
+              } else {
+                AppToast.show(context, message: isArabic ? 'فشلت استعادة البيانات' : 'Failed to restore data');
+              }
+            },
+            child: Text(isArabic ? 'تأكيد الاستعادة' : 'Confirm Restore', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmAndRestoreJsonData(String jsonString) {
+    final isArabic = context.isArabic;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    try {
+      final data = jsonDecode(jsonString) as Map<String, dynamic>;
+      final assetsList = data['assets'] as List<dynamic>? ?? [];
+      final partnersList = data['shareholders'] as List<dynamic>? ?? [];
+      final txList = data['transactions'] as List<dynamic>? ?? [];
+      final exportedAtStr = data['exportedAt'] as String?;
+      DateTime? exportedAt;
+      if (exportedAtStr != null) {
+        exportedAt = DateTime.tryParse(exportedAtStr)?.toLocal();
+      }
+
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.settings_backup_restore_rounded, color: Color(0xFF0F56B3)),
+              const SizedBox(width: 8),
+              Text(
+                isArabic ? 'تأكيد استعادة النسخة الاحتياطية' : 'Confirm Backup Restore',
+                style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isArabic
+                    ? 'تم التحقق من ملف النسخة الاحتياطية بنجاح. يحتوي الملف على:'
+                    : 'Backup file validated successfully. Contents:',
+                style: const TextStyle(fontSize: 12.5),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(isArabic ? 'تاريخ النسخة الاحتياطية:' : 'Backup Date:', style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
+                        Text(exportedAt != null ? context.formatShortDate(exportedAt) : 'غير محدد', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(isArabic ? 'عدد السيارات والأصول:' : 'Assets Count:', style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
+                        Text('${assetsList.length}', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(isArabic ? 'عدد الشركاء والمساهمين:' : 'Shareholders Count:', style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
+                        Text('${partnersList.length}', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(isArabic ? 'عدد المعاملات المالية:' : 'Transactions Count:', style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
+                        Text('${txList.length}', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                isArabic
+                    ? 'تنبيه: استعادة هذه النسخة سيقوم باستبدال البيانات الحالية بالبيانات الموجودة داخل الملف.'
+                    : 'Warning: Restoring this file will replace all current data with the contents of the file.',
+                style: const TextStyle(fontSize: 11, color: Color(0xFFDC2626), fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(isArabic ? 'إلغاء' : 'Cancel'),
+            ),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F56B3)),
+              icon: const Icon(Icons.check_rounded, size: 16, color: Colors.white),
+              label: Text(
+                isArabic ? 'استعادة البيانات الآن' : 'Restore Data Now',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                final success = _storage.restoreFromBackupData(data);
+                if (success) {
+                  _onDataRestoredSuccess();
+                } else {
+                  AppToast.show(context, message: isArabic ? 'فشلت استعادة البيانات' : 'Failed to restore data');
+                }
+              },
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(isArabic ? 'خطأ في الملف' : 'Invalid File'),
+          content: Text(isArabic ? 'ملف النسخة الاحتياطية غير صالح أو تنسيقه غير مدعوم.' : 'Backup file format is invalid or corrupted.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(isArabic ? 'حسناً' : 'OK')),
+          ],
+        ),
+      );
+    }
+  }
+
+  void _onDataRestoredSuccess() {
+    final isArabic = context.isArabic;
+    context.read<HomeCubit>().loadDashboardData();
+    context.read<ShareholdersCubit>().loadShareholders();
+
+    AppToast.show(
+      context,
+      message: isArabic
+          ? 'تمت استعادة جميع بيانات التطبيق والمستندات بنجاح'
+          : 'All application data and documents restored successfully',
+      icon: Icons.check_circle_rounded,
+      duration: const Duration(seconds: 4),
     );
   }
 
@@ -552,7 +987,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
 
             const SizedBox(height: 16),
 
-            // PIN Management & Actions Card
+            // PIN Management & Security Actions Card
             AppCard(
               padding: EdgeInsets.zero,
               child: Column(
@@ -582,27 +1017,6 @@ class _SecurityScreenState extends State<SecurityScreen> {
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF137333).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.download_for_offline_outlined, color: Color(0xFF137333), size: 20),
-                    ),
-                    title: Text(
-                      isArabic ? 'تصدير نسخة احتياطية مشفرة' : 'Export Encrypted Backup',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                    ),
-                    subtitle: Text(
-                      isArabic ? 'حفظ نسخة آمنة من كافة البيانات والمستندات' : 'Save secure snapshot of all data & docs',
-                      style: TextStyle(fontSize: 11, color: textSecondary),
-                    ),
-                    trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
-                    onTap: _showExportEncryptedBackupDialog,
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
                         color: const Color(0xFFC5221F).withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -620,6 +1034,79 @@ class _SecurityScreenState extends State<SecurityScreen> {
                     onTap: () {
                       context.read<AppLockCubit>().lock();
                     },
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Backup & Restore Points Card
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF137333).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.download_for_offline_outlined, color: Color(0xFF137333), size: 20),
+                    ),
+                    title: Text(
+                      isArabic ? 'تصدير نسخة احتياطية محلياً' : 'Export Backup File',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    subtitle: Text(
+                      isArabic ? 'حفظ ملف نسخة احتياطية مشفرة (.json) على الجهاز' : 'Save encrypted portfolio backup (.json) to device',
+                      style: TextStyle(fontSize: 11, color: textSecondary),
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                    onTap: _showExportEncryptedBackupDialog,
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD97706).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.bookmark_add_outlined, color: Color(0xFFD97706), size: 20),
+                    ),
+                    title: Text(
+                      isArabic ? 'إنشاء نقطة استعادة سريعة' : 'Create Quick Restore Point',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    subtitle: Text(
+                      isArabic ? 'حفظ حالة البيانات داخل التطبيق للاستعادة الفورية' : 'Save current data snapshot inside app for fast recovery',
+                      style: TextStyle(fontSize: 11, color: textSecondary),
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                    onTap: _createQuickRestorePoint,
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(Icons.settings_backup_restore_rounded, color: primaryColor, size: 20),
+                    ),
+                    title: Text(
+                      isArabic ? 'استعادة نسخة احتياطية' : 'Restore Backup Data',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    subtitle: Text(
+                      isArabic ? 'استعادة البيانات من ملف محلي أو نقطة الاستعادة الداخلية' : 'Restore data from a local file or internal restore point',
+                      style: TextStyle(fontSize: 11, color: textSecondary),
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                    onTap: _showRestoreBackupOptionsDialog,
                   ),
                 ],
               ),

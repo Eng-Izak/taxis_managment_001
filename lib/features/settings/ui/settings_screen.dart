@@ -701,6 +701,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     },
                   ),
+                  const Divider(height: 1),
+
+                  // Backup & Restore Points Tile
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF137333).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.settings_backup_restore_rounded, color: Color(0xFF137333), size: 20),
+                    ),
+                    title: Text(
+                      context.isArabic ? 'النسخ الاحتياطي ونقاط الاستعادة' : 'Backup & Restore Points',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    subtitle: Text(
+                      context.isArabic
+                          ? 'تصدير ملف نسخة احتياطية (.json)، نقطة استعادة سريعة، أو استعادة البيانات'
+                          : 'Export local backup file (.json), quick restore point, or restore portfolio',
+                      style: TextStyle(fontSize: 11, color: textSecondary),
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const SecurityScreen()),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
