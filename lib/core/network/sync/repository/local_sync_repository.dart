@@ -166,7 +166,7 @@ class LocalSyncRepository {
 
     if (isDelete) {
       _tombstones[id] = payload.timestamp;
-      _storage.deleteAsset(id);
+      _storage.applySyncDeleteAsset(id);
       _syncEventController.add(payload);
       return true;
     }
@@ -179,15 +179,7 @@ class LocalSyncRepository {
     }
 
     final newAsset = AssetModel.fromJson(payload.data);
-    final existingList = _storage.getAssets();
-    final existingIndex = existingList.indexWhere((a) => a.id == newAsset.id);
-
-    if (existingIndex != -1) {
-      _storage.updateAsset(newAsset);
-    } else {
-      _storage.addAsset(newAsset);
-    }
-
+    _storage.applySyncAsset(newAsset);
     _syncEventController.add(payload);
     return true;
   }
@@ -198,7 +190,7 @@ class LocalSyncRepository {
 
     if (isDelete) {
       _tombstones[id] = payload.timestamp;
-      _storage.deleteShareholder(id);
+      _storage.applySyncDeleteShareholder(id);
       _syncEventController.add(payload);
       return true;
     }
@@ -210,15 +202,7 @@ class LocalSyncRepository {
     }
 
     final newPartner = ShareholderModel.fromJson(payload.data);
-    final existingList = _storage.getShareholders();
-    final existingIndex = existingList.indexWhere((s) => s.id == newPartner.id);
-
-    if (existingIndex != -1) {
-      _storage.updateShareholder(newPartner);
-    } else {
-      _storage.addShareholder(newPartner);
-    }
-
+    _storage.applySyncShareholder(newPartner);
     _syncEventController.add(payload);
     return true;
   }
@@ -229,7 +213,7 @@ class LocalSyncRepository {
 
     if (isDelete) {
       _tombstones[id] = payload.timestamp;
-      _storage.deleteTransaction(id);
+      _storage.applySyncDeleteTransaction(id);
       _syncEventController.add(payload);
       return true;
     }
@@ -241,15 +225,7 @@ class LocalSyncRepository {
     }
 
     final newTx = TransactionRecord.fromJson(payload.data);
-    final existingList = _storage.getTransactions();
-    final existingIndex = existingList.indexWhere((t) => t.id == newTx.id);
-
-    if (existingIndex != -1) {
-      _storage.updateTransaction(newTx);
-    } else {
-      _storage.addTransaction(newTx);
-    }
-
+    _storage.applySyncTransaction(newTx);
     _syncEventController.add(payload);
     return true;
   }
@@ -260,7 +236,7 @@ class LocalSyncRepository {
 
     if (isDelete) {
       _tombstones[id] = payload.timestamp;
-      _storage.deleteArchivedItem(id);
+      _storage.applySyncDeleteArchivedItem(id);
       _syncEventController.add(payload);
       return true;
     }
@@ -271,7 +247,7 @@ class LocalSyncRepository {
     }
 
     final newArch = ArchivedItemModel.fromJson(payload.data);
-    _storage.addArchivedItem(newArch);
+    _storage.applySyncArchivedItem(newArch);
     _syncEventController.add(payload);
     return true;
   }

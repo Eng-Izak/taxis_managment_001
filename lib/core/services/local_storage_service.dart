@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -48,6 +49,18 @@ class LocalStorageService {
   String _pinCode = '1234';
   int _lockTimeoutMinutes = 1;
   bool _isSetupCompleted = false;
+
+  final StreamController<void> _dataChangesController = StreamController<void>.broadcast();
+  Stream<void> get dataChanges => _dataChangesController.stream;
+
+  final StreamController<SyncQueueEntry> _mutationEventsController = StreamController<SyncQueueEntry>.broadcast();
+  Stream<SyncQueueEntry> get mutationEvents => _mutationEventsController.stream;
+
+  void _notifyDataChanged() {
+    if (!_dataChangesController.isClosed) {
+      _dataChangesController.add(null);
+    }
+  }
 
   LocalStorageService() {
     _assets = [];
@@ -473,10 +486,74 @@ class LocalStorageService {
       operation: op,
       entityId: entityId,
       payload: payload,
-      timestamp: DateTime.now(),
+      timestamp: DateTime.now().toUtc(),
     );
     _syncQueue.add(entry);
     _persistSyncQueue();
+    if (!_mutationEventsController.isClosed) {
+      _mutationEventsController.add(entry);
+    }
+  }
+
+  // ================= DIRECT SYNC APPLICATION (NO OUTGOING QUEUE) =================
+  void applySyncAsset(AssetModel asset) {
+    final index = _assets.indexWhere((a) => a.id == asset.id);
+    if (index != -1) {
+      _assets[index] = asset;
+    } else {
+      _assets.insert(0, asset);
+    }
+    _persistAssets();
+  }
+
+  void applySyncDeleteAsset(String assetId) {
+    _assets.removeWhere((a) => a.id == assetId);
+    _persistAssets();
+  }
+
+  void applySyncShareholder(ShareholderModel shareholder) {
+    final index = _shareholders.indexWhere((s) => s.id == shareholder.id);
+    if (index != -1) {
+      _shareholders[index] = shareholder;
+    } else {
+      _shareholders.insert(0, shareholder);
+    }
+    _persistShareholders();
+  }
+
+  void applySyncDeleteShareholder(String shareholderId) {
+    _shareholders.removeWhere((s) => s.id == shareholderId);
+    _persistShareholders();
+  }
+
+  void applySyncTransaction(TransactionRecord transaction) {
+    final index = _transactions.indexWhere((t) => t.id == transaction.id);
+    if (index != -1) {
+      _transactions[index] = transaction;
+    } else {
+      _transactions.insert(0, transaction);
+    }
+    _persistTransactions();
+  }
+
+  void applySyncDeleteTransaction(String transactionId) {
+    _transactions.removeWhere((t) => t.id == transactionId);
+    _persistTransactions();
+  }
+
+  void applySyncArchivedItem(ArchivedItemModel item) {
+    final index = _archivedItems.indexWhere((a) => a.id == item.id);
+    if (index != -1) {
+      _archivedItems[index] = item;
+    } else {
+      _archivedItems.insert(0, item);
+    }
+    _persistArchivedItems();
+  }
+
+  void applySyncDeleteArchivedItem(String archiveId) {
+    _archivedItems.removeWhere((a) => a.id == archiveId);
+    _persistArchivedItems();
   }
 
   // ================= BULK IMPORT & EXPORT (CLOUD SYNC) =================
@@ -513,32 +590,40 @@ class LocalStorageService {
       _archivedItems = list.map((e) => ArchivedItemModel.fromJson(e as Map<String, dynamic>)).toList();
       _persistArchivedItems();
     }
-    setLastSyncTime(DateTime.now());
+    setLastSyncTime(DateTime.now().toUtc());
   }
 
   // ================= DISK PERSISTENCE HELPERS =================
   void _persistAssets() {
-    if (_prefs == null) return;
-    final jsonStr = jsonEncode(_assets.map((a) => a.toJson()).toList());
-    _prefs!.setString(_keyAssets, jsonStr);
+    if (_prefs != null) {
+      final jsonStr = jsonEncode(_assets.map((a) => a.toJson()).toList());
+      _prefs!.setString(_keyAssets, jsonStr);
+    }
+    _notifyDataChanged();
   }
 
   void _persistShareholders() {
-    if (_prefs == null) return;
-    final jsonStr = jsonEncode(_shareholders.map((s) => s.toJson()).toList());
-    _prefs!.setString(_keyShareholders, jsonStr);
+    if (_prefs != null) {
+      final jsonStr = jsonEncode(_shareholders.map((s) => s.toJson()).toList());
+      _prefs!.setString(_keyShareholders, jsonStr);
+    }
+    _notifyDataChanged();
   }
 
   void _persistTransactions() {
-    if (_prefs == null) return;
-    final jsonStr = jsonEncode(_transactions.map((t) => t.toJson()).toList());
-    _prefs!.setString(_keyTransactions, jsonStr);
+    if (_prefs != null) {
+      final jsonStr = jsonEncode(_transactions.map((t) => t.toJson()).toList());
+      _prefs!.setString(_keyTransactions, jsonStr);
+    }
+    _notifyDataChanged();
   }
 
   void _persistArchivedItems() {
-    if (_prefs == null) return;
-    final jsonStr = jsonEncode(_archivedItems.map((a) => a.toJson()).toList());
-    _prefs!.setString(_keyArchived, jsonStr);
+    if (_prefs != null) {
+      final jsonStr = jsonEncode(_archivedItems.map((a) => a.toJson()).toList());
+      _prefs!.setString(_keyArchived, jsonStr);
+    }
+    _notifyDataChanged();
   }
 
   void _persistUser() {
@@ -586,10 +671,13 @@ class LocalStorageService {
   }
 
   String getPinCode() => _pinCode;
-  bool verifyPin(String entered) => entered == _pinCode;
-  void setPinCode(String newPin) {
-    _pinCode = newPin;
-    _prefs?.setString(_keyPinCode, newPin);
+  void setPinCode(String pin) {
+    _pinCode = pin;
+    _prefs?.setString(_keyPinCode, pin);
+  }
+
+  bool verifyPin(String enteredPin) {
+    return enteredPin == _pinCode;
   }
 
   int getLockTimeoutMinutes() => _lockTimeoutMinutes;
@@ -631,22 +719,35 @@ class LocalStorageService {
   }) {
     if (assets != null) {
       _assets = List.from(assets);
-      _persistAssets();
+      if (_prefs != null) {
+        final jsonStr = jsonEncode(_assets.map((a) => a.toJson()).toList());
+        _prefs!.setString(_keyAssets, jsonStr);
+      }
     }
     if (shareholders != null) {
       _shareholders = List.from(shareholders);
-      _persistShareholders();
+      if (_prefs != null) {
+        final jsonStr = jsonEncode(_shareholders.map((s) => s.toJson()).toList());
+        _prefs!.setString(_keyShareholders, jsonStr);
+      }
     }
     if (transactions != null) {
       _transactions = List.from(transactions);
-      _persistTransactions();
+      if (_prefs != null) {
+        final jsonStr = jsonEncode(_transactions.map((t) => t.toJson()).toList());
+        _prefs!.setString(_keyTransactions, jsonStr);
+      }
     }
     if (archivedItems != null) {
       _archivedItems = List.from(archivedItems);
-      _persistArchivedItems();
+      if (_prefs != null) {
+        final jsonStr = jsonEncode(_archivedItems.map((a) => a.toJson()).toList());
+        _prefs!.setString(_keyArchived, jsonStr);
+      }
     }
     _lastSyncTime = DateTime.now().toUtc();
     _prefs?.setString(_keyLastSync, _lastSyncTime!.toIso8601String());
+    _notifyDataChanged();
   }
 
   /// Clears all local application data and resets to clean initial state
@@ -667,5 +768,11 @@ class LocalStorageService {
     _prefs?.remove(_keySyncQueue);
     _prefs?.remove(_keyLastSync);
     _prefs?.remove(_keySetupCompleted);
+    _notifyDataChanged();
+  }
+
+  void dispose() {
+    _dataChangesController.close();
+    _mutationEventsController.close();
   }
 }

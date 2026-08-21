@@ -6,6 +6,7 @@ import '../core/theming/theme_cubit.dart';
 import '../core/localization/locale_cubit.dart';
 import '../core/routing/app_router.dart';
 import '../core/dependency_injection/di.dart';
+import '../core/services/local_storage_service.dart';
 import '../core/sync/sync_cubit.dart';
 import '../core/security/logic/app_lock_cubit.dart';
 import '../core/security/ui/app_lock_wrapper.dart';
@@ -46,11 +47,13 @@ class FinanceApp extends StatelessWidget {
           create: (_) => HomeCubit(
             assetRepository: getIt<AssetRepository>(),
             financeRepository: getIt<FinanceRepository>(),
+            storageService: getIt<LocalStorageService>(),
           )..loadDashboardData(),
         ),
         BlocProvider<ShareholdersCubit>(
           create: (_) => ShareholdersCubit(
             partnerRepository: getIt<PartnerRepository>(),
+            storageService: getIt<LocalStorageService>(),
           )..loadShareholders(),
         ),
       ],

@@ -2,12 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:taxis_managment_001/core/network/sync/enums/sync_enums.dart';
 import 'package:taxis_managment_001/core/network/sync/models/sync_payload_model.dart';
 import 'package:taxis_managment_001/core/network/sync/models/sync_message_model.dart';
-import 'package:taxis_managment_001/core/network/sync/discovery/service_discovery_manager.dart';
 import 'package:taxis_managment_001/core/network/sync/repository/local_sync_repository.dart';
 import 'package:taxis_managment_001/core/services/local_storage_service.dart';
 import 'package:taxis_managment_001/core/shared/models/asset_model.dart';
 import 'package:taxis_managment_001/core/shared/models/shareholder_model.dart';
 import 'package:taxis_managment_001/core/shared/models/transaction_model.dart';
+import 'package:taxis_managment_001/core/shared/models/sync_entry_model.dart';
 import 'package:taxis_managment_001/core/shared/enums/app_enums.dart';
 
 void main() {
@@ -60,15 +60,25 @@ void main() {
         ),
       );
 
-      final decodedMutation = SyncMessageModel.fromRawJson(mutationMsg.toRawJson());
+      final decodedMutation = SyncMessageModel.fromRawJson(
+        mutationMsg.toRawJson(),
+      );
       expect(decodedMutation.type, SyncMessageType.mutation);
       expect(decodedMutation.payload?.tableName, 'shareholders');
       expect(decodedMutation.payload?.data['name'], 'علي حسن');
     });
 
     test('SyncMessageModel handles batch full sync snapshot envelopes', () {
-      final p1 = SyncPayloadModel.create(tableName: 'assets', action: SyncAction.update, data: {'id': 'a1'});
-      final p2 = SyncPayloadModel.create(tableName: 'shareholders', action: SyncAction.update, data: {'id': 's1'});
+      final p1 = SyncPayloadModel.create(
+        tableName: 'assets',
+        action: SyncAction.update,
+        data: {'id': 'a1'},
+      );
+      final p2 = SyncPayloadModel.create(
+        tableName: 'shareholders',
+        action: SyncAction.update,
+        data: {'id': 's1'},
+      );
 
       final batchMsg = SyncMessageModel.batchSync(
         senderId: 'server',
@@ -187,9 +197,24 @@ void main() {
       );
 
       final batch = [
-        SyncPayloadModel.create(tableName: 'assets', action: SyncAction.insert, data: asset.toJson(), recordId: asset.id),
-        SyncPayloadModel.create(tableName: 'shareholders', action: SyncAction.insert, data: partner.toJson(), recordId: partner.id),
-        SyncPayloadModel.create(tableName: 'transactions', action: SyncAction.insert, data: tx.toJson(), recordId: tx.id),
+        SyncPayloadModel.create(
+          tableName: 'assets',
+          action: SyncAction.insert,
+          data: asset.toJson(),
+          recordId: asset.id,
+        ),
+        SyncPayloadModel.create(
+          tableName: 'shareholders',
+          action: SyncAction.insert,
+          data: partner.toJson(),
+          recordId: partner.id,
+        ),
+        SyncPayloadModel.create(
+          tableName: 'transactions',
+          action: SyncAction.insert,
+          data: tx.toJson(),
+          recordId: tx.id,
+        ),
       ];
 
       repo.applyBatchSync(batch);
@@ -254,13 +279,77 @@ void main() {
     });
   });
 
-  group('ServiceDiscoveryManager Structure Tests', () {
-    test('Instantiates and verifies configuration defaults', () {
-      final manager = ServiceDiscoveryManager();
-      expect(ServiceDiscoveryManager.serviceType, '_sync._tcp');
-      expect(ServiceDiscoveryManager.defaultPort, 8080);
-      expect(manager.isRegistered, isFalse);
-      expect(manager.isDiscovering, isFalse);
-    });
+  group('Reactive UI Auto-Update and Mutation Events Tests', () {
+    test(
+      'LocalStorageService emits dataChanges when assets/shareholders/batch are modified',
+      () async {
+        final storage = LocalStorageService();
+        storage.clearAllData();
+
+        int changeCount = 0;
+        final sub = storage.dataChanges.listen((_) {
+          changeCount++;
+        });
+
+        const asset = AssetModel(
+          id: 'reactive_asset_1',
+          plateNumber: 'س أ د 1234',
+          chassisNumber: 'VIN-REACTIVE-1',
+          carModelYear: 'BYD F3 2023',
+          modelType: AssetType.fullTaxi,
+          monthlyRent: 8500.0,
+        );
+
+        storage.addAsset(asset);
+        await Future.delayed(const Duration(milliseconds: 10));
+        expect(changeCount, 1);
+
+        storage.applySyncDeleteAsset('reactive_asset_1');
+        await Future.delayed(const Duration(milliseconds: 10));
+        expect(changeCount, 2);
+
+        storage.applyBatchSnapshot(assets: [asset]);
+        await Future.delayed(const Duration(milliseconds: 10));
+        expect(changeCount, 3);
+
+        await sub.cancel();
+      },
+    );
+
+    test(
+      'LocalStorageService emits mutationEvents for local operations and not for applySync',
+      () async {
+        final storage = LocalStorageService();
+        storage.clearAllData();
+
+        final capturedMutations = <SyncQueueEntry>[];
+        final sub = storage.mutationEvents.listen((entry) {
+          capturedMutations.add(entry);
+        });
+
+        const asset = AssetModel(
+          id: 'mutation_asset_1',
+          plateNumber: 'س أ د 9999',
+          chassisNumber: 'VIN-MUT-1',
+          carModelYear: 'Chery Arrizo 5 2024',
+          modelType: AssetType.fullTaxi,
+          monthlyRent: 9000.0,
+        );
+
+        // Local addition -> should emit mutation
+        storage.addAsset(asset);
+        await Future.delayed(const Duration(milliseconds: 10));
+        expect(capturedMutations.length, 1);
+        expect(capturedMutations.first.entityId, 'mutation_asset_1');
+        expect(capturedMutations.first.operation, SyncOperationType.create);
+
+        // Remote sync application -> must NOT emit outgoing mutation
+        storage.applySyncAsset(asset.copyWith(monthlyRent: 9500.0));
+        await Future.delayed(const Duration(milliseconds: 10));
+        expect(capturedMutations.length, 1); // Still 1
+
+        await sub.cancel();
+      },
+    );
   });
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/shared/repos/asset_repository.dart';
 import '../../../core/shared/repos/finance_repository.dart';
@@ -5,18 +6,29 @@ import '../../../core/shared/models/asset_model.dart';
 import '../../../core/shared/models/document_meta_model.dart';
 import '../../../core/shared/models/archived_item_model.dart';
 import '../../../core/shared/enums/app_enums.dart';
+import '../../../core/services/local_storage_service.dart';
 import 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   final AssetRepository _assetRepo;
   final FinanceRepository _financeRepo;
+  final LocalStorageService? _storage;
+  StreamSubscription<void>? _dataChangesSub;
 
   HomeCubit({
     required AssetRepository assetRepository,
     required FinanceRepository financeRepository,
+    LocalStorageService? storageService,
   })  : _assetRepo = assetRepository,
         _financeRepo = financeRepository,
-        super(const HomeState());
+        _storage = storageService,
+        super(const HomeState()) {
+    if (_storage != null) {
+      _dataChangesSub = _storage.dataChanges.listen((_) {
+        loadDashboardData();
+      });
+    }
+  }
 
   Future<void> loadDashboardData() async {
     emit(state.copyWith(status: HomeStatus.loading));
@@ -104,5 +116,11 @@ class HomeCubit extends Cubit<HomeState> {
     await _financeRepo.dismissAlert(alertId);
     final alerts = await _financeRepo.getAlerts();
     emit(state.copyWith(alerts: alerts));
+  }
+
+  @override
+  Future<void> close() {
+    _dataChangesSub?.cancel();
+    return super.close();
   }
 }
