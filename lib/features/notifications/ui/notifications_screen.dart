@@ -45,7 +45,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           // Categorize notifications
           final financialAlerts = alerts.where((a) => a.type == AlertType.rentDue).toList();
           final maintenanceAlerts = alerts.where((a) => a.type == AlertType.maintenance).toList();
-          final docAlerts = alerts.where((a) => a.type == AlertType.licenseExpiry).toList();
+          final docAlerts = alerts.where((a) => a.type == AlertType.licenseExpiry || a.type == AlertType.contractRenewal).toList();
 
           final List<AlertItem> currentList;
           switch (_selectedFilter) {
@@ -157,11 +157,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         iconColor = isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000);
                         iconBgColor = isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0);
                         break;
+                      case AlertType.contractRenewal:
                       case AlertType.licenseExpiry:
                       default:
-                        icon = Icons.description_rounded;
-                        iconColor = primaryColor;
-                        iconBgColor = isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFE8F0FE);
+                        icon = alert.priority == AlertPriority.high ? Icons.error_outline_rounded : Icons.description_rounded;
+                        iconColor = alert.priority == AlertPriority.high
+                            ? (isDark ? const Color(0xFFF87171) : const Color(0xFFC5221F))
+                            : primaryColor;
+                        iconBgColor = alert.priority == AlertPriority.high
+                            ? (isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.4) : const Color(0xFFFCE8E6))
+                            : (isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFE8F0FE));
                         break;
                     }
 

@@ -56,10 +56,15 @@ class HomeDashboardScreen extends StatelessWidget {
         centerTitle: true,
         actions: [
           const ArchiveIconButton(),
-          NotificationBellButton(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+          BlocBuilder<HomeCubit, HomeState>(
+            builder: (context, state) {
+              return NotificationBellButton(
+                hasUnread: state.alerts.isNotEmpty,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                  );
+                },
               );
             },
           ),

@@ -100,16 +100,34 @@ class AlertsSection extends StatelessWidget {
             iconBgColor = isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0);
             iconColor = isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000);
             break;
+          case AlertType.contractRenewal:
           case AlertType.licenseExpiry:
           default:
-            badgeText = l10n.info;
-            badgeBgColor = isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFD2E3FC);
-            badgeTextColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF1A73E8);
-            cardBgColor = isDark ? const Color(0xFF1E293B) : const Color(0xFFEEF4FE);
-            borderColor = isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.5) : const Color(0xFFD2E3FC);
-            icon = Icons.info_rounded;
-            iconBgColor = isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFD2E3FC);
-            iconColor = isDark ? const Color(0xFF60A5FA) : const Color(0xFF1A73E8);
+            final isHighPriority = alert.priority == AlertPriority.high;
+            final isMediumPriority = alert.priority == AlertPriority.medium;
+
+            badgeText = isHighPriority
+                ? (context.isArabic ? 'منتهي' : 'Expired')
+                : (isMediumPriority ? (context.isArabic ? 'عاجل' : 'Urgent') : l10n.info);
+            badgeBgColor = isHighPriority
+                ? (isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.4) : const Color(0xFFFCE8E6))
+                : (isMediumPriority
+                    ? (isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : const Color(0xFFFEF7E0))
+                    : (isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFD2E3FC)));
+            badgeTextColor = isHighPriority
+                ? (isDark ? const Color(0xFFF87171) : const Color(0xFFC5221F))
+                : (isMediumPriority
+                    ? (isDark ? const Color(0xFFFBBF24) : const Color(0xFFB06000))
+                    : (isDark ? const Color(0xFF60A5FA) : const Color(0xFF1A73E8)));
+            cardBgColor = isHighPriority
+                ? (isDark ? const Color(0xFF1E293B) : const Color(0xFFFDF7F7))
+                : (isDark ? const Color(0xFF1E293B) : const Color(0xFFEEF4FE));
+            borderColor = isHighPriority
+                ? (isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.5) : const Color(0xFFFCDAD7))
+                : (isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.5) : const Color(0xFFD2E3FC));
+            icon = isHighPriority ? Icons.error_outline_rounded : Icons.info_rounded;
+            iconBgColor = badgeBgColor;
+            iconColor = badgeTextColor;
             break;
         }
 

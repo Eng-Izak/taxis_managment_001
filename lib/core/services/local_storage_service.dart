@@ -392,12 +392,26 @@ class LocalStorageService {
   // ================= ALERTS OPERATIONS =================
   List<AlertItem> getAlerts() {
     final dynamicAlerts = <AlertItem>[];
+    final now = DateTime.now();
 
     for (final asset in _assets) {
-      // 1. License expiring alert (if <= 30 days)
+      // 1. Vehicle License Expiry (Active or Expired)
       if (asset.licenseExpiryDate != null) {
-        final daysLeft = asset.licenseExpiryDate!.difference(DateTime.now()).inDays;
-        if (daysLeft >= 0 && daysLeft <= 30) {
+        final daysLeft = asset.licenseExpiryDate!.difference(now).inDays;
+        if (daysLeft < 0) {
+          dynamicAlerts.add(
+            AlertItem(
+              id: 'dyn_lic_exp_${asset.id}',
+              title: 'رخصة تسيير منتهية',
+              subtitle: 'انتهى ترخيص ${asset.carModelYear} (${asset.plateNumber}) منذ ${-daysLeft} يوم',
+              type: AlertType.licenseExpiry,
+              priority: AlertPriority.high,
+              date: asset.licenseExpiryDate!,
+              assetId: asset.id,
+              plateNumber: asset.plateNumber,
+            ),
+          );
+        } else if (daysLeft <= 30) {
           dynamicAlerts.add(
             AlertItem(
               id: 'dyn_lic_${asset.id}',
@@ -413,17 +427,33 @@ class LocalStorageService {
         }
       }
 
-      // 2. Contract expiring alert (if <= 15 days)
+      // 2. Lease Contract Expiry (Active or Expired)
       if (asset.contractExpiryDate != null) {
-        final daysLeft = asset.contractExpiryDate!.difference(DateTime.now()).inDays;
-        if (daysLeft >= 0 && daysLeft <= 15) {
+        final daysLeft = asset.contractExpiryDate!.difference(now).inDays;
+        final driverName = asset.driverOrRenterName.trim().isNotEmpty
+            ? asset.driverOrRenterName
+            : 'المركبة';
+        if (daysLeft < 0) {
+          dynamicAlerts.add(
+            AlertItem(
+              id: 'dyn_cont_exp_${asset.id}',
+              title: 'عقد إيجار منتهي',
+              subtitle: 'انتهى عقد السائق $driverName لسيارة (${asset.plateNumber}) منذ ${-daysLeft} يوم',
+              type: AlertType.contractRenewal,
+              priority: AlertPriority.high,
+              date: asset.contractExpiryDate!,
+              assetId: asset.id,
+              plateNumber: asset.plateNumber,
+            ),
+          );
+        } else if (daysLeft <= 30) {
           dynamicAlerts.add(
             AlertItem(
               id: 'dyn_cont_${asset.id}',
               title: 'تجديد عقد الإيجار',
-              subtitle: 'ينتهي عقد السائق ${asset.driverOrRenterName} لسيارة (${asset.plateNumber}) خلال $daysLeft يوم',
-              type: AlertType.rentDue,
-              priority: AlertPriority.high,
+              subtitle: 'ينتهي عقد السائق $driverName لسيارة (${asset.plateNumber}) خلال $daysLeft يوم',
+              type: AlertType.contractRenewal,
+              priority: daysLeft <= 7 ? AlertPriority.high : AlertPriority.medium,
               date: asset.contractExpiryDate!,
               assetId: asset.id,
               plateNumber: asset.plateNumber,
@@ -431,14 +461,87 @@ class LocalStorageService {
           );
         }
       }
+
+      // 3. Attached Asset Documents Expiry
+      for (final doc in asset.documents) {
+        if (doc.expiryDate != null) {
+          final daysLeft = doc.expiryDate!.difference(now).inDays;
+          if (daysLeft < 0) {
+            dynamicAlerts.add(
+              AlertItem(
+                id: 'dyn_doc_exp_${asset.id}_${doc.id}',
+                title: 'مستند منتهي (${doc.title})',
+                subtitle: 'انتهى مستند "${doc.title}" لسيارة (${asset.plateNumber}) منذ ${-daysLeft} يوم',
+                type: AlertType.licenseExpiry,
+                priority: AlertPriority.high,
+                date: doc.expiryDate!,
+                assetId: asset.id,
+                plateNumber: asset.plateNumber,
+              ),
+            );
+          } else if (daysLeft <= 30) {
+            dynamicAlerts.add(
+              AlertItem(
+                id: 'dyn_doc_${asset.id}_${doc.id}',
+                title: 'اقتراب انتهاء مستند (${doc.title})',
+                subtitle: 'ينتهي مستند "${doc.title}" لسيارة (${asset.plateNumber}) خلال $daysLeft يوم',
+                type: AlertType.licenseExpiry,
+                priority: daysLeft <= 7 ? AlertPriority.high : (daysLeft <= 15 ? AlertPriority.medium : AlertPriority.info),
+                date: doc.expiryDate!,
+                assetId: asset.id,
+                plateNumber: asset.plateNumber,
+              ),
+            );
+          }
+        }
+      }
+    }
+
+    // 4. Attached Shareholder Documents Expiry
+    for (final partner in _shareholders) {
+      for (final doc in partner.documents) {
+        if (doc.expiryDate != null) {
+          final daysLeft = doc.expiryDate!.difference(now).inDays;
+          if (daysLeft < 0) {
+            dynamicAlerts.add(
+              AlertItem(
+                id: 'dyn_sh_doc_exp_${partner.id}_${doc.id}',
+                title: 'مستند مساهم منتهي (${doc.title})',
+                subtitle: 'انتهى مستند "${doc.title}" للمساهم (${partner.name}) منذ ${-daysLeft} يوم',
+                type: AlertType.licenseExpiry,
+                priority: AlertPriority.high,
+                date: doc.expiryDate!,
+              ),
+            );
+          } else if (daysLeft <= 30) {
+            dynamicAlerts.add(
+              AlertItem(
+                id: 'dyn_sh_doc_${partner.id}_${doc.id}',
+                title: 'اقتراب انتهاء مستند مساهم (${doc.title})',
+                subtitle: 'ينتهي مستند "${doc.title}" للمساهم (${partner.name}) خلال $daysLeft يوم',
+                type: AlertType.licenseExpiry,
+                priority: daysLeft <= 7 ? AlertPriority.high : (daysLeft <= 15 ? AlertPriority.medium : AlertPriority.info),
+                date: doc.expiryDate!,
+              ),
+            );
+          }
+        }
+      }
     }
 
     final all = List<AlertItem>.from(_alerts);
     for (final dyn in dynamicAlerts) {
-      if (!all.any((a) => a.id == dyn.id || (a.assetId == dyn.assetId && a.type == dyn.type))) {
+      if (!all.any((a) => a.id == dyn.id)) {
         all.add(dyn);
       }
     }
+
+    // Sort alerts so that high priority (overdue/expired) appear at the top
+    all.sort((a, b) {
+      if (a.priority == AlertPriority.high && b.priority != AlertPriority.high) return -1;
+      if (a.priority != AlertPriority.high && b.priority == AlertPriority.high) return 1;
+      return a.date.compareTo(b.date);
+    });
 
     return List.unmodifiable(all);
   }

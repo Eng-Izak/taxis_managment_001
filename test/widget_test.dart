@@ -269,24 +269,68 @@ void main() {
       storage.deleteShareholder('sh_archive_test');
     });
 
-    test('Generates real dynamic alerts for upcoming license expirations', () {
+    test('Generates real dynamic alerts for upcoming and expired licenses, contracts and attached documents', () {
       final storage = LocalStorageService();
-      final sampleAsset = AssetModel(
-        id: 'asset_with_expiry',
+      storage.clearAllData();
+
+      // 1. Asset with expired license and near-expiry lease contract
+      final expiredAsset = AssetModel(
+        id: 'asset_expired_lic',
         plateNumber: 'س أ د 4821',
         chassisNumber: 'VIN-123',
-        carModelYear: 'BYD F3',
+        carModelYear: 'BYD F3 2024',
         modelType: AssetType.fullTaxi,
         monthlyRent: 8000.0,
-        averageMonthlyExpenses: 1000.0,
-        assetValuation: 250000.0,
-        licenseExpiryDate: DateTime.now().add(const Duration(days: 10)),
+        licenseExpiryDate: DateTime.now().subtract(const Duration(days: 5)),
+        contractExpiryDate: DateTime.now().add(const Duration(days: 12)),
+        documents: [
+          DocumentMeta(
+            id: 'doc_tax_card',
+            title: 'البطاقة الضريبية',
+            type: DocumentType.taxCard,
+            expiryDate: DateTime.now().subtract(const Duration(days: 15)),
+          ),
+        ],
       );
-      storage.addAsset(sampleAsset);
+
+      // 2. Shareholder with near-expiry national ID document
+      final partner = ShareholderModel(
+        id: 'sh_exp_doc',
+        name: 'كابتن محمود البشري',
+        phone: '01000112233',
+        documents: [
+          DocumentMeta(
+            id: 'doc_nat_id',
+            title: 'بطاقة الرقم القومي',
+            type: DocumentType.nationalId,
+            expiryDate: DateTime.now().add(const Duration(days: 4)),
+          ),
+        ],
+      );
+
+      storage.addAsset(expiredAsset);
+      storage.addShareholder(partner);
+
       final alerts = storage.getAlerts();
 
       expect(alerts.isNotEmpty, isTrue);
-      expect(alerts.any((a) => a.type == AlertType.licenseExpiry), isTrue);
+
+      // Verify expired license alert (high priority)
+      final expLicAlert = alerts.firstWhere((a) => a.id == 'dyn_lic_exp_asset_expired_lic');
+      expect(expLicAlert.priority, AlertPriority.high);
+      expect(expLicAlert.title, contains('منتهية'));
+
+      // Verify lease contract renewal alert
+      expect(alerts.any((a) => a.type == AlertType.contractRenewal), isTrue);
+
+      // Verify expired asset document alert
+      final expDocAlert = alerts.firstWhere((a) => a.id == 'dyn_doc_exp_asset_expired_lic_doc_tax_card');
+      expect(expDocAlert.priority, AlertPriority.high);
+      expect(expDocAlert.title, contains('البطاقة الضريبية'));
+
+      // Verify shareholder document alert
+      final shDocAlert = alerts.firstWhere((a) => a.id == 'dyn_sh_doc_sh_exp_doc_doc_nat_id');
+      expect(shDocAlert.title, contains('بطاقة الرقم القومي'));
     });
 
     test('Queues mutations for offline sync and clears queue upon sync', () {
